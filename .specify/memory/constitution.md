@@ -1,9 +1,15 @@
 <!-- Sync Impact Report
-Version bump: 0.0.0 → 1.0.0 (MINOR: Initial constitution with 5 core principles)
-Principles added: TypeScript Strict Mode (1), Clean Code Practices (2), Testing Pyramid (3), JSDoc Documentation (4), Secure Auth & Persistence (5)
-Technology section: Added Next.js, TypeScript, Prisma, PostgreSQL, NextAuth, Vercel guidelines
-Development workflow: Added code review, testing gates, deployment approval
-Status: Complete - No deferred placeholders
+Version bump: 1.0.0 → 1.1.0 (MINOR: Comprehensive Testing Principles expansion with 8 detailed sections)
+Testing Principles expanded: Replaced single Testing Pyramid principle (III) with 8-section Testing Principles framework
+  - Section 1: Testing Philosophy (TDD, RED-GREEN-REFACTOR)
+  - Section 2: Coverage Requirements (70/20/10 pyramid, 80% line, 75% branch, 75% mutation)
+  - Section 3: Test Types & Organization (unit/integration/E2E directory structure)
+  - Section 4: Naming Conventions (test file/suite naming patterns)
+  - Section 5: Test Anatomy (AAA pattern, beforeEach isolation)
+  - Section 6: Mocking & Test Data (mock/stub/fake boundaries, fixtures)
+  - Section 7: Quality Criteria (CRITICAL: observable behavior, no tautological tests, anti-patterns)
+  - Section 8: Tools & Frameworks (Jest, React Testing Library, Playwright, Stryker, npm scripts, pre-commit, CI/CD)
+Status: Complete - All 8 sections defined; mutation testing via Stryker; CI/CD gates specified
 -->
 
 # InnovatEPAM Portal Constitution
@@ -27,14 +33,137 @@ Code MUST prioritize readability and maintainability with the following standard
 - Avoid nested ternaries, deeply nested conditionals; prefer early returns
 - Rationale: Clean code reduces cognitive load, accelerates onboarding, and cuts debugging time by 40%
 
-### III. Testing Pyramid (NON-NEGOTIABLE)
-Testing structure MUST follow the Testing Pyramid: 80% unit tests (business logic), 15% integration tests, 5% e2e tests:
-- **Unit Tests (80%)**: Focus on Prisma database interactions, validation logic, authentication flows, utility functions; target 80% coverage minimum on business logic
-- **Integration Tests (15%)**: Test NextAuth flows, API route handlers, Server Actions, database transaction chains, and service-to-service interactions
-- **E2E Tests (5%)**: Critical user journeys only (authentication, core workflows)
-- All tests MUST run and pass before merge
-- Coverage reports MUST be generated with every build; CI/CD MUST enforce minimum 80% on business logic
-- Rationale: This pyramid maximizes feedback speed while ensuring critical paths are validated; catches regressions early
+### III. Testing Principles (NON-NEGOTIABLE)
+
+Testing is a first-class discipline woven into every layer of development. All testing practices MUST follow these comprehensive principles:
+
+#### Section 1 – Testing Philosophy
+The team MUST adopt Test-Driven Development (TDD) as the default development methodology:
+- Tests MUST be written FIRST, before implementation code (RED-GREEN-REFACTOR cycle)
+- Generated tests MUST derive from specifications and acceptance criteria, never from implementation details
+- Rationale: TDD ensures specifications drive code design, reduces debugging cycles, and guarantees testable, loosely-coupled architectures
+
+#### Section 2 – Coverage Requirements
+Testing structure MUST follow the Testing Pyramid distribution with strict coverage targets:
+- **Distribution**: Approximately 70% unit tests, 20% integration tests, 10% E2E tests
+- **Unit Tests (70%)**: Services, utilities, business logic, validation functions, Prisma interactions, authentication flows
+- **Integration Tests (20%)**: API endpoints, database operations, NextAuth flows, Server Actions, database transaction chains
+- **E2E Tests (10%)**: Critical user workflows only (authentication, core revenue-impacting journeys)
+- **Static Analysis**: TypeScript strict mode + ESLint comprehensive rules MUST pass with zero violations
+- **Coverage Targets**: Minimum 80% line coverage, 75% branch coverage, 75% mutation score on business logic
+- All tests MUST pass in CI before merge; coverage reports MUST be generated with every build
+- Rationale: This distribution maximizes feedback speed while ensuring critical paths are validated; mutation testing catches subtle logic bugs
+
+#### Section 3 – Test Types & Organization
+Test files MUST be organized by type with predictable directory structures that mirror source code:
+- **Unit Tests**: `tests/unit/**/*.test.ts` — mirror `src/` directory structure; one test file per source file
+- **Integration Tests**: `tests/integration/**/*.test.ts` — group by feature module (e.g., `tests/integration/auth/`, `tests/integration/users/`)
+- **E2E Tests**: `tests/e2e/**/*.spec.ts` — group by user journey (e.g., `tests/e2e/auth-flow.spec.ts`, `tests/e2e/checkout-flow.spec.ts`)
+- Rationale: Mirrored structure accelerates test discoverability; feature-grouped integration tests clarify dependencies; E2E naming by user journey keeps test intent clear
+
+#### Section 4 – Naming Conventions
+Test file and suite naming conventions MUST be consistent and self-documenting:
+- **Unit/Integration test files**: `ComponentName.test.ts` (matches source file name)
+- **E2E test files**: `user-journey-name.spec.ts` (kebab-case, describing the user journey or workflow)
+- **Test suites**: `describe('ComponentName', ...)` or `describe('User Journey: Authentication Flow', ...)` (matches file intent)
+- **Test cases**: `it('should [do X] when [condition Y]', ...)` — imperative "should" statement that reads as a specification
+- Rationale: Consistent naming enables developers to quickly locate tests; "should/when" format documents expected behavior
+
+#### Section 5 – Test Anatomy
+Every test MUST follow the Arrange-Act-Assert (AAA) pattern with strict isolation rules:
+- **Arrange**: Set up test fixtures, mock dependencies, initialize state
+- **Act**: Execute the function or component being tested
+- **Assert**: Verify the output matches expectations
+- Test-specific setup MUST use `beforeEach` (not `beforeAll`); ensures each test is stateless and independent
+- Each test MUST be able to run in isolation without relying on other tests
+- NO shared global state, shared fixtures, or test execution order dependencies
+- Rationale: AAA clarity reduces cognitive load; `beforeEach` isolation prevents flaky tests; independent tests enable parallel execution and faster feedback
+
+#### Section 6 – Mocking & Test Data
+Mocking strategy MUST distinguish between what to mock, stub, and fake to maximize test effectiveness:
+- **Mock**: External services and third-party APIs (email, payment processors, cloud services, HTTP APIs, Slack, analytics)
+- **Stub**: Time-dependent functions (`Date.now()`, `setTimeout()`, `setInterval()`) — ensure tests are deterministic
+- **Fake**: In-memory implementations (e.g., in-memory database for unit tests; `jest.mock('fs')` for file I/O)
+- **Test Fixtures**: Use centralized, reusable test data builders for complex domain objects (e.g., `createTestUser()`, `setupMockAPI()`)
+- Extract shared mock setup into helper functions to avoid duplication and improve maintainability
+- **DO NOT mock**: Code you own (business logic, utilities, own services) — test the real implementation; DO NOT mock simple utilities (lodash, string manipulation)
+- Rationale: Mocking the right boundaries prevents over-specification and brittleness; helpers reduce duplication and improve test clarity
+
+#### Section 7 – Quality Criteria (CRITICAL)
+Tests are only valuable if they enforce quality. All tests MUST exhibit these characteristics:
+
+**What Makes a Good Test**:
+- Tests **observable behavior**, not implementation details — refactor code without breaking tests
+- Has **meaningful assertions** — never write tautological tests like `expect(x).toBe(x)` or assertions that always pass
+- Tests **one thing** (single responsibility) — multiple assertions OK if testing one behavior; use separate tests for separate behaviors
+- **Fast execution**: unit tests <1s, integration tests <5s — speed enables rapid feedback
+- **Deterministic**: Same result on every run; no flaky failures from timing, iteration order, global state, or random data
+
+**Quality Gates (Enforcement via CI)**:
+- **Mutation Score**: Minimum 75% on business logic (use Stryker for JavaScript/TypeScript mutation testing)
+- **No Tautological Tests**: Assertion reviews required in PR; assertions MUST validate non-obvious expectations
+- **Oracle Validation**: All expected values (test oracles) MUST be human-verified; never copy expected values from unreviewed code
+- **Coverage Thresholds**: Minimum 80% line coverage, 75% branch coverage on business logic
+
+**Anti-Patterns MUST Be Avoided**:
+- ❌ Testing private methods or internal implementation state — test public API
+- ❌ Interdependent tests — test order MUST NOT matter; each test independent
+- ❌ Brittle tests — tests that break on harmless refactoring; use behavior-driven assertions
+- ❌ Flaky tests — intermittent failures from timing, concurrency, or shared state; root cause every flake
+- ❌ Tests without assertions — dangling tests provide false confidence; every test MUST assert
+- ❌ Copy-pasted test logic — extract helpers and shared setup to prevent divergent test maintenance
+
+**Rationale**: Quality criteria distinguish signal from noise; mutation testing catches subtle logic bugs; oracle validation guarantees test integrity; anti-pattern avoidance prevents brittle, unmaintainable test suites
+
+#### Section 8 – Tools & Frameworks
+All testing, type checking, and quality tooling MUST be standardized across the project. Tool selection and command execution are non-negotiable:
+
+**Static Analysis**:
+- **Type Checker**: TypeScript 5.x with `strict: true` in `tsconfig.json` (non-negotiable; all implicit `any` forbidden)
+- **Linter**: ESLint with `@typescript-eslint/parser`, `@typescript-eslint/recommended` + `@typescript-eslint/recommended-requiring-type-checking` ruleset; configuration in `.eslintrc.json`
+
+**Unit & Integration Testing**:
+- **Framework**: Jest 29.x+ (configured in `jest.config.js` with preset `ts-jest`)
+- **Assertion Library**: Jest built-in matchers (expect API)
+- **Component Testing**: React Testing Library 14.x+ (queries DOM by role/label, not implementation details)
+- **Mocking**: Jest mocking API (`jest.mock()`, `jest.spyOn()`) + MSW (Mock Service Worker) for HTTP mocking in integration tests
+
+**E2E Testing**:
+- **Framework**: Playwright 1.40.x+ (configured in `playwright.config.ts`)
+- **Optional**: Stagehand for AI-native browser automation (for complex visual validations or intelligent navigation)
+
+**Coverage & Quality**:
+- **Coverage Tool**: Jest coverage reports (enforced at 80% line, 75% branch minimum via CI)
+- **Mutation Testing**: Stryker for JavaScript/TypeScript (configured in `stryker.config.mjs`; enforced at 75% mutation score minimum)
+
+**Execution Commands** (npm scripts in `package.json`):
+```
+npm run typecheck        # tsc --noEmit
+npm run lint             # eslint . --ext .ts,.tsx
+npm run lint:fix         # eslint . --ext .ts,.tsx --fix
+npm run test             # jest (all tests: unit + integration)
+npm run test:unit        # jest --testPathPattern=tests/unit
+npm run test:integration # jest --testPathPattern=tests/integration
+npm run test:e2e         # playwright test
+npm run coverage         # jest --coverage (generates coverage report)
+npm run mutate           # stryker run (mutation testing; generates stryker report)
+npm run test:watch       # jest --watch (for local development)
+```
+
+**Pre-Commit Hook**:
+- MUST run: `npm run typecheck && npm run lint && npm run test:unit` (catches type/lint/unit errors before commit)
+- Use husky + lint-staged to enforce; zero-tolerance for bypass (`--no-verify` blocked via branch protection)
+
+**CI/CD Pipeline** (on every PR and main branch):
+- ✅ Type check: `npm run typecheck` (zero failures)
+- ✅ Lint: `npm run lint` (zero failures)
+- ✅ All tests: `npm run test && npm run test:e2e` (zero failures)
+- ✅ Coverage: `npm run coverage` (80% line, 75% branch minimum enforced)
+- ✅ Mutation: `npm run mutate` (75% score minimum enforced on main branch)
+- ✅ Bundle size check: `npm run build` (monitor Server Component sizes; flag regressions)
+- All gates MUST pass before merge; no exceptions
+
+**Rationale**: Standardized tooling eliminates "works on my machine" friction; automation via pre-commit + CI ensures consistency; mutation testing on main branch catches quality regressions early
 
 ### IV. JSDoc Documentation (NON-NEGOTIABLE)
 ALL code MUST be documented with JSDoc comments:
@@ -123,4 +252,4 @@ This Constitution is the source of truth for InnovatEPAM Portal development. It 
 - Architecture decisions: See `docs/adr/` folder
 - Troubleshooting & debugging: Consult test files as reference implementations
 
-**Version**: 1.0.0 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-24
+**Version**: 1.1.0 | **Ratified**: 2026-02-24 | **Last Amended**: 2026-02-24

@@ -1,0 +1,85 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  email               String               @unique @db.VarChar(254)
+  name                String?              @db.VarChar(255)
+  passwordHash        String
+  emailConfirmed      Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  lastLoginAt         DateTime?
+  sessions            Session[]
+  passwordResetTokens PasswordResetToken[]
+  failedLoginAttempts FailedLoginAttempt[]
+  authLogs            AuthLog[]
+
+  @@index([email])
+  @@index([lastLoginAt])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  jwt          String   @db.Text
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  userAgent    String?
+  ipAddress    String?
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([sessionToken])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  usedAt    DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([token])
+}
+
+model FailedLoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  attemptAt DateTime @default(now())
+  reason    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, attemptAt])
+  @@index([attemptAt])
+}
+
+model AuthLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  status    String
+  timestamp DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  reason    String?
+  metadata  Json?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, timestamp])
+  @@index([action, timestamp])
+  @@index([timestamp])
+}

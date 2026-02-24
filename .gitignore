@@ -1,0 +1,23 @@
+project-guide.md
+
+# Node.js / TypeScript / Next.js
+node_modules/
+.next/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+*.log
+.env*
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# Universal
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

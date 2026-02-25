@@ -5,11 +5,21 @@
 **Status**: Draft  
 **Input**: User description: "create Idea listing and viewing"
 
+## Clarifications
+
+### Session 2026-02-25
+
+- Q: What should "submitter identity" display for evaluators and admins in the idea detail view? → A: Display name only (e.g., "Jane Smith"); fall back to email if name is empty
+- Q: What should be the default pagination page size for the idea list? → A: 15 ideas per page
+- Q: How should out-of-range pagination page numbers be handled? → A: Normalize to nearest valid page (e.g., page 0 → page 1; page 999 → last page)
+- Q: What does "ideas available for evaluation" mean for evaluators and admins in MVP? → A: All submitted ideas (no status filter); MVP has no evaluation status yet
+- Q: What should users see while the idea list or detail view is loading? → A: Skeleton placeholder mimicking list/detail layout
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - View List of Ideas (Priority: P1)
 
-An authenticated user can view a list of ideas they are allowed to access. Submitters see their own submitted ideas; evaluators and admins see ideas available for evaluation. Each list item displays the idea title, category, submission date, and an indication of whether an attachment exists. Users can click an item to open the full idea detail.
+An authenticated user can view a list of ideas they are allowed to access. Submitters see their own submitted ideas; evaluators and admins see all submitted ideas (no status filter in MVP). Each list item displays the idea title, category, submission date, and an indication of whether an attachment exists. Users can click an item to open the full idea detail.
 
 **Why this priority**: Listing is the primary entry point for discovering and accessing ideas. Without it, users cannot find or navigate to specific ideas. This delivers the core value of "users can browse submitted ideas."
 
@@ -18,7 +28,7 @@ An authenticated user can view a list of ideas they are allowed to access. Submi
 **Acceptance Scenarios**:
 
 1. **Given** a submitter user is logged in and has submitted at least one idea, **When** they navigate to the idea list (e.g., "My Ideas"), **Then** they see their submitted ideas displayed with title, category name, submission date, and whether an attachment exists
-2. **Given** an evaluator or admin user is logged in, **When** they navigate to the idea list (e.g., "Evaluation Queue" or "All Ideas"), **Then** they see ideas available for evaluation with title, category name, submission date, and attachment indicator
+2. **Given** an evaluator or admin user is logged in, **When** they navigate to the idea list (e.g., "Evaluation Queue" or "All Ideas"), **Then** they see all submitted ideas with title, category name, submission date, and attachment indicator
 3. **Given** a user views the idea list, **When** they have no ideas to display (submitter with no submissions, or empty queue), **Then** they see an appropriate empty-state message (e.g., "No ideas yet" or "No ideas pending review")
 4. **Given** a user sees the idea list, **When** they click on an idea in the list, **Then** they are taken to the idea detail view
 5. **Given** ideas are displayed in a list, **When** the list is loaded, **Then** ideas are ordered by submission date with the most recent first (newest at top)
@@ -27,7 +37,7 @@ An authenticated user can view a list of ideas they are allowed to access. Submi
 
 ### User Story 2 - View Idea Detail (Priority: P1)
 
-An authenticated user with access to an idea can view its full content: title, description, category, submission date, submitter identity (or anonymized per policy), and attachment (if present) with the ability to download or view it. The detail view presents all information clearly and readably.
+An authenticated user with access to an idea can view its full content: title, description, category, submission date, submitter display name (or email if name is empty; for evaluators and admins only), and attachment (if present) with the ability to download or view it. The detail view presents all information clearly and readably.
 
 **Why this priority**: Detail viewing is essential for understanding an idea's content before taking action (e.g., evaluation, feedback). Without it, users cannot make informed decisions. This delivers the core value of "users can read the full idea content."
 
@@ -84,24 +94,25 @@ Users can filter the idea list by category so they see only ideas in a selected 
 - What happens when an idea is viewed but its category has been deactivated? → The idea still displays with the category name (or "Uncategorized" if category reference is broken); viewing is not blocked
 - What happens when the attachment file is missing or corrupted? → User sees an error when attempting download (e.g., "Attachment unavailable"); idea detail still shows other content
 - What happens when the list is empty for a submitter who has never submitted? → User sees an empty-state message with a call-to-action (e.g., "Submit your first idea") or similar guidance
-- What happens when pagination receives an out-of-range page number? → System returns the first or last valid page, or shows a "Page not found" message
+- What happens when pagination receives an out-of-range page number? → System normalizes to the nearest valid page (e.g., page 0 or negative → page 1; page beyond last → last page)
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
-- **FR-001**: System MUST display a list of ideas to authenticated users, with visibility determined by role: submitters see their own ideas; evaluators and admins see ideas available for evaluation
+- **FR-001**: System MUST display a list of ideas to authenticated users, with visibility determined by role: submitters see their own ideas; evaluators and admins see all submitted ideas (no status filter for MVP; evaluation status not yet implemented)
 - **FR-002**: System MUST show for each idea in the list: title, category name, submission date, and whether an attachment exists
 - **FR-003**: System MUST order ideas in the list by submission date with the most recent first (descending)
 - **FR-004**: System MUST allow users to navigate from a list item to the full idea detail view
 - **FR-005**: System MUST display the full idea content in the detail view: title, description, category name, submission date
-- **FR-006**: System MUST show submitter identity in the idea detail view (or anonymize per policy; for MVP, display submitter identity for evaluators and admins)
+- **FR-006**: System MUST show submitter display name in the idea detail view for evaluators and admins (fall back to email if display name is empty)
 - **FR-007**: System MUST display an attachment indicator in the detail view when an idea has an attachment, and allow users to download or view the attachment
 - **FR-008**: System MUST display a clear "no attachment" or absent attachment state when an idea has no attachment
 - **FR-009**: System MUST provide a way for users to navigate back from the detail view to the idea list
 - **FR-010**: System MUST deny access to users who attempt to view an idea they are not permitted to access, and display an appropriate message
 - **FR-011**: System MUST display an empty-state message when the list has no ideas to show
-- **FR-012**: System MUST paginate the idea list when the number of ideas exceeds the per-page limit (e.g., 10–25 ideas per page)
+- **FR-011a**: System MUST show a skeleton placeholder (mimicking list or detail layout) while the idea list or idea detail view is loading
+- **FR-012**: System MUST paginate the idea list when the number of ideas exceeds the per-page limit (default: 15 ideas per page; configurable)
 - **FR-013**: System MUST provide pagination controls allowing users to navigate between pages
 - **FR-014**: System MUST allow users to filter the idea list by category when multiple categories exist
 - **FR-015**: System MUST allow users to clear the category filter to restore the full list
@@ -127,7 +138,7 @@ Users can filter the idea list by category so they see only ideas in a selected 
 
 - The idea submission form and file attachment features (specs 004 and 005) are implemented; ideas exist in the system with title, description, category, and optional attachment
 - User roles (submitter, evaluator, admin) are in place per spec 003; visibility rules follow role-based access
-- Submitters can only see their own ideas; evaluators and admins see ideas in the evaluation context (all submitted ideas for MVP, or a queue as defined by evaluation workflow)
+- Submitters can only see their own ideas; evaluators and admins see all submitted ideas with no status filtering (MVP has no evaluation status; future workflow may introduce queues)
 - Categories are pre-defined and ideas reference them; inactive categories may exist but existing ideas retain their category reference
 - List and detail views are read-only for this feature; editing or deleting ideas is out of scope
-- Pagination page size is configurable; a default of 10–25 ideas per page is reasonable for MVP
+- Pagination page size is configurable; default is 15 ideas per page for MVP

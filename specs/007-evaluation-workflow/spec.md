@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Evaluation workflow with basic status tracking (submitted, under review, accepted, rejected) and simple admin accept/reject with comments"
 
+## Clarifications
+
+### Session 2026-02-25
+
+- Q: If two admins open the same submitted idea simultaneously and both attempt to accept or reject it, what should happen? → A: First successful submission wins; second admin sees "This idea has already been evaluated" and their evaluation is discarded.
+- Q: When exactly should the status transition to "under review" occur? → A: When the admin clicks an explicit "Evaluate" or "Start evaluation" button/action.
+- Q: What is the exact maximum character limit for evaluation comments? → A: 2000 characters (matches idea description limit from spec 004).
+- Q: Where should the Accept/Reject evaluation UI live? → A: Inline in the idea detail view (buttons + comment field visible on the same page).
+- Q: When is an idea assigned "submitted" status? → A: Automatically when the idea is created via the idea submission form (spec 004).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Display Idea Status (Priority: P1)
@@ -67,7 +77,7 @@ When an admin begins evaluating an idea, the system can optionally transition it
 
 **Acceptance Scenarios**:
 
-1. **Given** an admin opens a submitted idea to evaluate it (e.g., clicks "Evaluate" or similar), **When** they enter the evaluation flow, **Then** the idea status becomes "under review"
+1. **Given** an admin is viewing a submitted idea, **When** they click the explicit "Evaluate" or "Start evaluation" button, **Then** the idea status becomes "under review" and they enter the evaluation flow
 2. **Given** an idea is under review, **When** the admin accepts or rejects it, **Then** the status transitions to "accepted" or "rejected" accordingly
 
 ---
@@ -75,8 +85,9 @@ When an admin begins evaluating an idea, the system can optionally transition it
 ### Edge Cases
 
 - What happens when an admin tries to evaluate an idea that has already been accepted or rejected? → System prevents re-evaluation or shows a message that the idea has already been decided; no duplicate evaluation
+- What happens when two admins open the same submitted idea simultaneously and both attempt to evaluate it? → First successful submission wins; the second admin sees "This idea has already been evaluated" and their evaluation is discarded (no locking; no overwrite)
 - What happens when a submitter views an idea that was evaluated but the evaluator's account was later deactivated? → The evaluation outcome and comments remain visible; submitter sees the decision and comments (evaluator identity may be anonymized or shown as "Administrator" if needed)
-- What happens when comments exceed a reasonable length? → System enforces a maximum comment length (e.g., 2000 characters) and shows validation error if exceeded
+- What happens when comments exceed a reasonable length? → System enforces a maximum of 2000 characters and shows validation error if exceeded
 - What happens when an admin loses connection while submitting evaluation? → User sees an error; evaluation is not saved until successfully submitted; they can retry
 
 ## Requirements *(mandatory)*
@@ -84,15 +95,17 @@ When an admin begins evaluating an idea, the system can optionally transition it
 ### Functional Requirements
 
 - **FR-001**: System MUST assign and persist one of four statuses for each idea: submitted, under review, accepted, rejected
+- **FR-001a**: System MUST assign "submitted" status automatically when an idea is created via the idea submission form (spec 004)
 - **FR-002**: System MUST display the current idea status in the idea list and in the idea detail view to all users with access to that idea
 - **FR-003**: System MUST allow admins (and evaluators with evaluation rights) to accept an idea with required comments
 - **FR-004**: System MUST allow admins (and evaluators with evaluation rights) to reject an idea with required comments
 - **FR-005**: System MUST require comments when accepting or rejecting an idea; evaluation cannot be submitted without comments
 - **FR-006**: System MUST persist evaluation comments with the idea and make them visible to the submitter and to evaluators/admins when viewing the idea
+- **FR-006a**: System MUST present Accept/Reject evaluation controls (buttons and comment field) inline in the idea detail view for admins/evaluators
 - **FR-007**: System MUST prevent re-evaluation of ideas that have already been accepted or rejected
 - **FR-008**: System MUST transition idea status from submitted to accepted or rejected when an admin completes evaluation
-- **FR-009**: System SHOULD transition idea status to "under review" when an admin enters the evaluation flow for a submitted idea (optional for MVP)
-- **FR-010**: System MUST enforce a maximum length for evaluation comments (e.g., 2000 characters) and display validation feedback if exceeded
+- **FR-009**: System SHOULD transition idea status to "under review" when an admin clicks the explicit "Evaluate" or "Start evaluation" button for a submitted idea (optional for MVP)
+- **FR-010**: System MUST enforce a maximum of 2000 characters for evaluation comments and display validation feedback if exceeded
 
 ### Key Entities *(include if feature involves data)*
 
@@ -112,6 +125,7 @@ When an admin begins evaluating an idea, the system can optionally transition it
 ## Assumptions
 
 - Idea submission and listing features (specs 004, 005, 006) are implemented; ideas exist with title, description, category, and optional attachment
+- Ideas created via the submission form (004) receive "submitted" status at creation; no separate draft/submit step
 - User roles (submitter, evaluator, admin) are in place per spec 003; admins and evaluators have permission to evaluate ideas
 - Only admins (or evaluators with evaluation rights) can change idea status; submitters cannot change status
 - Comments are plain text; rich text or attachments for comments are out of scope for MVP

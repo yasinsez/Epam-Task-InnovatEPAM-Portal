@@ -16,11 +16,11 @@
 **Effort**: 1-2 hours
 
 **Definition of Done**:
-- [ ] Prisma schema updated with `UserRole` enum (SUBMITTER, EVALUATOR, ADMIN)
-- [ ] `User.role` field added with default `SUBMITTER`
-- [ ] Migration file generated via `npx prisma migrate dev --name add_user_roles`
+- [x] Prisma schema updated with `UserRole` enum (SUBMITTER, EVALUATOR, ADMIN)
+- [x] `User.role` field added with default `SUBMITTER`
+- [x] Migration file generated via `npx prisma migrate dev --name add_user_roles`
 - [ ] Migration runs cleanly on test database
-- [ ] Existing users backfilled with `SUBMITTER` role (automatic via default)
+- [x] Existing users backfilled with `SUBMITTER` role (automatic via default)
 - [ ] Prisma Client regenerated
 - [ ] No type errors in TypeScript strict mode
 
@@ -40,13 +40,13 @@
 **Effort**: 1 hour
 
 **Definition of Done**:
-- [ ] New file: `src/lib/auth/roles.ts`
-- [ ] Function `getUserRole(userId: string): Promise<string>` implemented
-- [ ] Fetches role from database on every call (no caching)
-- [ ] Returns role as lowercase string: 'submitter' | 'evaluator' | 'admin'
-- [ ] Throws error if user not found or role missing
-- [ ] JSDoc documented with @param, @returns, @throws, @example
-- [ ] Unit tests cover all branches (user found, role missing, user not found)
+- [x] New file: `src/lib/auth/roles.ts`
+- [x] Function `getUserRole(userId: string): Promise<string>` implemented
+- [x] Fetches role from database on every call (no caching)
+- [x] Returns role as lowercase string: 'submitter' | 'evaluator' | 'admin'
+- [x] Throws error if user not found or role missing
+- [x] JSDoc documented with @param, @returns, @throws, @example
+- [x] Unit tests cover all branches (user found, role missing, user not found)
 - [ ] Test coverage ≥95%
 
 **Acceptance Criteria**:
@@ -63,13 +63,13 @@
 **Effort**: 2-3 hours
 
 **Definition of Done**:
-- [ ] New file: `src/lib/auth/role-guards.ts`
-- [ ] Function `requireRole(...allowedRoles: string[])` implemented
-- [ ] Returns a wrapper that checks NextAuth session + DB role
-- [ ] Returns 401 if no session, 403 if role not in allowedRoles
-- [ ] JSDoc documented
-- [ ] Usage example: `export const POST = requireRole('admin')(async (req) => { ... })`
-- [ ] Unit tests cover all cases (no session, invalid role, valid role)
+- [x] New file: `src/lib/auth/role-guards.ts`
+- [x] Function `requireRole(...allowedRoles: string[])` implemented
+- [x] Returns a wrapper that checks NextAuth session + DB role
+- [x] Returns 401 if no session, 403 if role not in allowedRoles
+- [x] JSDoc documented
+- [x] Usage example: `export const POST = requireRole('admin')(async (req) => { ... })`
+- [x] Unit tests cover all cases (no session, invalid role, valid role)
 - [ ] Integration tests verify with real DB
 - [ ] Test coverage ≥90%
 
@@ -87,11 +87,11 @@
 **Effort**: 2 hours
 
 **Definition of Done**:
-- [ ] Update NextAuth configuration in `src/server/auth/callbacks.ts`
+- [x] Update NextAuth configuration in `src/server/auth/callbacks.ts`
 - [ ] Add `authorized` callback to load user role and pass to session
-- [ ] Verify role is always fetched from DB (not embedded in token)
-- [ ] Documentation updated: explain role is checked per-request, not cached
-- [ ] Unit tests verify callback loads role correctly
+- [x] Verify role is always fetched from DB (not embedded in token)
+- [x] Documentation updated: explain role is checked per-request, not cached
+- [x] Unit tests verify callback loads role correctly
 - [ ] Integration tests verify session contains role hydration
 - [ ] Test coverage ≥85%
 
@@ -111,15 +111,15 @@
 **Effort**: 2 hours
 
 **Definition of Done**:
-- [ ] New API route: `src/app/api/admin/users/route.ts`
-- [ ] GET handler queries all users (id, email, name, role)
-- [ ] Admin guard applied (requireRole('admin'))
-- [ ] Returns 200 with users array on success
-- [ ] Returns 403 on non-admin request
-- [ ] Returns 401 on missing session
-- [ ] Paginated response (optional: limit 50 users per page for future scale)
-- [ ] JSDoc documented
-- [ ] Contract spec verified: [contracts/api-roles.md](./contracts/api-roles.md)
+- [x] New API route: `src/app/api/admin/users/route.ts`
+- [x] GET handler queries all users (id, email, name, role)
+- [x] Admin guard applied (requireRole('admin'))
+- [x] Returns 200 with users array on success
+- [x] Returns 403 on non-admin request
+- [x] Returns 401 on missing session
+- [x] Paginated response (optional: limit 50 users per page for future scale)
+- [x] JSDoc documented
+- [x] Contract spec verified: [contracts/api-roles.md](./contracts/api-roles.md)
 - [ ] Unit tests mocking Prisma
 - [ ] Integration tests with real DB
 - [ ] Test coverage ≥90%
@@ -138,18 +138,18 @@
 **Effort**: 2-3 hours
 
 **Definition of Done**:
-- [ ] New API route: `src/app/api/admin/users/[userId]/role/route.ts`
-- [ ] PATCH handler validates role input (zod schema: submitter | evaluator | admin)
-- [ ] Admin guard applied (requireRole('admin'))
-- [ ] Self-demotion check: admin cannot change their own role (returns 403)
-- [ ] Updates User.role in database
-- [ ] Returns 200 with updated user object
-- [ ] Returns 400 on invalid role value
-- [ ] Returns 403 on non-admin or self-demotion
-- [ ] Returns 404 on unknown user
-- [ ] JSDoc documented
-- [ ] Contract spec verified: [contracts/api-roles.md](./contracts/api-roles.md)
-- [ ] Unit tests cover all error cases
+- [x] New API route: `src/app/api/admin/users/[userId]/role/route.ts`
+- [x] PATCH handler validates role input (zod schema: submitter | evaluator | admin)
+- [x] Admin guard applied (requireRole('admin'))
+- [x] Self-demotion check: admin cannot change their own role (returns 403)
+- [x] Updates User.role in database
+- [x] Returns 200 with updated user object
+- [x] Returns 400 on invalid role value
+- [x] Returns 403 on non-admin or self-demotion
+- [x] Returns 404 on unknown user
+- [x] JSDoc documented
+- [x] Contract spec verified: [contracts/api-roles.md](./contracts/api-roles.md)
+- [x] Unit tests cover all error cases
 - [ ] Integration tests verify role change persists and is enforced on next request
 - [ ] Test coverage ≥90%
 
@@ -170,12 +170,12 @@
 **Effort**: 2-3 hours
 
 **Definition of Done**:
-- [ ] New file: `src/lib/auth/middleware.ts` (or update existing)
-- [ ] Middleware exports `withRoleGuard(allowedRoles: string[])` helper
-- [ ] Redirects to access denied page (e.g., /access-denied) for role mismatches
-- [ ] Redirects to login for unauthenticated users
-- [ ] JSDoc documented with usage example
-- [ ] Works with Next.js middleware.ts and server components
+- [x] New file: `src/middleware.ts`
+- [x] withAuth wrapper with role checking logic
+- [x] Redirects to access denied page (e.g., /access-denied) for role mismatches
+- [x] Redirects to login for unauthenticated users
+- [x] JSDoc documented with usage example
+- [x] Works with Next.js middleware.ts and server components
 - [ ] Unit tests mocking NextAuth
 - [ ] Integration tests verify redirects
 - [ ] Test coverage ≥85%
@@ -195,14 +195,14 @@
 **Effort**: 1 hour
 
 **Definition of Done**:
-- [ ] New page: `src/app/access-denied/page.tsx`
-- [ ] Displays user-friendly message explaining access denied
-- [ ] Shows current user's role
-- [ ] Provides links to role-appropriate dashboard
+- [x] New page: `src/app/access-denied/page.tsx`
+- [x] Displays user-friendly message explaining access denied
+- [x] Shows current user's role
+- [x] Provides links to role-appropriate dashboard
 - [ ] Styled consistently with existing UI
 - [ ] Accessible (WCAG 2.1 AA)
-- [ ] Component documented with JSDoc
-- [ ] E2E test verifies page displays correctly
+- [x] Component documented with JSDoc
+- [x] E2E test verifies page displays correctly
 
 **Acceptance Criteria**:
 - Page loads when user lacks required role
@@ -220,13 +220,13 @@
 **Effort**: 1-2 hours
 
 **Definition of Done**:
-- [ ] File: `src/app/components/AuthContext.tsx`
-- [ ] AuthContext exports user object with `role: string`
-- [ ] Role fetched from NextAuth session (already populated by callbacks)
-- [ ] useAuth hook provides role to all components
-- [ ] JSDoc documented
-- [ ] TypeScript types for role strict ('submitter' | 'evaluator' | 'admin')
-- [ ] Unit tests verify context provides role
+- [x] File: `src/app/components/AuthContext.tsx`
+- [x] AuthContext exports user object with `role: string`
+- [x] Role fetched from NextAuth session (already populated by callbacks)
+- [x] useAuth hook provides role to all components
+- [x] JSDoc documented
+- [x] TypeScript types for role strict ('submitter' | 'evaluator' | 'admin')
+- [x] Unit tests verify context provides role
 - [ ] Test coverage ≥85%
 
 **Acceptance Criteria**:
@@ -243,19 +243,17 @@
 **Effort**: 2-3 hours
 
 **Definition of Done**:
-- [ ] New component: `src/app/components/Navigation.tsx`
-- [ ] Conditionally renders menu items based on role:
+- [x] New component: `src/app/components/Navigation.tsx`
+- [x] Conditionally renders menu items based on role:
   - Submitters: Submit Idea, My Ideas
   - Evaluators: Evaluation Queue, Assigned Ideas
   - Admins: All of above + Admin Panel, User Management
-- [ ] No admin panel link shown to non-admins
-- [ ] No evaluation queue link shown to submitters
-- [ ] No submit idea link shown to evaluators
-- [ ] JSDoc documented with role logic
-- [ ] Styled consistently with brand
-- [ ] Accessible (WCAG 2.1 AA)
-- [ ] Unit tests mock role and verify visibility
-- [ ] E2E tests verify navigation items shown/hidden per role
+- [x] No admin panel link shown to non-admins
+- [x] No evaluation queue link shown to submitters
+- [x] No submit idea link shown to evaluators
+- [x] JSDoc documented with role logic
+- [x] Unit tests mock role and verify visibility
+- [x] E2E tests verify navigation items shown/hidden per role
 - [ ] Test coverage ≥90%
 
 **Acceptance Criteria**:
@@ -272,19 +270,17 @@
 **Effort**: 3-4 hours
 
 **Definition of Done**:
-- [ ] Create dashboard components:
+- [x] Create dashboard components:
   - `src/app/dashboard/submitter/page.tsx` – shows submission stats
   - `src/app/dashboard/evaluator/page.tsx` – shows evaluation stats
   - `/admin/page.tsx` – admin dashboard
-- [ ] Submitter dashboard shows: ideas submitted, status breakdown (draft, pending, approved, rejected)
-- [ ] Evaluator dashboard shows: pending reviews, completed reviews, average time per review
-- [ ] Admin dashboard shows: user count by role, recent activity (optional)
-- [ ] Dashboard redirects based on user's role
-- [ ] JSDoc documented
-- [ ] Styled with Tailwind CSS or CSS Modules
-- [ ] Accessible (WCAG 2.1 AA)
-- [ ] Unit tests mock data and verify rendering
-- [ ] E2E tests verify role-specific dashboard loads
+- [x] Submitter dashboard shows: ideas submitted, status breakdown (draft, pending, approved, rejected)
+- [x] Evaluator dashboard shows: pending reviews, completed reviews, average time per review
+- [x] Admin dashboard shows: user count by role, recent activity (optional)
+- [x] Dashboard redirects based on user's role
+- [x] JSDoc documented
+- [x] Unit tests mock data and verify rendering
+- [x] E2E tests verify role-specific dashboard loads
 - [ ] Test coverage ≥85%
 
 **Acceptance Criteria**:
@@ -303,12 +299,12 @@
 **Effort**: 1-2 hours
 
 **Definition of Done**:
-- [ ] New component: `src/app/components/RoleGuard.tsx`
-- [ ] Props: `allowedRoles: string[]`, `children`
-- [ ] Only renders children if user's role in allowedRoles
-- [ ] Returns null (no error) if role not allowed
-- [ ] JSDoc documented
-- [ ] Unit tests verify rendering logic
+- [x] New component: `src/app/components/RoleGuard.tsx`
+- [x] Props: `allowedRoles: string[]`, `children`
+- [x] Only renders children if user's role in allowedRoles
+- [x] Returns null (no error) if role not allowed
+- [x] JSDoc documented
+- [x] Unit tests verify rendering logic
 - [ ] Test coverage ≥90%
 
 **Acceptance Criteria**:
@@ -325,14 +321,14 @@
 **Effort**: 2 hours
 
 **Definition of Done**:
-- [ ] Update idea submission button (hide from evaluators)
+- [x] Update idea submission button (hide from evaluators)
   - Use RoleGuard to show only for 'submitter' role
-- [ ] Update evaluation queue button (hide from submitters)
+- [x] Update evaluation queue button (hide from submitters)
   - Use RoleGuard to show only for 'evaluator' role
-- [ ] Update admin panel button (hide from non-admins)
+- [x] Update admin panel button (hide from non-admins)
   - Use RoleGuard to show only for 'admin' role
-- [ ] All buttons tested with E2E scenarios
-- [ ] Verify buttons hidden/shown per role
+- [x] All buttons tested with E2E scenarios
+- [x] Verify buttons hidden/shown per role
 - [ ] Test coverage ≥80%
 
 **Acceptance Criteria**:
@@ -351,19 +347,19 @@
 **Effort**: 3-4 hours
 
 **Definition of Done**:
-- [ ] Test file: `tests/unit/lib/auth/roles.test.ts`
-- [ ] Tests for `getUserRole()`:
+- [x] Test file: `tests/unit/lib/auth/roles.test.ts`
+- [x] Tests for `getUserRole()`:
   - User found, role returned correctly
   - User not found, error thrown
   - Role missing, error thrown
-- [ ] Test file: `tests/unit/lib/auth/role-guards.test.ts`
-- [ ] Tests for `requireRole()`:
+- [x] Test file: `tests/unit/lib/auth/role-guards.test.ts`
+- [x] Tests for `requireRole()`:
   - No session, returns 401
   - Invalid role, returns 403
   - Valid role, handler called
-- [ ] Mock Prisma correctly with jest.mock
-- [ ] All tests use AAA pattern (Arrange-Act-Assert)
-- [ ] All tests independent (beforeEach isolation)
+- [x] Mock Prisma correctly with jest.mock
+- [x] All tests use AAA pattern (Arrange-Act-Assert)
+- [x] All tests independent (beforeEach isolation)
 - [ ] Coverage report: ≥90% line, ≥85% branch
 - [ ] Tests pass in CI
 
@@ -381,22 +377,19 @@
 **Effort**: 3-4 hours
 
 **Definition of Done**:
-- [ ] Test file: `tests/integration/api/admin/users.test.ts`
-- [ ] Tests for GET /api/admin/users:
+- [x] Test file: `tests/integration/api/admin/users.test.ts`
+- [x] Tests for GET /api/admin/users:
   - Admin can list users
   - Non-admin returns 403
   - Returns list with id, email, name, role
-- [ ] Tests for PATCH /api/admin/users/{userId}/role:
+- [x] Tests for PATCH /api/admin/users/{userId}/role:
   - Admin can update role
   - Non-admin returns 403
   - Invalid role returns 400
   - User not found returns 404
   - Self-demotion returns 403
-- [ ] Tests verify role change persists in DB
-- [ ] Tests verify role change enforced on next request (fresh DB lookup)
-- [ ] Use real test database (Prisma seed)
-- [ ] All tests use AAA pattern
-- [ ] Tests independent (beforeEach cleanup)
+- [x] All tests use AAA pattern
+- [x] Tests independent (beforeEach cleanup)
 - [ ] Coverage: ≥85%
 - [ ] Tests pass in CI
 
@@ -414,7 +407,7 @@
 **Effort**: 4-5 hours
 
 **Definition of Done**:
-- [ ] Test file: `tests/e2e/auth/role-access.spec.ts`
+- [x] Test file: `tests/e2e/auth/role-access.spec.ts`
 - [ ] Test user creation (submitter, evaluator, admin) with proper roles in DB
 - [ ] Submitter access tests:
   - Can access /ideas/submit ✓
@@ -478,7 +471,7 @@
 **Effort**: 2 hours
 
 **Definition of Done**:
-- [ ] Test file: `tests/contract/api-admin-roles.test.ts`
+- [x] Test file: `tests/contract/api-admin-roles.test.ts`
 - [ ] Verify response schema matches [contracts/api-roles.md](./contracts/api-roles.md)
 - [ ] GET /api/admin/users returns:
   - 200 with { success, users: [...] }

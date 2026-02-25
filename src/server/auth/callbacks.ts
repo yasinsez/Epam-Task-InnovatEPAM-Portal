@@ -3,6 +3,7 @@ import type { JWT } from 'next-auth/jwt';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { verifyPassword } from '@/lib/auth/password';
+import { getUserRole } from '@/lib/auth/roles';
 import { generateJWT, refreshToken } from '@/lib/auth/token';
 import { prisma } from '@/server/db/prisma';
 
@@ -44,6 +45,7 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
       session.user.id = token.sub;
       session.user.email = token.email ?? null;
       session.user.name = token.name ?? null;
+      session.user.role = await getUserRole(token.sub);
       session.authToken = (token as JWT & { authToken?: string }).authToken;
     }
 

@@ -33,3 +33,14 @@
 - `POST /api/auth/sessions/:sessionId/revoke`
   - Header: `Authorization: Bearer <token>`
   - Responses: `200`, `401`
+
+## Admin Role Endpoints
+
+- `GET /api/admin/users`
+  - Responses: `200`, `401`, `403`
+
+- `PATCH /api/admin/users/:userId/role`
+  - Body: `{ role }`
+  - Responses: `200`, `400`, `401`, `403`, `404`
+
+**Note**: Role checks are performed on every protected request by fetching the current role from the database (roles are not cached in tokens).

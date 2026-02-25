@@ -4,6 +4,7 @@ import {
   ALLOWED_EXTENSIONS,
   MIME_BY_EXTENSION,
 } from '@/lib/constants/attachment';
+import { MAX_EVALUATION_COMMENTS_LENGTH } from '@/lib/constants/evaluation';
 
 /**
  * Validates an attachment file (size, type, non-empty).
@@ -87,3 +88,26 @@ export const SubmitIdeaSchema = z.object({
 });
 
 export type SubmitIdeaInput = z.infer<typeof SubmitIdeaSchema>;
+
+/**
+ * Schema for evaluate idea API payload.
+ * Validates decision (ACCEPTED|REJECTED) and required comments (1-2000 chars).
+ *
+ * @example
+ *   const data = { decision: 'ACCEPTED', comments: 'Great idea!' };
+ *   const validated = evaluateIdeaSchema.parse(data);
+ */
+export const evaluateIdeaSchema = z.object({
+  decision: z.enum(['ACCEPTED', 'REJECTED'], {
+    errorMap: () => ({ message: 'Decision must be ACCEPTED or REJECTED' }),
+  }),
+  comments: z
+    .string()
+    .min(1, 'Comments are required')
+    .max(
+      MAX_EVALUATION_COMMENTS_LENGTH,
+      `Comments must not exceed ${MAX_EVALUATION_COMMENTS_LENGTH} characters`,
+    ),
+});
+
+export type EvaluateIdeaInput = z.infer<typeof evaluateIdeaSchema>;

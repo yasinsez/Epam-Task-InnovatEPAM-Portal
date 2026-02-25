@@ -13,6 +13,13 @@ enum UserRole {
   ADMIN
 }
 
+enum IdeaStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id                  String               @id @default(cuid())
   email               String               @unique @db.VarChar(254)
@@ -28,6 +35,7 @@ model User {
   failedLoginAttempts FailedLoginAttempt[]
   authLogs            AuthLog[]
   ideas               Idea[]
+  evaluations         Evaluation[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -120,16 +128,31 @@ model Idea {
   category             Category    @relation(fields: [categoryId], references: [id])
   userId               String
   user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status               String      @default("SUBMITTED") @db.VarChar(20)
   submittedAt          DateTime    @default(now())
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
+  status               IdeaStatus  @default(SUBMITTED)
   attachment           Attachment?
+  evaluation           Evaluation?
 
   @@index([userId])
   @@index([categoryId])
   @@index([submittedAt])
   @@index([userId, submittedAt])
+}
+
+// Evaluation model - one per idea when evaluated
+model Evaluation {
+  id            String   @id @default(cuid())
+  ideaId        String   @unique
+  idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  decision      String   @db.VarChar(20) // "ACCEPTED" | "REJECTED"
+  comments      String   @db.Text // 1-2000 chars
+  evaluatorId   String?
+  evaluator     User?    @relation(fields: [evaluatorId], references: [id], onDelete: SetNull)
+  evaluatedAt   DateTime @default(now())
+
+  @@index([evaluatorId])
 }
 
 // Attachment model - single file per idea

@@ -1,5 +1,9 @@
 import { validateEmail, validatePassword } from '@/lib/utils/validators';
-import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
+import {
+  SubmitIdeaSchema,
+  evaluateIdeaSchema,
+  validateAttachmentFile,
+} from '@/lib/validators';
 
 describe('validators', () => {
   it('validates email format', () => {
@@ -175,6 +179,49 @@ describe('validators', () => {
         valid: false,
         error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
       });
+    });
+  });
+
+  describe('evaluateIdeaSchema', () => {
+    it('should validate a valid payload', () => {
+      const validData = {
+        decision: 'ACCEPTED' as const,
+        comments: 'This idea aligns well with our innovation goals.',
+      };
+      expect(() => evaluateIdeaSchema.parse(validData)).not.toThrow();
+      expect(evaluateIdeaSchema.parse(validData)).toEqual(validData);
+    });
+
+    it('should validate REJECTED decision', () => {
+      const validData = {
+        decision: 'REJECTED' as const,
+        comments: 'Does not fit current priorities.',
+      };
+      expect(evaluateIdeaSchema.parse(validData)).toEqual(validData);
+    });
+
+    it('should reject empty comments', () => {
+      const data = {
+        decision: 'ACCEPTED',
+        comments: '',
+      };
+      expect(() => evaluateIdeaSchema.parse(data)).toThrow();
+    });
+
+    it('should reject comments exceeding 2000 characters', () => {
+      const data = {
+        decision: 'ACCEPTED',
+        comments: 'a'.repeat(2001),
+      };
+      expect(() => evaluateIdeaSchema.parse(data)).toThrow();
+    });
+
+    it('should reject invalid decision', () => {
+      const data = {
+        decision: 'PENDING',
+        comments: 'Some comments',
+      };
+      expect(() => evaluateIdeaSchema.parse(data)).toThrow();
     });
   });
 });

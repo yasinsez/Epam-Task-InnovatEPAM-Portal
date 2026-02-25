@@ -96,6 +96,7 @@ async function IdeasListContent({
             categoryName={idea.category.name}
             submittedAt={idea.submittedAt}
             hasAttachment={idea.hasAttachment}
+            status={idea.status}
           />
         ))}
       </div>

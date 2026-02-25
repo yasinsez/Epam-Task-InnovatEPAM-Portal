@@ -5,6 +5,7 @@ Auto-generated from all feature plans. Last updated: 2026-02-25
 ## Active Technologies
 - TypeScript 5.x with `strict: true` + Next.js 14+ (App Router), Prisma 6.x, NextAuth 4.x, Zod, React 18, Tailwind CSS (006-idea-listing-viewing)
 - PostgreSQL 14+ via Prisma ORM; Idea, Category, Attachment, User models exis (006-idea-listing-viewing)
+- TypeScript 5.x with strict mode + Next.js 14+, NextAuth v4+, Prisma (007-evaluation-workflow)
 
 - TypeScript 5.x with Next.js 14+ (App Router) + React 18+, NextAuth v4+, Prisma ORM 5.x, React Hook Form (existing), FormData API for multipart uploads (005-single-file-per-idea)
 
@@ -24,6 +25,7 @@ npm test && npm run lint
 TypeScript 5.x with Next.js 14+ (App Router): Follow standard conventions
 
 ## Recent Changes
+- 007-evaluation-workflow: Added TypeScript 5.x with strict mode + Next.js 14+, NextAuth v4+, Prisma
 - 006-idea-listing-viewing: Added TypeScript 5.x with `strict: true` + Next.js 14+ (App Router), Prisma 6.x, NextAuth 4.x, Zod, React 18, Tailwind CSS
 
 - 005-single-file-per-idea: Added TypeScript 5.x with Next.js 14+ (App Router) + React 18+, NextAuth v4+, Prisma ORM 5.x, React Hook Form (existing), FormData API for multipart uploads

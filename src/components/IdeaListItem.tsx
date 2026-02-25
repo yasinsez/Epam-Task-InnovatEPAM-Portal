@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { IdeaStatus } from '@prisma/client';
 
 export type IdeaListItemProps = {
   id: string;
@@ -6,10 +7,18 @@ export type IdeaListItemProps = {
   categoryName: string;
   submittedAt: Date;
   hasAttachment: boolean;
+  status: IdeaStatus;
+};
+
+const STATUS_LABELS: Record<IdeaStatus, string> = {
+  SUBMITTED: 'Submitted',
+  UNDER_REVIEW: 'Under Review',
+  ACCEPTED: 'Accepted',
+  REJECTED: 'Rejected',
 };
 
 /**
- * Single idea row in the list. Displays title (link), category, date, attachment indicator.
+ * Single idea row in the list. Displays title (link), category, date, status, attachment indicator.
  */
 export function IdeaListItem({
   id,
@@ -17,6 +26,7 @@ export function IdeaListItem({
   categoryName,
   submittedAt,
   hasAttachment,
+  status,
 }: IdeaListItemProps): JSX.Element {
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -37,6 +47,30 @@ export function IdeaListItem({
           <span>{categoryName}</span>
           <span>•</span>
           <time dateTime={submittedAt.toISOString()}>{formattedDate}</time>
+          <span>•</span>
+          <span
+            className="inline-flex rounded px-2 py-0.5 text-xs font-medium"
+            style={{
+              backgroundColor:
+                status === 'ACCEPTED'
+                  ? '#dcfce7'
+                  : status === 'REJECTED'
+                    ? '#fee2e2'
+                    : status === 'UNDER_REVIEW'
+                      ? '#fef3c7'
+                      : '#e5e7eb',
+              color:
+                status === 'ACCEPTED'
+                  ? '#166534'
+                  : status === 'REJECTED'
+                    ? '#991b1b'
+                    : status === 'UNDER_REVIEW'
+                      ? '#92400e'
+                      : '#374151',
+            }}
+          >
+            {STATUS_LABELS[status]}
+          </span>
         </div>
       </div>
       {hasAttachment && (

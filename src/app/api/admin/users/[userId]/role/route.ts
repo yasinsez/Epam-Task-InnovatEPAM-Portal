@@ -24,12 +24,13 @@ const roleSchema = z.object({
  */
 export const PATCH = requireRole('admin')(async (
   request: Request,
-  context: { params: { userId: string } },
+  context: { params: { userId: string } | Promise<{ userId: string }> },
 ): Promise<Response> => {
+  const params = await Promise.resolve(context.params);
   const session = await getServerSession(authOptions);
   const actingUserId = session?.user?.id ?? null;
 
-  if (actingUserId && actingUserId === context.params.userId) {
+  if (actingUserId && actingUserId === params.userId) {
     return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
   }
 
@@ -41,7 +42,7 @@ export const PATCH = requireRole('admin')(async (
   }
 
   const targetUser = await prisma.user.findUnique({
-    where: { id: context.params.userId },
+    where: { id: params.userId },
     select: { id: true },
   });
 
@@ -50,7 +51,7 @@ export const PATCH = requireRole('admin')(async (
   }
 
   const updated = await prisma.user.update({
-    where: { id: context.params.userId },
+    where: { id: params.userId },
     data: { role: parsed.data.role.toUpperCase() as UserRole },
     select: { id: true, role: true },
   });

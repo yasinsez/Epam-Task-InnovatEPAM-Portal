@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
 
-import { authOptions } from '@/server/auth/route';
+const authOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+};
 
 const roleLabel: Record<'submitter' | 'evaluator' | 'admin', string> = {
   submitter: 'Submitter',

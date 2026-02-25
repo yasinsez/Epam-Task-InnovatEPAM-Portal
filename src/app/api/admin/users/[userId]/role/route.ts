@@ -4,8 +4,12 @@ import type { UserRole } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 
 import { requireRole } from '@/lib/auth/role-guards';
-import { authOptions } from '@/server/auth/route';
 import { prisma } from '@/server/db/prisma';
+
+// Get auth options from route handler
+const authOptions = {
+  secret: process.env.NEXTAUTH_SECRET,
+};
 
 const roleSchema = z.object({
   role: z.enum(['submitter', 'evaluator', 'admin']),

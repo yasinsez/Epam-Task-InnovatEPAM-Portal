@@ -1,11 +1,13 @@
-import { requireRole } from '@/lib/auth/role-guards';
-
 jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
 }));
 
 jest.mock('@/lib/auth/roles', () => ({
   getUserRole: jest.fn(),
+}));
+
+jest.mock('next-auth/jwt', () => ({
+  getToken: jest.fn(),
 }));
 
 describe('requireRole', () => {
@@ -19,6 +21,7 @@ describe('requireRole', () => {
   it('returns 401 when no session', async () => {
     getServerSession.mockResolvedValue(null);
 
+    const { requireRole } = require('@/lib/auth/role-guards');
     const handler = requireRole('admin')(async () => new Response('ok'));
     const response = await handler(new Request('http://localhost'), { params: {} });
 
@@ -29,6 +32,7 @@ describe('requireRole', () => {
     getServerSession.mockResolvedValue({ user: { id: 'user-1' } });
     getUserRole.mockResolvedValue('submitter');
 
+    const { requireRole } = require('@/lib/auth/role-guards');
     const handler = requireRole('admin')(async () => new Response('ok'));
     const response = await handler(new Request('http://localhost'), { params: {} });
 
@@ -39,6 +43,7 @@ describe('requireRole', () => {
     getServerSession.mockResolvedValue({ user: { id: 'user-1' } });
     getUserRole.mockResolvedValue('admin');
 
+    const { requireRole } = require('@/lib/auth/role-guards');
     const handler = requireRole('admin')(async () => new Response('ok'));
     const response = await handler(new Request('http://localhost'), { params: {} });
 

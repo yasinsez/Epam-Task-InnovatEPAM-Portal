@@ -5,6 +5,10 @@ jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
 }));
 
+jest.mock('next-auth/jwt', () => ({
+  getToken: jest.fn(),
+}));
+
 jest.mock('@/lib/auth/roles', () => ({
   getUserRole: jest.fn(),
 }));

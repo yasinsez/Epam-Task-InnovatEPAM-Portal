@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "Basic role distinction (submitter vs. evaluator/admin)"
 
+## Clarifications
+
+### Session 2026-02-25
+
+- Q: Should role changes be audited, and if so, who manages the audit log? → A: No audit logging required for MVP; defer to Phase 2
+- Q: Should users with the "evaluator" role also be able to perform "submitter" actions (submit ideas)? → A: No, roles are exclusive; evaluators cannot submit ideas (submitter-only capability)
+- Q: What is the enforcement timing requirement for role changes to take effect? → A: Immediate on next request/action (1-5 seconds typical latency); no session refresh needed
+- Q: How should the system handle session invalidation or token refresh when a role changes? → A: Always fetch fresh role from DB on each API call; no caching of role in token/session
+- Q: Should admins be able to grant themselves the "admin" role, or does it require a higher-level authorization step? → A: Admins cannot demote themselves; can change others' roles but not their own
+
 ## User Scenarios & Testing *(mandatory)*
 
 <!--
@@ -100,7 +110,7 @@ The user interface dynamically displays different navigation menus, dashboards, 
 
 - What happens if a user's role is deleted from the system while they are logged in? → System treats user as unauthorized on next action
 - What happens if a role change request receives an invalid role value? → System rejects with validation error and doesn't change role  
-- What if an admin attempts to change their own role to submitter? → Change is allowed; system trusts admin intent
+- What if an admin attempts to change their own role to submitter? → Admin self-demotion is prevented; only other admins can change an admin's role
 - What happens if a user has no role assigned? → System treats them as unauthorized and redirects to login
 - What happens when multiple admins change the same user's role simultaneously? → System handles as race condition with last-write-wins or returns conflict error
 
@@ -113,11 +123,13 @@ The user interface dynamically displays different navigation menus, dashboards, 
 - **FR-003**: System MUST prevent access to pages requiring roles the user doesn't have, redirecting to access denied page or dashboard
 - **FR-004**: System MUST prevent authenticated API requests from roles that don't have permission, denying the request
 - **FR-005**: System MUST allow admin users to view all users and their current roles via an admin interface
-- **FR-006**: System MUST allow admin users to change a user's role and persist the change immediately
+- **FR-006**: System MUST allow admin users to change any user's role (including other admins) and persist the change immediately, except admins cannot change their own role
 - **FR-007**: System MUST validate that role values are one of the three allowed values (submitter, evaluator, admin) and reject invalid values
 - **FR-008**: System MUST update role enforcement immediately when a user's role is changed (user's next action uses new permissions)
 - **FR-009**: System MUST display UI elements (navigation, buttons, dashboard sections) conditionally based on user's role
 - **FR-010**: System MUST handle users with missing or invalid roles by treating them as unauthorized
+- **FR-011**: System MUST validate role on every protected API call against the database; role information MUST NOT be cached in JWT tokens or long-lived session stores
+- **FR-012**: System MUST enforce role-exclusive permissions where roles do not inherit capabilities from other roles (e.g., evaluators cannot submit ideas, submitters cannot evaluate ideas)
 
 ### Key Entities
 
@@ -130,7 +142,7 @@ The user interface dynamically displays different navigation menus, dashboards, 
 
 - **SC-001**: All users can be assigned one of the three roles without error, and role assignments persist across login sessions
 - **SC-002**: Users can only access pages and features their role permits; unauthorized access is immediately denied
-- **SC-003**: Admin users can change any user's role and the new permissions are enforced within one minute
+- **SC-003**: Admin users can change any user's role (except their own) and the new permissions are enforced on the user's next API call or page request (typical latency 1-5 seconds)
 - **SC-004**: New registrations automatically receive the "submitter" role with 100% consistency
 - **SC-005**: Role-based UI correctly displays for all three roles with no role-specific content visible to other roles
 - **SC-006**: System handles concurrent role changes without creating inconsistent state
@@ -140,5 +152,7 @@ The user interface dynamically displays different navigation menus, dashboards, 
 - The existing User authentication system (from spec 002-user-auth) is fully implemented and functioning
 - The three role types (submitter, evaluator, admin) are the only roles needed for MVP
 - Multi-tenancy and dynamic role creation are not required for MVP
-- Role changes take effect on the user's next request or action (not requiring real-time push notifications)
-- Admin users are trusted to manage all roles including other admin accounts
+- Role changes take effect on the user's next request or action (not requiring real-time push notifications) with typical latency of 1-5 seconds
+- Admin users are trusted to manage all roles including other admin accounts, but cannot modify their own role
+- Roles are exclusive and non-hierarchical; no role inheritance (evaluators cannot submit, submitters cannot evaluate)
+- Role state is always fetched fresh from the database on each protected API endpoint call; no role caching in JWT tokens or long-lived sessions

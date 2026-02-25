@@ -28,3 +28,9 @@ export class TokenError extends Error {
     this.name = 'TokenError';
   }
 }
+export class NotFoundError extends Error {
+  constructor(message = 'Resource not found') {
+    super(message);
+    this.name = 'NotFoundError';
+  }
+}

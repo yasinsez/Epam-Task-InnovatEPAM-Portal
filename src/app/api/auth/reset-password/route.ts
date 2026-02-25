@@ -23,7 +23,10 @@ export async function POST(request: Request): Promise<Response> {
   });
 
   if (!resetToken || resetToken.isUsed || isPasswordResetTokenExpired(resetToken.expiresAt)) {
-    return NextResponse.json({ success: false, error: 'Invalid or expired reset token' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'Invalid or expired reset token' },
+      { status: 400 },
+    );
   }
 
   const newPasswordHash = await hashPassword(password);

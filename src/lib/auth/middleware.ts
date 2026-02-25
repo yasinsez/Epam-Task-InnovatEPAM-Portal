@@ -43,7 +43,10 @@ export function validateAuthRequest(request: NextRequest): NextResponse | null {
  * @param loginPath Login route path.
  * @returns Redirect response or passthrough response.
  */
-export function enforceProtectedRoute(request: NextRequest, loginPath = '/auth/login'): NextResponse {
+export function enforceProtectedRoute(
+  request: NextRequest,
+  loginPath = '/auth/login',
+): NextResponse {
   const authHeader = request.headers.get('authorization');
   const token = authHeader?.startsWith('Bearer ') ? authHeader.replace('Bearer ', '').trim() : null;
 

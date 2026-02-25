@@ -10,11 +10,7 @@ import { getUserRole } from '@/lib/auth/roles';
  * Protects dashboard, admin, and other role-based routes.
  */
 export const config = {
-  matcher: [
-    '/dashboard/:path*',
-    '/admin/:path*',
-    '/access-denied',
-  ],
+  matcher: ['/dashboard/:path*', '/admin/:path*', '/access-denied'],
 };
 
 /**
@@ -41,7 +37,10 @@ function getRequiredRoles(pathname: string): string[] | null {
 
   // Prefix match (e.g., /admin/users matches /admin)
   for (const [path, roles] of Object.entries(roleRequirements)) {
-    if (pathname.startsWith(path) && (pathname.length === path.length || pathname[path.length] === '/')) {
+    if (
+      pathname.startsWith(path) &&
+      (pathname.length === path.length || pathname[path.length] === '/')
+    ) {
       return roles;
     }
   }

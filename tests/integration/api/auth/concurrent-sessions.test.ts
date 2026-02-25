@@ -18,8 +18,20 @@ describe('GET /api/auth/sessions', () => {
     const prisma = jest.requireMock('@/server/db/prisma').prisma;
 
     prisma.session.findMany.mockResolvedValue([
-      { id: 's1', userAgent: 'Chrome', ipAddress: '127.0.0.1', createdAt: new Date(), expiresAt: new Date() },
-      { id: 's2', userAgent: 'Firefox', ipAddress: '127.0.0.2', createdAt: new Date(), expiresAt: new Date() },
+      {
+        id: 's1',
+        userAgent: 'Chrome',
+        ipAddress: '127.0.0.1',
+        createdAt: new Date(),
+        expiresAt: new Date(),
+      },
+      {
+        id: 's2',
+        userAgent: 'Firefox',
+        ipAddress: '127.0.0.2',
+        createdAt: new Date(),
+        expiresAt: new Date(),
+      },
     ]);
 
     const token = generateJWT('user-1', 'employee@epam.com');

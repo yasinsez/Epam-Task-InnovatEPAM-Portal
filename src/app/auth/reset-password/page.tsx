@@ -20,7 +20,11 @@ export default function ResetPasswordPage() {
       body: JSON.stringify({ token, password }),
     });
 
-    const payload = (await response.json()) as { success?: boolean; message?: string; error?: string };
+    const payload = (await response.json()) as {
+      success?: boolean;
+      message?: string;
+      error?: string;
+    };
     if (!response.ok || !payload.success) {
       setError(payload.error ?? 'Password reset failed');
       return;

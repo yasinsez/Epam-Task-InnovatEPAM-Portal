@@ -1,6 +1,6 @@
-// Integration tests for POST /api/ideas endpoint
+// Integration tests for POST and GET /api/ideas endpoints
 
-import { POST } from '@/app/api/ideas/route';
+import { POST, GET } from '@/app/api/ideas/route';
 
 jest.mock('@/server/db/prisma', () => ({
   prisma: {
@@ -8,9 +8,12 @@ jest.mock('@/server/db/prisma', () => ({
     idea: {
       create: jest.fn(),
       findUnique: jest.fn(),
+      findMany: jest.fn(),
       delete: jest.fn(),
+      count: jest.fn(),
     },
     attachment: { create: jest.fn() },
+    user: { findUnique: jest.fn() },
   },
 }));
 
@@ -20,6 +23,14 @@ jest.mock('next-auth', () => ({
 
 jest.mock('@/lib/services/attachment-service', () => ({
   saveAttachmentFile: jest.fn(),
+}));
+
+jest.mock('@/lib/auth/roles', () => ({
+  getUserRole: jest.fn(),
+}));
+
+jest.mock('@/lib/services/idea-service', () => ({
+  getIdeasForUser: jest.fn(),
 }));
 
 describe('POST /api/ideas', () => {
@@ -333,5 +344,53 @@ describe('POST /api/ideas', () => {
     const data = await response.json();
     expect(data.error).toMatch(/empty|valid file/i);
     expect(prisma.idea.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('GET /api/ideas', () => {
+  const getServerSession = jest.requireMock('next-auth').getServerSession;
+  const getUserRole = jest.requireMock('@/lib/auth/roles').getUserRole;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getServerSession.mockResolvedValue({ user: { id: 'user-123', email: 'user@example.com' } });
+    getUserRole.mockResolvedValue('submitter');
+  });
+
+  it('should return 401 when not authenticated', async () => {
+    getServerSession.mockResolvedValue(null);
+
+    const request = new Request('http://localhost:3000/api/ideas');
+    const response = await GET(request);
+
+    expect(response.status).toBe(401);
+    const data = await response.json();
+    expect(data.error).toBe('Authentication required');
+  });
+
+  it('should return ideas and pagination for authenticated submitter', async () => {
+    const getIdeasForUser = jest.requireMock('@/lib/services/idea-service').getIdeasForUser;
+    getIdeasForUser.mockResolvedValue({
+      ideas: [
+        {
+          id: 'idea-1',
+          title: 'My Idea',
+          category: { id: 'c1', name: 'Tech' },
+          submittedAt: new Date('2026-02-25T10:00:00.000Z'),
+          hasAttachment: false,
+        },
+      ],
+      pagination: { page: 1, pageSize: 15, totalCount: 1, totalPages: 1 },
+    });
+
+    const request = new Request('http://localhost:3000/api/ideas');
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.success).toBe(true);
+    expect(data.ideas).toHaveLength(1);
+    expect(data.ideas[0].title).toBe('My Idea');
+    expect(data.pagination.page).toBe(1);
   });
 });

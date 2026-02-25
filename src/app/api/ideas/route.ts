@@ -4,12 +4,93 @@ import { getServerSession } from 'next-auth';
 
 import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
 import { sanitizeText } from '@/lib/sanitizers';
+import { getIdeasForUser } from '@/lib/services/idea-service';
+import { getUserRole } from '@/lib/auth/roles';
 import { prisma } from '@/server/db/prisma';
 import { saveAttachmentFile } from '@/lib/services/attachment-service';
 
 const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
+
+/**
+ * GET /api/ideas
+ * Returns paginated list of ideas per role (submitter: own; evaluator/admin: all).
+ * Query: page, pageSize, categoryId
+ */
+export async function GET(request: Request): Promise<Response> {
+  try {
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return NextResponse.json(
+        { success: false, error: 'Authentication required' },
+        { status: 401 },
+      );
+    }
+
+    const role = await getUserRole(userId);
+    const { searchParams } = new URL(request.url);
+    const pageParam = searchParams.get('page');
+    const pageSizeParam = searchParams.get('pageSize');
+    const categoryId = searchParams.get('categoryId') || undefined;
+
+    let page = 1;
+    let pageSize = 15;
+    if (pageParam) {
+      const p = parseInt(pageParam, 10);
+      if (Number.isNaN(p) || p < 1) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid pagination parameters' },
+          { status: 400 },
+        );
+      }
+      page = p;
+    }
+    if (pageSizeParam) {
+      const ps = parseInt(pageSizeParam, 10);
+      if (Number.isNaN(ps) || ps < 1 || ps > 100) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid pagination parameters' },
+          { status: 400 },
+        );
+      }
+      pageSize = ps;
+    }
+
+    const { ideas, pagination } = await getIdeasForUser(userId, role, {
+      page,
+      pageSize,
+      categoryId: categoryId || undefined,
+    });
+
+    const responseIdeas = ideas.map((i) => ({
+      id: i.id,
+      title: i.title,
+      category: i.category,
+      submittedAt: i.submittedAt.toISOString(),
+      hasAttachment: i.hasAttachment,
+    }));
+
+    return NextResponse.json({
+      success: true,
+      ideas: responseIdeas,
+      pagination: {
+        page: pagination.page,
+        pageSize: pagination.pageSize,
+        totalCount: pagination.totalCount,
+        totalPages: pagination.totalPages,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching ideas:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to load ideas' },
+      { status: 500 },
+    );
+  }
+}
 
 /**
  * Formats Zod validation errors into a field-level error object.

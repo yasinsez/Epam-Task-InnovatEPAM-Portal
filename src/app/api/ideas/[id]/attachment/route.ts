@@ -66,8 +66,8 @@ export async function GET(
     const buffer = await readAttachmentFile(idea.attachment.storedPath);
     if (!buffer) {
       return NextResponse.json(
-        { success: false, error: 'Failed to retrieve attachment' },
-        { status: 500 },
+        { success: false, error: 'Attachment unavailable' },
+        { status: 404 },
       );
     }
 
@@ -90,8 +90,8 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching attachment:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to retrieve attachment' },
-      { status: 500 },
+      { success: false, error: 'Attachment unavailable' },
+      { status: 404 },
     );
   }
 }

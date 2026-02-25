@@ -24,7 +24,7 @@
 
 **Purpose**: Verify project structure and feature-specific setup
 
-- [ ] T001 Verify project structure per plan: `src/app/ideas/`, `src/components/`, `src/lib/services/idea-service.ts` exist and are ready for extension
+- [x] T001 Verify project structure per plan: `src/app/ideas/`, `src/components/`, `src/lib/services/idea-service.ts` exist and are ready for extension
 
 ---
 
@@ -34,8 +34,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Add `getIdeasForUser(userId, role, options)` to `src/lib/services/idea-service.ts` with role-based visibility (submitter: own; evaluator/admin: all), `orderBy: submittedAt desc`, pagination (skip/take, page/pageSize), optional categoryId filter, page normalization (0/negative→1; beyond last→last page)
-- [ ] T003 Add `getIdeaForDetail(ideaId, userId, role)` to `src/lib/services/idea-service.ts` with access check and include `user: { select: { name: true, email: true } }` for evaluator/admin (submitter display: name \|\| email)
+- [x] T002 Add `getIdeasForUser(userId, role, options)` to `src/lib/services/idea-service.ts` with role-based visibility (submitter: own; evaluator/admin: all), `orderBy: submittedAt desc`, pagination (skip/take, page/pageSize), optional categoryId filter, page normalization (0/negative→1; beyond last→last page)
+- [x] T003 Add `getIdeaForDetail(ideaId, userId, role)` to `src/lib/services/idea-service.ts` with access check and include `user: { select: { name: true, email: true } }` for evaluator/admin (submitter display: name \|\| email)
 
 **Checkpoint**: Service layer ready — user story implementation can begin
 
@@ -49,11 +49,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [P] [US1] Create `IdeaListSkeleton` component in `src/components/IdeaListSkeleton.tsx` using Tailwind `animate-pulse` to mimic list layout (N placeholder rows)
-- [ ] T005 [P] [US1] Create `IdeaListItem` component in `src/components/IdeaListItem.tsx` displaying title (link to `/ideas/[id]`), category name, formatted submission date, attachment indicator (icon or badge)
-- [ ] T006 [US1] Create idea list page in `src/app/ideas/page.tsx`: Server Component with searchParams (page, pageSize, categoryId), call `getIdeasForUser`, render IdeaListItem list, wrap with Suspense fallback IdeaListSkeleton, empty state "No ideas yet" (submitter) or "No ideas pending review" (evaluator/admin)
-- [ ] T007 [US1] Add GET handler to `src/app/api/ideas/route.ts`: session check, resolve role, parse query (page, pageSize, categoryId), call `getIdeasForUser`, return JSON per `contracts/api-ideas-list.md` (ideas array, pagination meta)
-- [ ] T008 [US1] Update `src/app/components/Navigation.tsx`: change "My Ideas" link from `/dashboard/submitter` to `/ideas`; change "Evaluation Queue" link from `/dashboard/evaluator` to `/ideas` (role-based visibility on same page)
+- [x] T004 [P] [US1] Create `IdeaListSkeleton` component in `src/components/IdeaListSkeleton.tsx` using Tailwind `animate-pulse` to mimic list layout (N placeholder rows)
+- [x] T005 [P] [US1] Create `IdeaListItem` component in `src/components/IdeaListItem.tsx` displaying title (link to `/ideas/[id]`), category name, formatted submission date, attachment indicator (icon or badge)
+- [x] T006 [US1] Create idea list page in `src/app/ideas/page.tsx`: Server Component with searchParams (page, pageSize, categoryId), call `getIdeasForUser`, render IdeaListItem list, wrap with Suspense fallback IdeaListSkeleton, empty state "No ideas yet" (submitter) or "No ideas pending review" (evaluator/admin)
+- [x] T007 [US1] Add GET handler to `src/app/api/ideas/route.ts`: session check, resolve role, parse query (page, pageSize, categoryId), call `getIdeasForUser`, return JSON per `contracts/api-ideas-list.md` (ideas array, pagination meta)
+- [x] T008 [US1] Update `src/app/components/Navigation.tsx`: change "My Ideas" link from `/dashboard/submitter` to `/ideas`; change "Evaluation Queue" link from `/dashboard/evaluator` to `/ideas` (role-based visibility on same page)
 
 **Checkpoint**: User can view idea list, click to detail, see empty state when appropriate
 
@@ -67,9 +67,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T009 [P] [US2] Create `IdeaDetailSkeleton` component in `src/components/IdeaDetailSkeleton.tsx` using Tailwind `animate-pulse` to mimic detail layout (title, meta, description block, attachment block)
-- [ ] T010 [US2] Update `src/app/ideas/[id]/page.tsx`: use `getIdeaForDetail` instead of direct Prisma; add "Submitted by: {name \|\| email}" for evaluator/admin; change back link from "Back to Submit Idea" (href `/ideas/submit`) to "Back to Ideas" (href `/ideas`); hide attachment section when no attachment; wrap with Suspense fallback IdeaDetailSkeleton
-- [ ] T011 [US2] Update `src/app/api/ideas/[id]/attachment/route.ts`: on `readAttachmentFile` failure or missing file, return 404 with error message "Attachment unavailable" (align with spec FR edge case)
+- [x] T009 [P] [US2] Create `IdeaDetailSkeleton` component in `src/components/IdeaDetailSkeleton.tsx` using Tailwind `animate-pulse` to mimic detail layout (title, meta, description block, attachment block)
+- [x] T010 [US2] Update `src/app/ideas/[id]/page.tsx`: use `getIdeaForDetail` instead of direct Prisma; add "Submitted by: {name \|\| email}" for evaluator/admin; change back link from "Back to Submit Idea" (href `/ideas/submit`) to "Back to Ideas" (href `/ideas`); hide attachment section when no attachment; wrap with Suspense fallback IdeaDetailSkeleton
+- [x] T011 [US2] Update `src/app/api/ideas/[id]/attachment/route.ts`: on `readAttachmentFile` failure or missing file, return 404 with error message "Attachment unavailable" (align with spec FR edge case)
 
 **Checkpoint**: Idea detail shows all content, submitter for evaluator/admin, back to list, attachment download with error handling
 
@@ -83,8 +83,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T012 [P] [US3] Create `PaginationControls` component in `src/components/PaginationControls.tsx` with props page, totalPages, totalCount, baseUrl (searchParams); render Prev/Next and page indicators; disable when on first/last page
-- [ ] T013 [US3] Add `PaginationControls` to `src/app/ideas/page.tsx` when totalPages > 1; wire page, totalPages, totalCount from getIdeasForUser result; build baseUrl with current categoryId
+- [x] T012 [P] [US3] Create `PaginationControls` component in `src/components/PaginationControls.tsx` with props page, totalPages, totalCount, baseUrl (searchParams); render Prev/Next and page indicators; disable when on first/last page
+- [x] T013 [US3] Add `PaginationControls` to `src/app/ideas/page.tsx` when totalPages > 1; wire page, totalPages, totalCount from getIdeasForUser result; build baseUrl with current categoryId
 
 **Checkpoint**: Pagination works; out-of-range page normalizes to valid (per spec)
 
@@ -98,8 +98,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T014 [P] [US4] Create `CategoryFilter` component in `src/components/CategoryFilter.tsx`: fetch active categories via `prisma.category.findMany({ where: { isActive: true }, orderBy: { order: 'asc' } })`; dropdown or select with "All" option; on change, navigate with updated categoryId searchParam
-- [ ] T015 [US4] Add `CategoryFilter` to `src/app/ideas/page.tsx`; pass categoryId from searchParams to `getIdeasForUser`; show "No ideas in this category" when filter applied and empty
+- [x] T014 [P] [US4] Create `CategoryFilter` component in `src/components/CategoryFilter.tsx`: fetch active categories via `prisma.category.findMany({ where: { isActive: true }, orderBy: { order: 'asc' } })`; dropdown or select with "All" option; on change, navigate with updated categoryId searchParam
+- [x] T015 [US4] Add `CategoryFilter` to `src/app/ideas/page.tsx`; pass categoryId from searchParams to `getIdeasForUser`; show "No ideas in this category" when filter applied and empty
 
 **Checkpoint**: Category filter works; clearing restores full list
 
@@ -109,11 +109,11 @@
 
 **Purpose**: Documentation, tests, and validation
 
-- [ ] T016 [P] Add JSDoc to `getIdeasForUser` and `getIdeaForDetail` in `src/lib/services/idea-service.ts` (@param, @returns, @throws)
-- [ ] T017 [P] Unit test: `getIdeasForUser` and `getIdeaForDetail` (visibility rules, pagination, page normalization) in `tests/unit/lib/services/idea-service.test.ts`
-- [ ] T018 [P] Integration test: GET /api/ideas (session, role visibility, pagination, 401) in `tests/integration/api/ideas/route.test.ts`
-- [ ] T019 E2E test: login → /ideas → see list → click idea → detail → Back to Ideas in `tests/e2e/idea-listing.spec.ts`
-- [ ] T020 Run quickstart.md validation (manual or automated smoke)
+- [x] T016 [P] Add JSDoc to `getIdeasForUser` and `getIdeaForDetail` in `src/lib/services/idea-service.ts` (@param, @returns, @throws)
+- [x] T017 [P] Unit test: `getIdeasForUser` and `getIdeaForDetail` (visibility rules, pagination, page normalization) in `tests/unit/lib/services/idea-service.test.ts`
+- [x] T018 [P] Integration test: GET /api/ideas (session, role visibility, pagination, 401) in `tests/integration/api/ideas/route.test.ts`
+- [x] T019 E2E test: login → /ideas → see list → click idea → detail → Back to Ideas in `tests/e2e/idea-listing.spec.ts`
+- [x] T020 Run quickstart.md validation (manual or automated smoke)
 
 ---
 

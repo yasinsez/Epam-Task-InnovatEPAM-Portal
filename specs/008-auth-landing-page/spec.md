@@ -112,6 +112,125 @@ A user on the authentication landing page who has forgotten their password can s
 
 ---
 
+## WCAG 2.1 AA Accessibility Checklist
+
+**Reference Document**: See [ACCESSIBILITY_AUTH_PATTERNS.md](../../docs/ACCESSIBILITY_AUTH_PATTERNS.md) for comprehensive accessibility patterns and implementation guide.
+
+### Keyboard Navigation & Focus
+
+- [ ] All interactive elements (buttons, links) are focusable and can be activated via keyboard
+- [ ] Tab order follows logical sequence (left-to-right, top-to-bottom)
+- [ ] No keyboard traps - user can Tab out of all elements
+- [ ] Focus indicator is visible at all times on buttons and links
+- [ ] Focus indicator has minimum 3px visible outline or equivalent styling
+- [ ] Focus indicator has 3:1 contrast minimum with adjacent colors
+- [ ] `:focus-visible` used for keyboard focus (not removed with `outline: none`)
+
+### Semantic HTML & ARIA
+
+- [ ] All buttons use `<button>` element with proper `type` attribute
+- [ ] All navigation links use `<a>` element with proper `href` attributes
+- [ ] Page has descriptive `<title>` tag (e.g., "Sign In or Register - InnovatEPAM Portal")
+- [ ] Main content wrapped in `<main>` element
+- [ ] Heading hierarchy starts with `<h1>` (page title)
+- [ ] Button text is descriptive and meaningful ("Sign In", "Create Account", not "Click Here")
+- [ ] Link text is descriptive ("Sign In here", "Don't have an account?", not "click here")
+- [ ] No duplicate IDs on page (valid HTML)
+
+### Color Contrast (WCAG 1.4.3 & 1.4.11)
+
+- [ ] Button text contrast is 4.5:1 minimum (measured with color contrast checker)
+- [ ] Button background/border has 3:1 contrast minimum with adjacent background
+- [ ] Link text contrast is 4.5:1 minimum
+- [ ] Links distinguished by more than color alone (underline, icon, or context)
+- [ ] Heading text contrast is 4.5:1 minimum
+- [ ] Focus indicator contrast is 3:1 minimum with surrounding colors
+- [ ] All contrast ratios verified with WCAG approved tool (e.g., WebAIM Contrast Checker)
+
+**Primary Button (Create Account)**:
+- Background: `#003da5` (dark blue)
+- Text: `#ffffff` (white)
+- Contrast ratio: 8.6:1 ✓
+
+**Secondary Button (Sign In)**:
+- Background: `#f0f0f0` (light gray)
+- Text: `#000000` (black)
+- Contrast ratio: 17.5:1 ✓
+
+**Links**:
+- Color: `#0066cc` (blue)
+- Text decoration: underline
+- Contrast with white background: 6.2:1 ✓
+
+### Mobile & Touch Accessibility (WCAG 2.5.5)
+
+- [ ] Button minimum size: 44 × 44 CSS pixels (48-56px recommended)
+- [ ] Link minimum size: 44 × 44 CSS pixels when standalone
+- [ ] Minimum 8-16px spacing between adjacent touch targets
+- [ ] All text input font size: 16px minimum (prevents iOS auto-zoom)
+- [ ] Buttons full-width or clearly separated on mobile (< 768px)
+- [ ] Page content reflows for 200% zoom without horizontal scrolling
+- [ ] Responsive design tested on real mobile devices (iPhone, Android)
+- [ ] Viewport meta tag allows user zoom: `user-scalable=yes`
+
+### Responsive Design & Readability (WCAG 1.4.4)
+
+- [ ] Page works at 200% zoom without horizontal scrolling
+- [ ] Layout does not break at any viewport size
+- [ ] Text resizable to 200% without loss of function
+- [ ] Line lengths are reasonable (not full viewport width)
+- [ ] Typography spacing adequate (line-height: 1.5+)
+
+### Form & Button Accessibility
+
+- [ ] Buttons have sufficient padding and minimum size
+- [ ] Buttons are not disrupted by styling that removes focus (no `outline: none`)
+- [ ] Button hover state is visually distinct
+- [ ] Button active/pressed state is visually distinct
+- [ ] Cursor changes to pointer on hover of buttons/links
+- [ ] No time limits on interaction with page elements
+
+### Testing Requirements
+
+- [ ] **Keyboard navigation**: Full page navigation using Tab/Shift+Tab only
+- [ ] **Screen reader**: Tested with NVDA (Windows) - content readable and meaningful
+- [ ] **Screen reader**: Tested with JAWS (Windows) - content readable and meaningful
+- [ ] **Screen reader**: Tested with VoiceOver (macOS/Safari) - content readable and meaningful
+- [ ] **Mobile screen reader**: Tested with TalkBack (Android) or VoiceOver (iOS)
+- [ ] **Contrast verification**: Run WebAIM Contrast Checker on all meaningful colors
+- [ ] **Automated testing**: Axe DevTools audit shows zero violations
+- [ ] **Automated testing**: WAVE checker shows no errors
+- [ ] **Automated testing**: Lighthouse accessibility score ≥ 90
+- [ ] **Zoom testing**: Verified at 100%, 150%, 200% zoom levels
+- [ ] **Mobile device testing**: Tested on iOS Safari and Chrome on Android
+- [ ] **HTML validation**: W3C HTML validator shows no errors
+
+### Common Failures to Avoid
+
+- ❌ Do NOT remove focus indicator without replacement
+- ❌ Do NOT use color alone to convey information (links must be underlined or use icons)
+- ❌ Do NOT make buttons smaller than 44×44 CSS pixels on mobile
+- ❌ Do NOT use placeholder text as label
+- ❌ Do NOT set `user-scalable=no` in viewport meta tag
+- ❌ Do NOT use generic text like "Click here" on buttons
+- ❌ Do NOT disable zoom on mobile devices
+- ❌ Do NOT use `onclick` instead of proper button/link elements
+- ❌ Do NOT have focus order that jumps around illogically
+
+### Accessibility Implementation Guide
+
+For detailed patterns, code examples, and comprehensive requirements, see: **[ACCESSIBILITY_AUTH_PATTERNS.md](../../docs/ACCESSIBILITY_AUTH_PATTERNS.md)**
+
+Key sections to reference:
+- Section 1: Keyboard Navigation Requirements
+- Section 2: ARIA Labels and Semantic HTML
+- Section 3: Color Contrast Requirements
+- Section 4: Mobile Accessibility Considerations
+- Section 5: Complete Accessibility Checklist
+- Section 7: Example Fully Accessible Login Form (HTML/CSS pattern)
+
+---
+
 ## Assumptions
 
 1. **Route location**: Landing page is assumed to be at `/auth` route. If a different route is required, this can be configured in Next.js routing.

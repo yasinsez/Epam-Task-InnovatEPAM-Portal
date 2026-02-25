@@ -1,0 +1,443 @@
+/**
+ * Mobile-First Responsive CSS Module
+ * 
+ * Design Approach:
+ * - Mobile first (320px): Single column, full-width buttons
+ * - Tablet (621px+): Two-column button layout
+ * - Desktop (1025px+): Centered card with max-width constraint
+ * 
+ * Accessibility:
+ * - 44x44px minimum touch targets on mobile
+ * - 16px+ font size prevents iOS auto-zoom
+ * - Focus indicators for keyboard navigation
+ * - Proper color contrast (4.5:1 minimum)
+ */
+
+/* ============================================================================
+   SPACING SYSTEM - Mobile-first approach
+   ============================================================================ */
+.authContainer {
+  width: 100%;
+  max-width: 100%;
+  padding: 0 16px; /* Safe area from edges */
+  margin: 0;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+
+  /* Color tokens */
+  --color-primary: #0066cc;
+  --color-primary-dark: #0052a3;
+  --color-secondary-bg: #f0f0f0;
+  --color-secondary-border: #e0e0e0;
+  --color-text-primary: #212121;
+  --color-text-secondary: #666666;
+  --color-focus: #0066cc;
+  --color-error: #d32f2f;
+
+  /* Shadow tokens */
+  --shadow-xs: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+/* ============================================================================
+   PAGE LAYOUT - Use min-height with flexbox for full-screen centering
+   ============================================================================ */
+:global(.authPage) {
+  display: flex;
+  min-height: 100svh; /* Small viewport height unit for mobile address bar */
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: linear-gradient(135deg, #f5f5f5 0%, #fafafa 100%);
+}
+
+/* ============================================================================
+   HERO SECTION - Title and subtitle
+   ============================================================================ */
+.heroSection {
+  width: 100%;
+  margin-bottom: var(--spacing-2xl);
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mainTitle {
+  /* Mobile-first typography */
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+  margin: 0;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-primary);
+}
+
+@media (min-width: 621px) {
+  .mainTitle {
+    font-size: 28px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .mainTitle {
+    font-size: 32px;
+  }
+}
+
+.subtitle {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  margin: 0;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (min-width: 621px) {
+  .subtitle {
+    font-size: 15px;
+  }
+}
+
+/* ============================================================================
+   BUTTON GROUP - Responsive layout container
+   ============================================================================ */
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md); /* 12px gap between buttons on mobile */
+  width: 100%;
+  margin-bottom: var(--spacing-xl);
+
+  /* Stack buttons vertically on mobile */
+  @media (max-width: 620px) {
+    gap: var(--spacing-md);
+  }
+
+  /* Horizontal layout on tablet and desktop */
+  @media (min-width: 621px) {
+    flex-direction: row;
+    gap: var(--spacing-lg);
+
+    /* Make buttons equal width */
+    & > button {
+      flex: 1;
+      width: auto;
+    }
+  }
+
+  /* Landscape mode adjustment (prevent button overlap) */
+  @media (max-height: 500px) and (orientation: landscape) {
+    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-sm);
+  }
+}
+
+/* ============================================================================
+   BUTTON STYLES - Touch-friendly, accessible buttons
+   ============================================================================ */
+.button {
+  /* Touch target sizing - WCAG 2.5.5 */
+  min-height: 44px;
+  min-width: 44px;
+  padding: 12px 24px;
+
+  /* Typography - 16px prevents iOS auto-zoom on focus */
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+
+  /* Layout */
+  width: 100%; /* Full width on mobile */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  /* Appearance */
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+
+  /* Interaction */
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+
+  /* Remove tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
+
+  /* Focus indicator for keyboard navigation */
+  &:focus-visible {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Active/pressed state for touch feedback */
+  &:active {
+    transform: scale(0.98);
+  }
+
+  /* Disabled state */
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+
+    &:active {
+      transform: none;
+    }
+  }
+}
+
+/* Primary button (Create Account) */
+.buttonPrimary {
+  background-color: var(--color-primary);
+  color: white;
+  box-shadow: var(--shadow-sm);
+
+  &:active {
+    background-color: var(--color-primary-dark);
+  }
+
+  /* Hover state - only on devices that support it */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      opacity: 0.9;
+      box-shadow: var(--shadow-md);
+    }
+  }
+
+  /* Disable hover on touch devices */
+  @media (hover: none) and (pointer: coarse) {
+    &:hover {
+      opacity: 1;
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+/* Secondary button (Sign In) */
+.buttonSecondary {
+  background-color: var(--color-secondary-bg);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-secondary-border);
+  box-shadow: var(--shadow-xs);
+
+  &:active {
+    background-color: #e8e8e8;
+    border-color: #d0d0d0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: #e8e8e8;
+      box-shadow: var(--shadow-sm);
+    }
+  }
+}
+
+/* Tablet and above - button sizing adjustments */
+@media (min-width: 621px) {
+  .button {
+    padding: 14px 28px;
+    font-size: 15px;
+    width: auto;
+  }
+}
+
+/* Desktop optimization */
+@media (min-width: 1025px) {
+  .button {
+    padding: 12px 24px;
+    font-size: 14px;
+    min-width: 120px;
+  }
+}
+
+/* ============================================================================
+   SECONDARY NAVIGATION - Forgot password and cross-links
+   ============================================================================ */
+.secondaryNav {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-top: var(--spacing-md);
+}
+
+.secondaryLink {
+  font-size: 14px;
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  transition: all 200ms ease;
+  position: relative;
+
+  /* Visible focus indicator */
+  &:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Underline reveal on hover */
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+  }
+
+  /* Active state */
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================================
+   CARD WRAPPER - For wrapped layout on larger screens
+   ============================================================================ */
+:global(.authCard) {
+  width: 100%;
+  max-width: 100%;
+  padding: 32px 20px;
+  background: white;
+  border-radius: 0; /* Full bleed on mobile */
+  box-shadow: none;
+
+  @media (max-width: 620px) {
+    padding: 24px 16px;
+    min-height: 100svh;
+  }
+
+  @media (min-width: 621px) and (max-width: 1024px) {
+    max-width: 600px;
+    padding: 40px 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin: 0 auto;
+  }
+
+  @media (min-width: 1025px) {
+    max-width: 480px;
+    padding: 48px 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    margin: 0 auto;
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY - Screen reader only content
+   ============================================================================ */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* ============================================================================
+   UTILITY - Landscape mode handling
+   ============================================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+  .heroSection {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .mainTitle {
+    font-size: 20px;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+}
+
+/* ============================================================================
+   DARK MODE SUPPORT (Optional - add if needed)
+   ============================================================================ */
+@media (prefers-color-scheme: dark) {
+  :global(.authPage) {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  }
+
+  .authContainer {
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #999999;
+    --color-secondary-bg: #333333;
+    --color-secondary-border: #444444;
+  }
+
+  :global(.authCard) {
+    background: #222222;
+  }
+
+  .buttonSecondary {
+    background-color: var(--color-secondary-bg);
+    border-color: var(--color-secondary-border);
+  }
+}
+
+/* ============================================================================
+   REDUCED MOTION - Respect user's motion preferences
+   ============================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .heroSection {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   HIGH CONTRAST MODE - Support for accessibility
+   ============================================================================ */
+@media (prefers-contrast: more) {
+  .button {
+    border-width: 2px;
+    border-style: solid;
+  }
+
+  .buttonPrimary {
+    border-color: white;
+  }
+
+  .buttonSecondary {
+    border-color: var(--color-text-primary);
+    border-width: 2px;
+  }
+}

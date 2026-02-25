@@ -145,7 +145,7 @@ describe('GET /api/ideas/[id]/attachment', () => {
     });
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to retrieve attachment');
+    expect(response.status).toBe(404);
+    expect(data.error).toBe('Attachment unavailable');
   });
 });

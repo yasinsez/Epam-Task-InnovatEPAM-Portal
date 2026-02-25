@@ -31,12 +31,12 @@ export function Navigation() {
         )}
         {(role === 'submitter' || role === 'admin') && (
           <li>
-            <Link href="/dashboard/submitter">My Ideas</Link>
+            <Link href="/ideas">My Ideas</Link>
           </li>
         )}
         {(role === 'evaluator' || role === 'admin') && (
           <li>
-            <Link href="/dashboard/evaluator">Evaluation Queue</Link>
+            <Link href="/ideas">Evaluation Queue</Link>
           </li>
         )}
         {(role === 'evaluator' || role === 'admin') && (

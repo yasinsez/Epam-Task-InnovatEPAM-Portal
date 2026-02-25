@@ -8,3 +8,77 @@ body {
   padding: 0;
   font-family: Arial, sans-serif;
 }
+/* Accessibility: Focus indicators */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Accessibility: Visible focus indicators for keyboard navigation */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Accessibility: Text contrast (4.5:1 minimum for normal text) */
+body {
+  color: #212121;
+  background-color: #ffffff;
+}
+
+/* Accessibility: Form labels */
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #212121;
+  font-weight: 500;
+}
+
+/* Accessibility: Required field indicator */
+.required {
+  color: #d32f2f;
+  margin-left: 0.25rem;
+}
+
+/* Alert messages for accessibility */
+.alert {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  border-left: 4px solid #d32f2f;
+  color: #c62828;
+}
+
+.success-message {
+  background-color: #e8f5e9;
+  border-left: 4px solid #388e3c;
+  color: #2e7d32;
+}
+
+/* Form field errors */
+.field-error {
+  color: #d32f2f;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Submit button accessibility */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading state indicator */
+button.loading {
+  opacity: 0.8;
+}

@@ -27,6 +27,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   failedLoginAttempts FailedLoginAttempt[]
   authLogs            AuthLog[]
+  ideas               Idea[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -90,4 +91,42 @@ model AuthLog {
   @@index([userId, timestamp])
   @@index([action, timestamp])
   @@index([timestamp])
+}
+
+// Category model (new)
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(50)
+  slug        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(500)
+  order       Int      @default(999)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ideas       Idea[]
+
+  @@index([slug])
+  @@index([isActive, order, name])
+}
+
+// Idea model (new)
+model Idea {
+  id                   String   @id @default(cuid())
+  title                String   @db.VarChar(100)
+  description          String   @db.Text
+  sanitizedTitle       String   @db.VarChar(100)
+  sanitizedDescription String   @db.Text
+  categoryId           String
+  category             Category @relation(fields: [categoryId], references: [id])
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status               String   @default("SUBMITTED") @db.VarChar(20)
+  submittedAt          DateTime @default(now())
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([submittedAt])
+  @@index([userId, submittedAt])
 }

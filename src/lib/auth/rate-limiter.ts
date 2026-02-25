@@ -18,7 +18,10 @@ function getDelaySeconds(failures: number): number {
  * @param reason Failure reason label.
  * @returns Delay in seconds.
  */
-export async function recordFailedLogin(userId: string, reason = 'password_incorrect'): Promise<number> {
+export async function recordFailedLogin(
+  userId: string,
+  reason = 'password_incorrect',
+): Promise<number> {
   const threshold = new Date(Date.now() - ONE_HOUR_MS);
 
   await prisma.failedLoginAttempt.deleteMany({

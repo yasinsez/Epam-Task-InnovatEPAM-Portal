@@ -1,4 +1,9 @@
-import { AuthenticationError, RateLimitError, TokenError, ValidationError } from '@/lib/utils/errors';
+import {
+  AuthenticationError,
+  RateLimitError,
+  TokenError,
+  ValidationError,
+} from '@/lib/utils/errors';
 
 describe('error classes', () => {
   it('builds validation error', () => {

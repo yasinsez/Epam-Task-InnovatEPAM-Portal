@@ -39,10 +39,7 @@ describe('admin user role APIs', () => {
       { id: 'user-1', email: 'u1@epam.com', name: 'U1', role: 'SUBMITTER' },
     ]);
 
-    const response = await GET(
-      new Request('http://localhost/api/admin/users'),
-      { params: {} },
-    );
+    const response = await GET(new Request('http://localhost/api/admin/users'), { params: {} });
     const body = await response.json();
 
     expect(response.status).toBe(200);
@@ -54,10 +51,7 @@ describe('admin user role APIs', () => {
     getServerSession.mockResolvedValue({ user: { id: 'user-1' } });
     getUserRole.mockResolvedValue('submitter');
 
-    const response = await GET(
-      new Request('http://localhost/api/admin/users'),
-      { params: {} },
-    );
+    const response = await GET(new Request('http://localhost/api/admin/users'), { params: {} });
     const body = await response.json();
 
     expect(response.status).toBe(403);

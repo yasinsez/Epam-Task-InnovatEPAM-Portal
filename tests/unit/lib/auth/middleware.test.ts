@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { enforceProtectedRoute, validateAuthRequest, validateJsonPayload } from '@/lib/auth/middleware';
+import {
+  enforceProtectedRoute,
+  validateAuthRequest,
+  validateJsonPayload,
+} from '@/lib/auth/middleware';
 
 jest.mock('@/lib/auth/token', () => ({
   refreshToken: jest.fn(),

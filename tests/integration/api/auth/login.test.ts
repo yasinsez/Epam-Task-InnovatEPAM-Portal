@@ -29,7 +29,9 @@ jest.mock('@/server/api/auth/validators', () => ({
 
 describe('POST /api/auth/login', () => {
   const prisma = jest.requireMock('@/server/db/prisma').prisma;
-  const verifyLoginCredentials = jest.requireMock('@/server/api/auth/validators').verifyLoginCredentials;
+  const verifyLoginCredentials = jest.requireMock(
+    '@/server/api/auth/validators',
+  ).verifyLoginCredentials;
 
   beforeEach(() => {
     jest.clearAllMocks();

@@ -26,7 +26,7 @@ export function Navigation() {
       <ul className="navigation__list">
         {(role === 'submitter' || role === 'admin') && (
           <li>
-            <Link href="/dashboard/submitter">Submit Idea</Link>
+            <Link href="/ideas/submit">Submit Idea</Link>
           </li>
         )}
         {(role === 'submitter' || role === 'admin') && (

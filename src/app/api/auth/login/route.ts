@@ -2,7 +2,11 @@ import crypto from 'node:crypto';
 import { NextResponse } from 'next/server';
 
 import { generateJWT } from '@/lib/auth/token';
-import { getCurrentLoginDelay, recordFailedLogin, resetFailedLogins } from '@/lib/auth/rate-limiter';
+import {
+  getCurrentLoginDelay,
+  recordFailedLogin,
+  resetFailedLogins,
+} from '@/lib/auth/rate-limiter';
 import { AuthenticationError } from '@/lib/utils/errors';
 import { prisma, logAuthEvent } from '@/server/db/prisma';
 import { validateLoginPayload, verifyLoginCredentials } from '@/server/api/auth/validators';

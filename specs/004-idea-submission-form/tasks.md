@@ -19,12 +19,12 @@
 
 **Purpose**: Project initialization and basic database structure
 
-- [ ] T001 Verify project structure matches plan.md (Next.js 14+ App Router, TypeScript 5.x, Prisma ORM)
-- [ ] T002 Create Prisma migration file for Category and Idea models in prisma/migrations/[timestamp]_add_idea_category_models/migration.sql
-- [ ] T003 Add Category model to prisma/schema.prisma with fields: id, name, slug, description, order, isActive, timestamps
-- [ ] T004 Add Idea model to prisma/schema.prisma with fields: id, title, description, sanitizedTitle, sanitizedDescription, categoryId, userId, status, submittedAt, timestamps
-- [ ] T005 Add indexes to prisma/schema.prisma for Idea model (userId, categoryId, submittedAt, userId+submittedAt)
-- [ ] T006 Add User model extension to prisma/schema.prisma (ideas relation)
+- [x] T001 Verify project structure matches plan.md (Next.js 14+ App Router, TypeScript 5.x, Prisma ORM)
+- [x] T002 Create Prisma migration file for Category and Idea models in prisma/migrations/[timestamp]_add_idea_category_models/migration.sql
+- [x] T003 Add Category model to prisma/schema.prisma with fields: id, name, slug, description, order, isActive, timestamps
+- [x] T004 Add Idea model to prisma/schema.prisma with fields: id, title, description, sanitizedTitle, sanitizedDescription, categoryId, userId, status, submittedAt, timestamps
+- [x] T005 Add indexes to prisma/schema.prisma for Idea model (userId, categoryId, submittedAt, userId+submittedAt)
+- [x] T006 Add User model extension to prisma/schema.prisma (ideas relation)
 
 ---
 
@@ -34,12 +34,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T007 Run database migration: npx prisma migrate dev --name add_idea_category_models
-- [ ] T008 Seed Category table with 4 predefined categories (Process Improvement, Technology, Cost Reduction, Culture & Engagement)
-- [ ] T009 [P] Create base validator utilities in src/lib/validators.ts with SubmitIdeaSchema (Zod schema for title, description, categoryId)
-- [ ] T010 [P] Create sanitization utilities in src/lib/sanitizers.ts with sanitizeText function (strip HTML/special chars)
-- [ ] T011 [P] Verify error utilities exist in src/lib/utils/errors.ts (ValidationError, NotFoundError classes)
-- [ ] T012 Generate Prisma client: npx prisma generate
+- [x] T007 Run database migration: npx prisma migrate dev --name add_idea_category_models
+- [x] T008 Seed Category table with 4 predefined categories (Process Improvement, Technology, Cost Reduction, Culture & Engagement)
+- [x] T009 [P] Create base validator utilities in src/lib/validators.ts with SubmitIdeaSchema (Zod schema for title, description, categoryId)
+- [x] T010 [P] Create sanitization utilities in src/lib/sanitizers.ts with sanitizeText function (strip HTML/special chars)
+- [x] T011 [P] Verify error utilities exist in src/lib/utils/errors.ts (ValidationError, NotFoundError classes)
+- [x] T012 Generate Prisma client: npx prisma generate
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -55,22 +55,22 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T013 [P] [US1] Create unit test for SubmitIdeaSchema validation in tests/unit/lib/validators.test.ts (valid submission test)
-- [ ] T014 [P] [US1] Create unit test for sanitizeText function in tests/unit/lib/sanitizers.test.ts (HTML/special char stripping)
-- [ ] T015 [P] [US1] Create contract test for POST /api/ideas endpoint in tests/contract/api-ideas.test.ts (request/response schema validation)
-- [ ] T016 [P] [US1] Create integration test for POST /api/ideas in tests/integration/api/ideas/route.test.ts (successful submission with mocked Prisma and NextAuth)
+- [x] T013 [P] [US1] Create unit test for SubmitIdeaSchema validation in tests/unit/lib/validators.test.ts (valid submission test)
+- [x] T014 [P] [US1] Create unit test for sanitizeText function in tests/unit/lib/sanitizers.test.ts (HTML/special char stripping)
+- [x] T015 [P] [US1] Create contract test for POST /api/ideas endpoint in tests/contract/api-ideas.test.ts (request/response schema validation)
+- [x] T016 [P] [US1] Create integration test for POST /api/ideas in tests/integration/api/ideas/route.test.ts (successful submission with mocked Prisma and NextAuth)
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Implement POST /api/ideas route in src/app/api/ideas/route.ts (authentication check, validation, category verification, sanitization, Prisma create, 201 response)
-- [ ] T018 [US1] Create SubmitIdeaForm component in src/components/SubmitIdeaForm.tsx (controlled form with title, description, category fields, onChange handlers, onSubmit handler)
-- [ ] T019 [US1] Implement form submission logic in src/components/SubmitIdeaForm.tsx (fetch /api/ideas, handle success with message display and form reset)
-- [ ] T020 [US1] Create ideas submission page in src/app/ideas/submit/page.tsx (authentication check, fetch active categories from Prisma, render SubmitIdeaForm)
-- [ ] T021 [US1] Add page metadata to src/app/ideas/submit/page.tsx (title: "Submit an Idea", description for SEO)
+- [x] T017 [US1] Implement POST /api/ideas route in src/app/api/ideas/route.ts (authentication check, validation, category verification, sanitization, Prisma create, 201 response)
+- [x] T018 [US1] Create SubmitIdeaForm component in src/components/SubmitIdeaForm.tsx (controlled form with title, description, category fields, onChange handlers, onSubmit handler)
+- [x] T019 [US1] Implement form submission logic in src/components/SubmitIdeaForm.tsx (fetch /api/ideas, handle success with message display and form reset)
+- [x] T020 [US1] Create ideas submission page in src/app/ideas/submit/page.tsx (authentication check, fetch active categories from Prisma, render SubmitIdeaForm)
+- [x] T021 [US1] Add page metadata to src/app/ideas/submit/page.tsx (title: "Submit an Idea", description for SEO)
 
 ### E2E Test for User Story 1
 
-- [ ] T022 [US1] Create E2E test in tests/e2e/idea-submission.spec.ts (complete user journey: login → navigate to form → fill fields → submit → verify success)
+- [x] T022 [US1] Create E2E test in tests/e2e/idea-submission.spec.ts (complete user journey: login → navigate to form → fill fields → submit → verify success)
 
 **Checkpoint**: At this point, User Story 1 should be fully functional - users can submit ideas and see success confirmation
 
@@ -84,18 +84,18 @@
 
 ### Tests for User Story 2
 
-- [ ] T023 [P] [US2] Add unit test for title length validation in tests/unit/lib/validators.test.ts (test min 5, max 100 characters)
-- [ ] T024 [P] [US2] Add unit test for description length validation in tests/unit/lib/validators.test.ts (test min 20, max 2000 characters)
-- [ ] T025 [P] [US2] Add unit test for categoryId validation in tests/unit/lib/validators.test.ts (test required, non-empty)
-- [ ] T026 [P] [US2] Add integration test for validation errors in tests/integration/api/ideas/route.test.ts (verify 400 response with details object)
+- [x] T023 [P] [US2] Add unit test for title length validation in tests/unit/lib/validators.test.ts (test min 5, max 100 characters)
+- [x] T024 [P] [US2] Add unit test for description length validation in tests/unit/lib/validators.test.ts (test min 20, max 2000 characters)
+- [x] T025 [P] [US2] Add unit test for categoryId validation in tests/unit/lib/validators.test.ts (test required, non-empty)
+- [x] T026 [P] [US2] Add integration test for validation errors in tests/integration/api/ideas/route.test.ts (verify 400 response with details object)
 
 ### Implementation for User Story 2
 
-- [ ] T027 [US2] Add client-side validation error display in src/components/SubmitIdeaForm.tsx (errors state object, error message rendering below each field)
-- [ ] T028 [US2] Add error clearing on field change in src/components/SubmitIdeaForm.tsx (clear field error when user starts typing)
-- [ ] T029 [US2] Add validation error handling for API responses in src/components/SubmitIdeaForm.tsx (parse 400 response details, update errors state)
-- [ ] T030 [US2] Add Zod error handling in src/app/api/ideas/route.ts (catch ZodError, format error details by field path, return 400)
-- [ ] T031 [US2] Add category existence validation in src/app/api/ideas/route.ts (verify category exists and isActive=true before submission)
+- [x] T027 [US2] Add client-side validation error display in src/components/SubmitIdeaForm.tsx (errors state object, error message rendering below each field)
+- [x] T028 [US2] Add error clearing on field change in src/components/SubmitIdeaForm.tsx (clear field error when user starts typing)
+- [x] T029 [US2] Add validation error handling for API responses in src/components/SubmitIdeaForm.tsx (parse 400 response details, update errors state)
+- [x] T030 [US2] Add Zod error handling in src/app/api/ideas/route.ts (catch ZodError, format error details by field path, return 400)
+- [x] T031 [US2] Add category existence validation in src/app/api/ideas/route.ts (verify category exists and isActive=true before submission)
 
 **Checkpoint**: At this point, validation is complete - form shows specific error messages for all invalid inputs
 
@@ -109,15 +109,15 @@
 
 ### Tests for User Story 3
 
-- [ ] T032 [P] [US3] Add integration test for category fetching in tests/integration/api/ideas/route.test.ts (verify only active categories are used)
-- [ ] T033 [P] [US3] Add E2E test for category dropdown in tests/e2e/idea-submission.spec.ts (verify all categories appear, selection works)
+- [x] T032 [P] [US3] Add integration test for category fetching in tests/integration/api/ideas/route.test.ts (verify only active categories are used)
+- [x] T033 [P] [US3] Add E2E test for category dropdown in tests/e2e/idea-submission.spec.ts (verify all categories appear, selection works)
 
 ### Implementation for User Story 3
 
-- [ ] T034 [US3] Add category dropdown rendering in src/components/SubmitIdeaForm.tsx (map categories prop to option elements with key, value, label)
-- [ ] T035 [US3] Add category change handler in src/components/SubmitIdeaForm.tsx (update formData.categoryId on select change)
-- [ ] T036 [US3] Verify category fetch in src/app/ideas/submit/page.tsx (ensure Prisma query filters isActive=true and orders by order field)
-- [ ] T037 [US3] Add category display in API response in src/app/api/ideas/route.ts (include category name in success response via Prisma include)
+- [x] T034 [US3] Add category dropdown rendering in src/components/SubmitIdeaForm.tsx (map categories prop to option elements with key, value, label)
+- [x] T035 [US3] Add category change handler in src/components/SubmitIdeaForm.tsx (update formData.categoryId on select change)
+- [x] T036 [US3] Verify category fetch in src/app/ideas/submit/page.tsx (ensure Prisma query filters isActive=true and orders by order field)
+- [x] T037 [US3] Add category display in API response in src/app/api/ideas/route.ts (include category name in success response via Prisma include)
 
 **Checkpoint**: Categories are displayed and selectable - selected category is submitted and returned in response
 
@@ -131,17 +131,17 @@
 
 ### Tests for User Story 4
 
-- [ ] T038 [P] [US4] Add integration test for server error handling in tests/integration/api/ideas/route.test.ts (mock Prisma error, verify 500 response)
-- [ ] T039 [P] [US4] Add E2E test for retry logic in tests/e2e/idea-submission.spec.ts (mock 500 error, verify retry attempts and final error message)
+- [x] T038 [P] [US4] Add integration test for server error handling in tests/integration/api/ideas/route.test.ts (mock Prisma error, verify 500 response)
+- [x] T039 [P] [US4] Add E2E test for retry logic in tests/e2e/idea-submission.spec.ts (mock 500 error, verify retry attempts and final error message)
 
 ### Implementation for User Story 4
 
-- [ ] T040 [US4] Add error state management in src/components/SubmitIdeaForm.tsx (submitError state for error messages)
-- [ ] T041 [US4] Add retry counter state in src/components/SubmitIdeaForm.tsx (retryCount state, initialize to 0)
-- [ ] T042 [US4] Implement retry logic in src/components/SubmitIdeaForm.tsx (detect 500 errors, increment retry count, wait 1s, retry up to 3 times)
-- [ ] T043 [US4] Add error message display in src/components/SubmitIdeaForm.tsx (render submitError in alert div with role="alert")
-- [ ] T044 [US4] Add max retry message in src/components/SubmitIdeaForm.tsx (after 3 failed retries, show "Please contact support" message)
-- [ ] T045 [US4] Add server error handling in src/app/api/ideas/route.ts (catch unexpected errors, log to console, return 500 with user-friendly message)
+- [x] T040 [US4] Add error state management in src/components/SubmitIdeaForm.tsx (submitError state for error messages)
+- [x] T041 [US4] Add retry counter state in src/components/SubmitIdeaForm.tsx (retryCount state, initialize to 0)
+- [x] T042 [US4] Implement retry logic in src/components/SubmitIdeaForm.tsx (detect 500 errors, increment retry count, wait 1s, retry up to 3 times)
+- [x] T043 [US4] Add error message display in src/components/SubmitIdeaForm.tsx (render submitError in alert div with role="alert")
+- [x] T044 [US4] Add max retry message in src/components/SubmitIdeaForm.tsx (after 3 failed retries, show "Please contact support" message)
+- [x] T045 [US4] Add server error handling in src/app/api/ideas/route.ts (catch unexpected errors, log to console, return 500 with user-friendly message)
 
 **Checkpoint**: Error handling is complete - users can retry after failures and see clear error messages
 
@@ -155,21 +155,21 @@
 
 ### Tests for User Story 5
 
-- [ ] T046 [P] [US5] Create accessibility test in tests/e2e/idea-submission.spec.ts (keyboard navigation test: Tab through all fields in order)
-- [ ] T047 [P] [US5] Add focus indicator test in tests/e2e/idea-submission.spec.ts (verify visible focus outline with sufficient contrast)
-- [ ] T048 [P] [US5] Add ARIA attributes test in tests/e2e/idea-submission.spec.ts (verify aria-required, aria-describedby on fields with errors)
+- [x] T046 [P] [US5] Create accessibility test in tests/e2e/idea-submission.spec.ts (keyboard navigation test: Tab through all fields in order)
+- [x] T047 [P] [US5] Add focus indicator test in tests/e2e/idea-submission.spec.ts (verify visible focus outline with sufficient contrast)
+- [x] T048 [P] [US5] Add ARIA attributes test in tests/e2e/idea-submission.spec.ts (verify aria-required, aria-describedby on fields with errors)
 
 ### Implementation for User Story 5
 
-- [ ] T049 [US5] Add semantic HTML labels in src/components/SubmitIdeaForm.tsx (label elements with htmlFor attribute linking to input id)
-- [ ] T050 [US5] Add ARIA required attributes in src/components/SubmitIdeaForm.tsx (aria-required="true" on all required fields)
-- [ ] T051 [US5] Add ARIA error associations in src/components/SubmitIdeaForm.tsx (aria-describedby pointing to error message id when error exists)
-- [ ] T052 [US5] Add role="alert" to success/error messages in src/components/SubmitIdeaForm.tsx (ensure screen reader announces messages)
-- [ ] T053 [US5] Add required field indicators in src/components/SubmitIdeaForm.tsx (asterisk spans with class="required" next to labels)
-- [ ] T054 [US5] Add keyboard navigation support in src/components/SubmitIdeaForm.tsx (verify tab order: title → description → category → submit)
-- [ ] T055 [US5] Add loading state ARIA in src/components/SubmitIdeaForm.tsx (aria-busy="true" on submit button during submission)
-- [ ] T056 [US5] Add CSS for focus indicators in src/app/globals.css or component styles (visible outline, minimum 2px, 3:1 contrast ratio)
-- [ ] T057 [US5] Add CSS for text contrast in src/app/globals.css or component styles (ensure 4.5:1 contrast ratio for all text)
+- [x] T049 [US5] Add semantic HTML labels in src/components/SubmitIdeaForm.tsx (label elements with htmlFor attribute linking to input id)
+- [x] T050 [US5] Add ARIA required attributes in src/components/SubmitIdeaForm.tsx (aria-required="true" on all required fields)
+- [x] T051 [US5] Add ARIA error associations in src/components/SubmitIdeaForm.tsx (aria-describedby pointing to error message id when error exists)
+- [x] T052 [US5] Add role="alert" to success/error messages in src/components/SubmitIdeaForm.tsx (ensure screen reader announces messages)
+- [x] T053 [US5] Add required field indicators in src/components/SubmitIdeaForm.tsx (asterisk spans with class="required" next to labels)
+- [x] T054 [US5] Add keyboard navigation support in src/components/SubmitIdeaForm.tsx (verify tab order: title → description → category → submit)
+- [x] T055 [US5] Add loading state ARIA in src/components/SubmitIdeaForm.tsx (aria-busy="true" on submit button during submission)
+- [x] T056 [US5] Add CSS for focus indicators in src/app/globals.css or component styles (visible outline, minimum 2px, 3:1 contrast ratio)
+- [x] T057 [US5] Add CSS for text contrast in src/app/globals.css or component styles (ensure 4.5:1 contrast ratio for all text)
 
 **Checkpoint**: Accessibility is complete - form is fully keyboard navigable and screen reader compatible
 
@@ -179,18 +179,18 @@
 
 **Purpose**: Final touches, documentation, and comprehensive testing
 
-- [ ] T058 [P] Add loading spinner component in src/components/SubmitIdeaForm.tsx (display during isSubmitting state)
-- [ ] T059 [P] Add form field disabling during submission in src/components/SubmitIdeaForm.tsx (disable all inputs when isSubmitting=true)
-- [ ] T060 [P] Add JSDoc documentation to all functions in src/lib/validators.ts (document SubmitIdeaSchema with @example)
-- [ ] T061 [P] Add JSDoc documentation to sanitizeText in src/lib/sanitizers.ts (document parameters and return with @param, @returns, @example)
-- [ ] T062 [P] Add JSDoc documentation to POST handler in src/app/api/ideas/route.ts (document endpoint, parameters, responses)
-- [ ] T063 [P] Add JSDoc documentation to SubmitIdeaForm component in src/components/SubmitIdeaForm.tsx (document props and behavior)
-- [ ] T064 Add navigation link to ideas submission page in src/components/Navigation.tsx or equivalent (link to /ideas/submit with label "Submit Idea")
-- [ ] T065 [P] Run test suite and verify coverage: npm run test:unit && npm run test:integration && npm run test:e2e
-- [ ] T066 [P] Verify ≥80% line coverage and ≥75% branch coverage per plan.md requirements
+- [x] T058 [P] Add loading spinner component in src/components/SubmitIdeaForm.tsx (display during isSubmitting state)
+- [x] T059 [P] Add form field disabling during submission in src/components/SubmitIdeaForm.tsx (disable all inputs when isSubmitting=true)
+- [x] T060 [P] Add JSDoc documentation to all functions in src/lib/validators.ts (document SubmitIdeaSchema with @example)
+- [x] T061 [P] Add JSDoc documentation to sanitizeText in src/lib/sanitizers.ts (document parameters and return with @param, @returns, @example)
+- [x] T062 [P] Add JSDoc documentation to POST handler in src/app/api/ideas/route.ts (document endpoint, parameters, responses)
+- [x] T063 [P] Add JSDoc documentation to SubmitIdeaForm component in src/components/SubmitIdeaForm.tsx (document props and behavior)
+- [x] T064 Add navigation link to ideas submission page in src/components/Navigation.tsx or equivalent (link to /ideas/submit with label "Submit Idea")
+- [x] T065 [P] Run test suite and verify coverage: npm run test:unit && npm run test:integration && npm run test:e2e
+- [x] T066 [P] Verify ≥80% line coverage and ≥75% branch coverage per plan.md requirements
 - [ ] T067 Run accessibility validation with axe or WAVE tool on /ideas/submit page
 - [ ] T068 Run quickstart.md validation (follow all steps in quickstart.md and verify feature works end-to-end)
-- [ ] T069 Code cleanup and formatting: npx prettier --write src/ tests/
+- [x] T069 Code cleanup and formatting: npx prettier --write src/ tests/
 
 ---
 

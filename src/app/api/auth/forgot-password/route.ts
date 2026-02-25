@@ -10,7 +10,10 @@ export async function POST(request: Request): Promise<Response> {
   const email = body.email?.trim().toLowerCase() ?? '';
 
   if (!validateEmail(email)) {
-    return NextResponse.json({ success: true, message: 'If the email exists, a reset link has been sent' });
+    return NextResponse.json({
+      success: true,
+      message: 'If the email exists, a reset link has been sent',
+    });
   }
 
   const user = await prisma.user.findUnique({ where: { email } });
@@ -38,5 +41,8 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  return NextResponse.json({ success: true, message: 'If the email exists, a reset link has been sent' });
+  return NextResponse.json({
+    success: true,
+    message: 'If the email exists, a reset link has been sent',
+  });
 }

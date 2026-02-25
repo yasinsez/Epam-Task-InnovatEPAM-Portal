@@ -1,9 +1,9 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, Suspense, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = useMemo(() => searchParams.get('token') ?? '', [searchParams]);
   const [password, setPassword] = useState('');
@@ -54,5 +54,13 @@ export default function ResetPasswordPage() {
       {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
       {message ? <p style={{ color: '#0a7c2f' }}>{message}</p> : null}
     </main>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<main style={{ maxWidth: 420, margin: '40px auto', padding: 16 }}><p>Loading...</p></main>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }

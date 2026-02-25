@@ -80,6 +80,7 @@ describe('getIdeasForUser', () => {
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
         attachment: { id: 'att1' },
+        status: 'SUBMITTED',
       },
       {
         id: 'idea-2',
@@ -87,6 +88,7 @@ describe('getIdeasForUser', () => {
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
         attachment: null,
+        status: 'ACCEPTED',
       },
     ]);
 
@@ -119,6 +121,7 @@ describe('getIdeasForUser', () => {
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
         attachment: null,
+        status: 'SUBMITTED',
       },
     ]);
 
@@ -150,6 +153,7 @@ describe('getIdeasForUser', () => {
         category: { id: 'cat-1', name: 'Process' },
         submittedAt: new Date(),
         attachment: null,
+        status: 'SUBMITTED',
       },
     ]);
 
@@ -187,6 +191,7 @@ describe('getIdeasForUser', () => {
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
         attachment: null,
+        status: 'SUBMITTED',
       },
     ]);
 
@@ -225,7 +230,9 @@ describe('getIdeaForDetail', () => {
       category: { id: 'c1', name: 'Tech' },
       submittedAt: new Date(),
       userId: 'other-user',
+      status: 'SUBMITTED',
       attachment: null,
+      evaluation: null,
       user: { name: 'Other', email: 'other@example.com' },
     });
 
@@ -242,7 +249,9 @@ describe('getIdeaForDetail', () => {
       category: { id: 'c1', name: 'Tech' },
       submittedAt: new Date('2026-02-25'),
       userId: 'user-123',
+      status: 'SUBMITTED',
       attachment: null,
+      evaluation: null,
       user: { name: 'Me', email: 'me@example.com' },
     };
     prisma.idea.findUnique.mockResolvedValue(idea);
@@ -262,7 +271,9 @@ describe('getIdeaForDetail', () => {
       category: { id: 'c1', name: 'Tech' },
       submittedAt: new Date(),
       userId: 'other-user',
+      status: 'SUBMITTED',
       attachment: null,
+      evaluation: null,
       user: { name: 'Jane', email: 'jane@example.com' },
     };
     prisma.idea.findUnique.mockResolvedValue(idea);
@@ -281,7 +292,9 @@ describe('getIdeaForDetail', () => {
       category: { id: 'c1', name: 'Tech' },
       submittedAt: new Date(),
       userId: 'other-user',
+      status: 'SUBMITTED',
       attachment: null,
+      evaluation: null,
       user: { name: null, email: 'jane@example.com' },
     };
     prisma.idea.findUnique.mockResolvedValue(idea);

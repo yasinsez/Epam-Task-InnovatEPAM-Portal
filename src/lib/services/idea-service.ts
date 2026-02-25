@@ -1,6 +1,7 @@
 import { prisma } from '@/server/db/prisma';
 import { deleteAttachmentFile } from '@/lib/services/attachment-service';
 import type { UserRole } from '@/lib/auth/roles';
+import type { IdeaStatus } from '@prisma/client';
 
 // --- Types for idea listing and detail ---
 
@@ -10,6 +11,7 @@ export type IdeaListItem = {
   category: { id: string; name: string };
   submittedAt: Date;
   hasAttachment: boolean;
+  status: IdeaStatus;
 };
 
 export type IdeaDetail = {
@@ -19,6 +21,13 @@ export type IdeaDetail = {
   category: { id: string; name: string };
   submittedAt: Date;
   submitter?: string; // name || email; only for evaluator/admin
+  status: IdeaStatus;
+  evaluation?: {
+    decision: string;
+    comments: string;
+    evaluatedAt: Date;
+    evaluatorDisplayName: string;
+  } | null;
   attachment?: {
     id: string;
     originalFileName: string;
@@ -93,6 +102,7 @@ export async function getIdeasForUser(
       category: i.category,
       submittedAt: i.submittedAt,
       hasAttachment: !!i.attachment,
+      status: i.status,
     })),
     pagination: {
       page: normalizedPage,
@@ -127,6 +137,11 @@ export async function getIdeaForDetail(
       category: { select: { id: true, name: true } },
       attachment: true,
       user: { select: { name: true, email: true } },
+      evaluation: {
+        include: {
+          evaluator: { select: { name: true, email: true } },
+        },
+      },
     },
   });
 
@@ -139,6 +154,12 @@ export async function getIdeaForDetail(
   const submitter =
     role === 'evaluator' || role === 'admin' ? (idea.user?.name || idea.user?.email) : undefined;
 
+  const evaluatorDisplayName = idea.evaluation?.evaluator
+    ? (idea.evaluation.evaluator.name || idea.evaluation.evaluator.email)
+    : idea.evaluation
+      ? 'Administrator'
+      : undefined;
+
   return {
     id: idea.id,
     title: idea.title,
@@ -146,6 +167,15 @@ export async function getIdeaForDetail(
     category: idea.category,
     submittedAt: idea.submittedAt,
     submitter,
+    status: idea.status,
+    evaluation: idea.evaluation
+      ? {
+          decision: idea.evaluation.decision,
+          comments: idea.evaluation.comments,
+          evaluatedAt: idea.evaluation.evaluatedAt,
+          evaluatorDisplayName: evaluatorDisplayName ?? 'Administrator',
+        }
+      : null,
     attachment: idea.attachment
       ? {
           id: idea.attachment.id,

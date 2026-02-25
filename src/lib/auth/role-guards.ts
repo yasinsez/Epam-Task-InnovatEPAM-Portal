@@ -10,7 +10,7 @@ const authOptions = {
 
 type RouteHandler<Params extends Record<string, string> = Record<string, string>> = (
   request: Request,
-  context: { params: Params },
+  context: { params: Params | Promise<Params> },
 ) => Promise<Response> | Response;
 
 /**
@@ -25,7 +25,10 @@ export function requireRole(...allowedRoles: UserRole[]) {
   return function withRoleGuard<Params extends Record<string, string>>(
     handler: RouteHandler<Params>,
   ) {
-    return async (request: Request, context: { params: Params }): Promise<Response> => {
+    return async (
+      request: Request,
+      context: { params: Params | Promise<Params> },
+    ): Promise<Response> => {
       const session = await getServerSession(authOptions);
       const userId = session?.user?.id;
 

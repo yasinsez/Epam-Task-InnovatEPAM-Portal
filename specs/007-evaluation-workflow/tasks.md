@@ -23,8 +23,8 @@
 
 **Purpose**: Evaluation-specific constants and validation schema
 
-- [ ] T001 [P] Create evaluation constants in `src/lib/constants/evaluation.ts` (MAX_EVALUATION_COMMENTS_LENGTH = 2000)
-- [ ] T002 Extend `src/lib/validators.ts` with `evaluateIdeaSchema` (Zod: decision enum 'ACCEPTED'|'REJECTED', comments min 1 max 2000)
+- [X] T001 [P] Create evaluation constants in `src/lib/constants/evaluation.ts` (MAX_EVALUATION_COMMENTS_LENGTH = 2000)
+- [X] T002 Extend `src/lib/validators.ts` with `evaluateIdeaSchema` (Zod: decision enum 'ACCEPTED'|'REJECTED', comments min 1 max 2000)
 
 ---
 
@@ -34,9 +34,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add IdeaStatus enum (SUBMITTED, UNDER_REVIEW, ACCEPTED, REJECTED) and Evaluation model to `prisma/schema.prisma`; extend Idea with status IdeaStatus, evaluation Evaluation?; add evaluations Evaluation[] to User
-- [ ] T004 Run Prisma migration: `npx prisma migrate dev --name add_evaluation_workflow` (handle existing status string → enum conversion in migration if needed)
-- [ ] T005 [P] Extend `tests/unit/lib/validators.test.ts` with evaluateIdeaSchema tests (valid payload, empty comments, >2000 chars, invalid decision)
+- [X] T003 Add IdeaStatus enum (SUBMITTED, UNDER_REVIEW, ACCEPTED, REJECTED) and Evaluation model to `prisma/schema.prisma`; extend Idea with status IdeaStatus, evaluation Evaluation?; add evaluations Evaluation[] to User
+- [X] T004 Run Prisma migration: `npx prisma migrate dev --name add_evaluation_workflow` (handle existing status string → enum conversion in migration if needed)
+- [X] T005 [P] Extend `tests/unit/lib/validators.test.ts` with evaluateIdeaSchema tests (valid payload, empty comments, >2000 chars, invalid decision)
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -50,11 +50,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] Extend IdeaListItem and IdeaDetail types in `src/lib/services/idea-service.ts` with status (IdeaStatus); extend getIdeasForUser to select and return status
-- [ ] T007 [P] [US1] Extend getIdeaForDetail in `src/lib/services/idea-service.ts` to include evaluation relation with evaluator, return status and evaluation (decision, comments, evaluatedAt, evaluatorDisplayName)
-- [ ] T008 [US1] Add status prop to IdeaListItemProps and display status label in `src/components/IdeaListItem.tsx`
-- [ ] T009 [US1] Pass status from getIdeasForUser to IdeaListItem in `src/app/ideas/page.tsx`
-- [ ] T010 [US1] Display status badge/label in `src/app/ideas/[id]/page.tsx`
+- [X] T006 [P] [US1] Extend IdeaListItem and IdeaDetail types in `src/lib/services/idea-service.ts` with status (IdeaStatus); extend getIdeasForUser to select and return status
+- [X] T007 [P] [US1] Extend getIdeaForDetail in `src/lib/services/idea-service.ts` to include evaluation relation with evaluator, return status and evaluation (decision, comments, evaluatedAt, evaluatorDisplayName)
+- [X] T008 [US1] Add status prop to IdeaListItemProps and display status label in `src/components/IdeaListItem.tsx`
+- [X] T009 [US1] Pass status from getIdeasForUser to IdeaListItem in `src/app/ideas/page.tsx`
+- [X] T010 [US1] Display status badge/label in `src/app/ideas/[id]/page.tsx`
 
 **Checkpoint**: Status visible in list and detail — User Story 1 complete
 
@@ -68,13 +68,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T011 [P] [US2] Create `src/lib/services/evaluation-service.ts` with `evaluateIdea(ideaId, evaluatorId, decision, comments)` implementing first-wins (return null if already evaluated)
-- [ ] T012 [P] [US2] Unit test: evaluation service (success, first-wins 409 case) in `tests/unit/lib/services/evaluation-service.test.ts`
-- [ ] T013 [US2] Create `src/app/api/ideas/[id]/evaluate/route.ts` (POST handler: requireRole admin/evaluator, Zod validate body, call evaluateIdea, return 400/401/403/404/409/200)
-- [ ] T014 [US2] Integration test: evaluate route in `tests/integration/api/ideas/evaluate-route.test.ts` (success accept/reject, 400 invalid, 403 submitter, 409 already evaluated, 404 not found)
-- [ ] T015 [US2] Create `src/components/EvaluationForm.tsx` (client component): Accept/Reject buttons, comments textarea with 2000 char limit and counter, submit via fetch to /api/ideas/[id]/evaluate, handle 400/409/200
-- [ ] T016 [US2] Add EvaluationForm to `src/app/ideas/[id]/page.tsx` for admin/evaluator when status is SUBMITTED or UNDER_REVIEW
-- [ ] T017 [US2] Add evaluation display section to `src/app/ideas/[id]/page.tsx` for all users when evaluation exists (decision, comments, evaluatedAt, evaluatorDisplayName)
+- [X] T011 [P] [US2] Create `src/lib/services/evaluation-service.ts` with `evaluateIdea(ideaId, evaluatorId, decision, comments)` implementing first-wins (return null if already evaluated)
+- [X] T012 [P] [US2] Unit test: evaluation service (success, first-wins 409 case) in `tests/unit/lib/services/evaluation-service.test.ts`
+- [X] T013 [US2] Create `src/app/api/ideas/[id]/evaluate/route.ts` (POST handler: requireRole admin/evaluator, Zod validate body, call evaluateIdea, return 400/401/403/404/409/200)
+- [X] T014 [US2] Integration test: evaluate route in `tests/integration/api/ideas/evaluate-route.test.ts` (success accept/reject, 400 invalid, 403 submitter, 409 already evaluated, 404 not found)
+- [X] T015 [US2] Create `src/components/EvaluationForm.tsx` (client component): Accept/Reject buttons, comments textarea with 2000 char limit and counter, submit via fetch to /api/ideas/[id]/evaluate, handle 400/409/200
+- [X] T016 [US2] Add EvaluationForm to `src/app/ideas/[id]/page.tsx` for admin/evaluator when status is SUBMITTED or UNDER_REVIEW
+- [X] T017 [US2] Add evaluation display section to `src/app/ideas/[id]/page.tsx` for all users when evaluation exists (decision, comments, evaluatedAt, evaluatorDisplayName)
 
 **Checkpoint**: Admin can evaluate with comments; evaluation visible — User Story 2 complete
 
@@ -88,8 +88,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] Verify getIdeaForDetail in `src/lib/services/idea-service.ts` allows submitter (owner) to access their own idea with evaluation data
-- [ ] T019 [US3] E2E test: submitter sees evaluation feedback in `tests/e2e/evaluation-workflow.spec.ts` (admin rejects → submitter views feedback)
+- [X] T018 [US3] Verify getIdeaForDetail in `src/lib/services/idea-service.ts` allows submitter (owner) to access their own idea with evaluation data
+- [X] T019 [US3] E2E test: submitter sees evaluation feedback in `tests/e2e/evaluation-workflow.spec.ts` (admin rejects → submitter views feedback)
 
 **Checkpoint**: Submitter sees evaluation feedback — User Story 3 complete
 
@@ -103,9 +103,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T020 [P] [US4] Add startReviewIdea function to `src/lib/services/evaluation-service.ts` or idea-service to set status UNDER_REVIEW
-- [ ] T021 [US4] Create `PATCH /api/ideas/[id]/start-review` route or add "Start evaluation" action in `src/app/api/ideas/[id]/`
-- [ ] T022 [US4] Add "Start evaluation" / "Evaluate" button to `src/app/ideas/[id]/page.tsx` for admin/evaluator when status is SUBMITTED; on click transition to UNDER_REVIEW before showing evaluation controls
+- [X] T020 [P] [US4] Add startReviewIdea function to `src/lib/services/evaluation-service.ts` or idea-service to set status UNDER_REVIEW
+- [X] T021 [US4] Create `PATCH /api/ideas/[id]/start-review` route or add "Start evaluation" action in `src/app/api/ideas/[id]/`
+- [X] T022 [US4] Add "Start evaluation" / "Evaluate" button to `src/app/ideas/[id]/page.tsx` for admin/evaluator when status is SUBMITTED; on click transition to UNDER_REVIEW before showing evaluation controls
 
 **Checkpoint**: Under review transition works — User Story 4 complete (optional)
 
@@ -115,10 +115,10 @@
 
 **Purpose**: E2E coverage, validation, and documentation
 
-- [ ] T023 Add E2E tests for US1 and US2 in `tests/e2e/evaluation-workflow.spec.ts` (admin accepts with comments, admin rejects with comments, status visible in list and detail)
-- [ ] T024 [P] Add JSDoc to all new functions in `src/lib/services/evaluation-service.ts`, `src/app/api/ideas/[id]/evaluate/route.ts`
-- [ ] T025 Run quickstart.md validation steps: migration, unit, integration, e2e tests; manual accept/reject flow
-- [ ] T026 [P] Code cleanup: ensure no console.log in prod paths; use structured logger where needed
+- [X] T023 Add E2E tests for US1 and US2 in `tests/e2e/evaluation-workflow.spec.ts` (admin accepts with comments, admin rejects with comments, status visible in list and detail)
+- [X] T024 [P] Add JSDoc to all new functions in `src/lib/services/evaluation-service.ts`, `src/app/api/ideas/[id]/evaluate/route.ts`
+- [X] T025 Run quickstart.md validation steps: migration, unit, integration, e2e tests; manual accept/reject flow
+- [X] T026 [P] Code cleanup: ensure no console.log in prod paths; use structured logger where needed
 
 ---
 

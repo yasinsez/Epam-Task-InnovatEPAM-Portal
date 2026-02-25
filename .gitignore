@@ -4,6 +4,7 @@ project-guide.md
 # Node.js / TypeScript / Next.js
 node_modules/
 .next/
+uploads/
 dist/
 build/
 coverage/

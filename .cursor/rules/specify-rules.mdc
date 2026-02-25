@@ -1,0 +1,29 @@
+# Epam-Task-InnovatEPAM-Portal Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-02-25
+
+## Active Technologies
+
+- TypeScript 5.x with Next.js 14+ (App Router) + React 18+, NextAuth v4+, Prisma ORM 5.x, React Hook Form (existing), FormData API for multipart uploads (005-single-file-per-idea)
+
+## Project Structure
+
+```text
+src/
+tests/
+```
+
+## Commands
+
+npm test && npm run lint
+
+## Code Style
+
+TypeScript 5.x with Next.js 14+ (App Router): Follow standard conventions
+
+## Recent Changes
+
+- 005-single-file-per-idea: Added TypeScript 5.x with Next.js 14+ (App Router) + React 18+, NextAuth v4+, Prisma ORM 5.x, React Hook Form (existing), FormData API for multipart uploads
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

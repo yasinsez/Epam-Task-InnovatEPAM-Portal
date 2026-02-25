@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { getServerSession } from 'next-auth';
 
-import { SubmitIdeaSchema } from '@/lib/validators';
+import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
 import { sanitizeText } from '@/lib/sanitizers';
 import { prisma } from '@/server/db/prisma';
+import { saveAttachmentFile } from '@/lib/services/attachment-service';
 
 const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -30,31 +31,61 @@ function formatZodErrors(zodError: ZodError): Record<string, string[]> {
   return errors;
 }
 
+type ParsedPayload = {
+  title: string;
+  description: string;
+  categoryId: string;
+  attachment: File | null;
+};
+
+/**
+ * Parses request body as JSON or multipart/form-data.
+ *
+ * @param request - Incoming request
+ * @returns Parsed title, description, categoryId, attachment (File | null)
+ * @throws On parse failure
+ */
+async function parseRequestBody(request: Request): Promise<ParsedPayload> {
+  const contentType = request.headers.get('content-type') || '';
+
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await request.formData();
+    const title = (formData.get('title') as string) || '';
+    const description = (formData.get('description') as string) || '';
+    const categoryId = (formData.get('categoryId') as string) || '';
+    const raw = formData.get('attachment');
+    const attachment = raw instanceof File ? raw : null;
+
+    return {
+      title,
+      description,
+      categoryId,
+      attachment,
+    };
+  }
+
+  const body = await request.json().catch(() => null);
+  if (!body) {
+    throw new Error('Invalid request body');
+  }
+  return {
+    title: body.title ?? '',
+    description: body.description ?? '',
+    categoryId: body.categoryId ?? '',
+    attachment: null,
+  };
+}
+
 /**
  * POST /api/ideas
- * Submits a new idea.
+ * Submits a new idea. Accepts JSON or multipart/form-data when attachment present.
  *
- * Authentication: Required (authenticated users only)
- *
- * Request body:
- * - title: string (5-100 characters after trim)
- * - description: string (20-2000 characters after trim)
- * - categoryId: string (must reference an active Category)
- *
- * Responses:
- * - 201 Created: Idea submitted successfully
- * - 400 Bad Request: Validation errors or invalid category
- * - 401 Unauthorized: User not authenticated
- * - 500 Internal Server Error: Server error
- *
- * @example
- * POST /api/ideas
- * { "title": "My Idea", "description": "Description here...", "categoryId": "cat_001" }
- * Returns: { success: true, message: "...", idea: { ... } }
+ * @param request - Request with JSON body or multipart (title, description, categoryId, attachment?)
+ * @returns 201 with idea (including attachment metadata if present)
+ * @throws 400 on validation; 401 if unauthenticated; 500 on server error
  */
 export async function POST(request: Request): Promise<Response> {
   try {
-    // Check authentication
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
 
@@ -62,18 +93,25 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Parse and validate request body
-    const body = await request.json().catch(() => null);
-    const parsed = SubmitIdeaSchema.safeParse(body);
+    const payload = await parseRequestBody(request);
+    const { title, description, categoryId, attachment } = payload;
 
+    const parsed = SubmitIdeaSchema.safeParse({ title, description, categoryId });
     if (!parsed.success) {
       const errors = formatZodErrors(parsed.error);
       return NextResponse.json({ success: false, details: errors }, { status: 400 });
     }
 
-    const { title, description, categoryId } = parsed.data;
+    if (attachment) {
+      const validation = validateAttachmentFile(attachment);
+      if (!validation.valid) {
+        return NextResponse.json(
+          { success: false, error: validation.error },
+          { status: 400 },
+        );
+      }
+    }
 
-    // Verify category exists and is active
     const category = await prisma.category.findUnique({
       where: { id: categoryId },
     });
@@ -95,11 +133,9 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
-    // Sanitize title and description
     const sanitizedTitle = sanitizeText(title);
     const sanitizedDescription = sanitizeText(description);
 
-    // Create idea in database
     const idea = await prisma.idea.create({
       data: {
         title,
@@ -115,22 +151,59 @@ export async function POST(request: Request): Promise<Response> {
       },
     });
 
+    if (attachment) {
+      try {
+        const storedPath = await saveAttachmentFile(idea.id, attachment);
+        await prisma.attachment.create({
+          data: {
+            ideaId: idea.id,
+            originalFileName: attachment.name.slice(0, 255),
+            storedPath,
+            fileSizeBytes: attachment.size,
+            mimeType: attachment.type || 'application/octet-stream',
+          },
+        });
+      } catch (err) {
+        console.error('Failed to save attachment, rolling back idea:', err);
+        await prisma.idea.delete({ where: { id: idea.id } });
+        return NextResponse.json(
+          { success: false, error: 'Failed to save attachment. Please try again.' },
+          { status: 500 },
+        );
+      }
+    }
+
+    const ideaWithAttachment = await prisma.idea.findUnique({
+      where: { id: idea.id },
+      include: { category: true, attachment: true },
+    });
+
+    const responseIdea = ideaWithAttachment || idea;
+    type AttachmentShape = { id: string; originalFileName: string; fileSizeBytes: number; mimeType: string };
+    const att = (responseIdea && 'attachment' in responseIdea ? responseIdea.attachment : null) as AttachmentShape | null;
+    const attachmentMeta =
+      att
+        ? { id: att.id, originalFileName: att.originalFileName, fileSizeBytes: att.fileSizeBytes, mimeType: att.mimeType }
+        : null;
+
     return NextResponse.json(
       {
         success: true,
-        message: 'Idea submitted successfully',
+        message: 'Your idea has been submitted successfully',
         idea: {
-          id: idea.id,
-          title: idea.title,
-          description: idea.description,
-          sanitizedTitle: idea.sanitizedTitle,
-          sanitizedDescription: idea.sanitizedDescription,
-          categoryId: idea.categoryId,
-          userId: idea.userId,
-          status: idea.status,
-          submittedAt: idea.submittedAt,
-          createdAt: idea.createdAt,
-          updatedAt: idea.updatedAt,
+          id: responseIdea.id,
+          title: responseIdea.title,
+          description: responseIdea.description,
+          sanitizedTitle: responseIdea.sanitizedTitle,
+          sanitizedDescription: responseIdea.sanitizedDescription,
+          categoryId: responseIdea.categoryId,
+          category: responseIdea.category,
+          userId: responseIdea.userId,
+          status: responseIdea.status,
+          submittedAt: responseIdea.submittedAt,
+          createdAt: responseIdea.createdAt,
+          updatedAt: responseIdea.updatedAt,
+          attachment: attachmentMeta,
         },
       },
       { status: 201 },

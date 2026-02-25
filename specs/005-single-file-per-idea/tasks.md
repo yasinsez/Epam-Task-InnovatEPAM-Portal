@@ -24,8 +24,8 @@
 
 **Purpose**: Project initialization and attachment-specific setup
 
-- [ ] T001 Add `uploads/` to `.gitignore`
-- [ ] T002 [P] Create attachment constants in `src/lib/constants/attachment.ts` (MAX_ATTACHMENT_SIZE_BYTES, ALLOWED_EXTENSIONS, MIME_BY_EXTENSION)
+- [x] T001 Add `uploads/` to `.gitignore`
+- [x] T002 [P] Create attachment constants in `src/lib/constants/attachment.ts` (MAX_ATTACHMENT_SIZE_BYTES, ALLOWED_EXTENSIONS, MIME_BY_EXTENSION)
 
 ---
 
@@ -35,12 +35,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add Attachment model and Idea relation to `prisma/schema.prisma`
-- [ ] T004 Run Prisma migration: `npx prisma migrate dev --name add_attachment_model`
-- [ ] T005 [P] Extend `src/lib/validators.ts` with `validateAttachmentFile(file: File)` (size, type, non-empty; Zod or manual)
-- [ ] T006 [P] Create `src/lib/services/attachment-service.ts` with `saveAttachmentFile`, `readAttachmentFile`, `deleteAttachmentFile` (JSDoc required)
-- [ ] T007 [P] Unit test: file validation in `tests/unit/lib/validators.test.ts`
-- [ ] T008 [P] Unit test: attachment service in `tests/unit/lib/services/attachment-service.test.ts`
+- [x] T003 Add Attachment model and Idea relation to `prisma/schema.prisma`
+- [x] T004 Run Prisma migration: `npx prisma migrate dev --name add_attachment_model`
+- [x] T005 [P] Extend `src/lib/validators.ts` with `validateAttachmentFile(file: File)` (size, type, non-empty; Zod or manual)
+- [x] T006 [P] Create `src/lib/services/attachment-service.ts` with `saveAttachmentFile`, `readAttachmentFile`, `deleteAttachmentFile` (JSDoc required)
+- [x] T007 [P] Unit test: file validation in `tests/unit/lib/validators.test.ts`
+- [x] T008 [P] Unit test: attachment service in `tests/unit/lib/services/attachment-service.test.ts`
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -54,11 +54,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] Create `src/components/IdeaAttachmentInput.tsx` (file input, accept attribute, display selected name, Remove button, replace-on-reselect)
-- [ ] T010 [US1] Update `src/components/SubmitIdeaForm.tsx`: add IdeaAttachmentInput, use FormData when file present, append file as `attachment`
-- [ ] T011 [US1] Extend `src/app/api/ideas/route.ts` for multipart: parse formData(), extract title/description/categoryId/attachment, create Idea then save file + Attachment, rollback Idea on failure
-- [ ] T012 [US1] Add JSDoc to POST /api/ideas handler (params, returns, throws)
-- [ ] T013 [US1] Integration test: multipart submission in `tests/integration/api/ideas/route.test.ts`
+- [x] T009 [P] [US1] Create `src/components/IdeaAttachmentInput.tsx` (file input, accept attribute, display selected name, Remove button, replace-on-reselect)
+- [x] T010 [US1] Update `src/components/SubmitIdeaForm.tsx`: add IdeaAttachmentInput, use FormData when file present, append file as `attachment`
+- [x] T011 [US1] Extend `src/app/api/ideas/route.ts` for multipart: parse formData(), extract title/description/categoryId/attachment, create Idea then save file + Attachment, rollback Idea on failure
+- [x] T012 [US1] Add JSDoc to POST /api/ideas handler (params, returns, throws)
+- [x] T013 [US1] Integration test: multipart submission in `tests/integration/api/ideas/route.test.ts`
 
 **Checkpoint**: User can attach a valid file and submit; idea stored with attachment
 
@@ -72,11 +72,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Add client-side validation in `src/components/IdeaAttachmentInput.tsx` (size, type before submit; display errors)
-- [ ] T015 [US2] Add server-side validation in `src/app/api/ideas/route.ts` using validateAttachmentFile; return 400 with specific error messages (too large, unsupported type, empty)
-- [ ] T016 [US2] Add form data preservation on submission failure in `src/components/SubmitIdeaForm.tsx`
-- [ ] T017 [P] [US2] Unit test: file validation edge cases (empty, oversized, wrong type) in `tests/unit/lib/validators.test.ts`
-- [ ] T018 [US2] Integration test: validation rejection cases in `tests/integration/api/ideas/route.test.ts`
+- [x] T014 [US2] Add client-side validation in `src/components/IdeaAttachmentInput.tsx` (size, type before submit; display errors)
+- [x] T015 [US2] Add server-side validation in `src/app/api/ideas/route.ts` using validateAttachmentFile; return 400 with specific error messages (too large, unsupported type, empty)
+- [x] T016 [US2] Add form data preservation on submission failure in `src/components/SubmitIdeaForm.tsx`
+- [x] T017 [P] [US2] Unit test: file validation edge cases (empty, oversized, wrong type) in `tests/unit/lib/validators.test.ts`
+- [x] T018 [US2] Integration test: validation rejection cases in `tests/integration/api/ideas/route.test.ts`
 
 **Checkpoint**: Invalid files rejected; valid files accepted; replace behavior works
 
@@ -90,11 +90,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T019 [US3] Create `src/app/api/ideas/[id]/attachment/route.ts` (GET: session check, load Idea with Attachment, access check, stream file with Content-Type and Content-Disposition)
-- [ ] T020 [US3] Add JSDoc to GET attachment route (params, returns, throws)
-- [ ] T021 [US3] Add attachment display and download link to idea detail view (locate existing idea detail component and add link to `GET /api/ideas/[id]/attachment`)
-- [ ] T022 [P] [US3] Integration test: attachment download in `tests/integration/api/ideas/attachment-route.test.ts`
-- [ ] T023 [US3] E2E test: attach → submit → view → download in `tests/e2e/idea-attachment.spec.ts`
+- [x] T019 [US3] Create `src/app/api/ideas/[id]/attachment/route.ts` (GET: session check, load Idea with Attachment, access check, stream file with Content-Type and Content-Disposition)
+- [x] T020 [US3] Add JSDoc to GET attachment route (params, returns, throws)
+- [x] T021 [US3] Add attachment display and download link to idea detail view (locate existing idea detail component and add link to `GET /api/ideas/[id]/attachment`)
+- [x] T022 [P] [US3] Integration test: attachment download in `tests/integration/api/ideas/attachment-route.test.ts`
+- [x] T023 [US3] E2E test: attach → submit → view → download in `tests/e2e/idea-attachment.spec.ts`
 
 **Checkpoint**: Attachment visible and downloadable from idea view
 
@@ -104,9 +104,9 @@
 
 **Purpose**: Cleanup, documentation, cleanup logic
 
-- [ ] T024 Add Idea delete cleanup: remove filesystem file when Idea (and cascade Attachment) is deleted
-- [ ] T025 [P] Run quickstart.md validation (manual verification steps)
-- [ ] T026 [P] Ensure 80% line coverage; zero `.skip`/`.only`; mutation score ≥75% on validation logic
+- [x] T024 Add Idea delete cleanup: remove filesystem file when Idea (and cascade Attachment) is deleted
+- [x] T025 [P] Run quickstart.md validation (manual verification steps)
+- [x] T026 [P] Ensure 80% line coverage; zero `.skip`/`.only`; mutation score ≥75% on validation logic
 
 ---
 

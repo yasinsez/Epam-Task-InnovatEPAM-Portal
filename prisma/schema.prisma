@@ -111,22 +111,38 @@ model Category {
 
 // Idea model (new)
 model Idea {
-  id                   String   @id @default(cuid())
-  title                String   @db.VarChar(100)
-  description          String   @db.Text
-  sanitizedTitle       String   @db.VarChar(100)
-  sanitizedDescription String   @db.Text
+  id                   String      @id @default(cuid())
+  title                String      @db.VarChar(100)
+  description          String      @db.Text
+  sanitizedTitle       String      @db.VarChar(100)
+  sanitizedDescription String      @db.Text
   categoryId           String
-  category             Category @relation(fields: [categoryId], references: [id])
+  category             Category    @relation(fields: [categoryId], references: [id])
   userId               String
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  status               String   @default("SUBMITTED") @db.VarChar(20)
-  submittedAt          DateTime @default(now())
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status               String      @default("SUBMITTED") @db.VarChar(20)
+  submittedAt          DateTime    @default(now())
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  attachment           Attachment?
 
   @@index([userId])
   @@index([categoryId])
   @@index([submittedAt])
   @@index([userId, submittedAt])
+}
+
+// Attachment model - single file per idea
+model Attachment {
+  id               String   @id @default(cuid())
+  ideaId           String   @unique
+  idea             Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  originalFileName String   @db.VarChar(255)
+  storedPath       String   @unique @db.VarChar(500)
+  fileSizeBytes    Int
+  mimeType         String   @db.VarChar(100)
+  createdAt        DateTime @default(now())
+
+  @@index([ideaId])
+  @@index([storedPath])
 }

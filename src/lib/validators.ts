@@ -1,4 +1,62 @@
 import { z } from 'zod';
+import {
+  MAX_ATTACHMENT_SIZE_BYTES,
+  ALLOWED_EXTENSIONS,
+  MIME_BY_EXTENSION,
+} from '@/lib/constants/attachment';
+
+/**
+ * Validates an attachment file (size, type, non-empty).
+ * Uses server-side File API (from FormData).
+ *
+ * @param file - The File from FormData
+ * @returns { valid: true } if valid, or { valid: false, error: string } with specific error message
+ * @example
+ *   const result = validateAttachmentFile(file);
+ *   if (!result.valid) return NextResponse.json({ error: result.error }, 400);
+ */
+export function validateAttachmentFile(
+  file: File,
+): { valid: true } | { valid: false; error: string } {
+  if (!file || file.size === 0) {
+    return { valid: false, error: 'File is empty. Please select a valid file' };
+  }
+
+  if (file.size > MAX_ATTACHMENT_SIZE_BYTES) {
+    return {
+      valid: false,
+      error: 'File is too large. Maximum size is 25 MB',
+    };
+  }
+
+  const ext = getExtension(file.name);
+  if (!ext || !(ALLOWED_EXTENSIONS as readonly string[]).includes(ext)) {
+    return {
+      valid: false,
+      error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
+    };
+  }
+
+  const expectedMime = MIME_BY_EXTENSION[ext];
+  const actualMime = file.type?.toLowerCase();
+  if (!actualMime || expectedMime !== actualMime) {
+    return {
+      valid: false,
+      error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Extracts lowercase file extension including the dot (e.g. ".pdf").
+ */
+function getExtension(filename: string): string | null {
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot === -1) return null;
+  return filename.slice(lastDot).toLowerCase();
+}
 
 /**
  * Schema for idea submission form validation.

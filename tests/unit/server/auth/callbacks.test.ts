@@ -18,6 +18,14 @@ jest.mock('@/lib/auth/token', () => ({
   refreshToken: jest.fn(),
 }));
 
+jest.mock('@/lib/auth/roles', () => ({
+  getUserRole: jest.fn(async () => 'submitter'),
+}));
+
+jest.mock('next-auth/jwt', () => ({
+  getToken: jest.fn(),
+}));
+
 import { authCallbacks, credentialsProvider, revokeSessionByJwt } from '@/server/auth/callbacks';
 import { prisma } from '@/server/db/prisma';
 
@@ -50,6 +58,7 @@ describe('auth callbacks', () => {
     } as any);
 
     expect((session as any).user.id).toBe('u1');
+    expect((session as any).user.role).toBe('submitter');
   });
 
   it('credentials provider authorize returns null when missing fields', async () => {

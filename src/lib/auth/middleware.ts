@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
 import type { ZodType } from 'zod';
 
+import { getUserRole, type UserRole } from '@/lib/auth/roles';
 import { refreshToken, validateJWT } from '@/lib/auth/token';
+import { authOptions } from '@/server/auth/route';
 
 /**
  * Validates authorization header for API requests and adds refresh token header when needed.
@@ -49,6 +52,43 @@ export function enforceProtectedRoute(request: NextRequest, loginPath = '/auth/l
   }
 
   return NextResponse.next();
+}
+
+type RoleGuardOptions = {
+  loginPath?: string;
+  accessDeniedPath?: string;
+};
+
+/**
+ * Enforces role-based access to a route.
+ *
+ * @param allowedRoles Roles allowed to access the route.
+ * @param options Optional redirect paths.
+ * @returns Middleware handler enforcing role-based access.
+ */
+export function withRoleGuard(allowedRoles: UserRole[], options: RoleGuardOptions = {}) {
+  return async (request: NextRequest): Promise<NextResponse> => {
+    const loginPath = options.loginPath ?? '/auth/login';
+    const accessDeniedPath = options.accessDeniedPath ?? '/access-denied';
+
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      return NextResponse.redirect(new URL(loginPath, request.url));
+    }
+
+    try {
+      const role = await getUserRole(userId);
+      if (!allowedRoles.includes(role)) {
+        return NextResponse.redirect(new URL(accessDeniedPath, request.url));
+      }
+    } catch {
+      return NextResponse.redirect(new URL(accessDeniedPath, request.url));
+    }
+
+    return NextResponse.next();
+  };
 }
 
 /**

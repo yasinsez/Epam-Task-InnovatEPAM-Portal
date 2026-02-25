@@ -7,6 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum UserRole {
+  SUBMITTER
+  EVALUATOR
+  ADMIN
+}
+
 model User {
   id                  String               @id @default(cuid())
   email               String               @unique @db.VarChar(254)
@@ -16,6 +22,7 @@ model User {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   lastLoginAt         DateTime?
+  role                UserRole             @default(SUBMITTER)
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   failedLoginAttempts FailedLoginAttempt[]
@@ -23,6 +30,7 @@ model User {
 
   @@index([email])
   @@index([lastLoginAt])
+  @@index([role])
 }
 
 model Session {

@@ -1,7 +1,9 @@
 'use client';
 
 import { Component, ChangeEvent, FormEvent } from 'react';
+import Link from 'next/link';
 import { Category } from '@prisma/client';
+import { IdeaAttachmentInput } from '@/components/IdeaAttachmentInput';
 
 interface SubmitIdeaFormProps {
   categories: Category[];
@@ -17,14 +19,17 @@ interface FormErrors {
   title?: string[];
   description?: string[];
   categoryId?: string[];
+  attachment?: string[];
 }
 
 interface SubmitIdeaFormState {
   formData: FormData;
+  attachment: File | null;
   errors: FormErrors;
   isSubmitting: boolean;
   submitError?: string;
   submitSuccess: boolean;
+  submittedIdeaId?: string;
   retryCount: number;
 }
 
@@ -54,6 +59,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         description: '',
         categoryId: '',
       },
+      attachment: null,
       errors: {},
       isSubmitting: false,
       submitSuccess: false,
@@ -104,15 +110,28 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
 
   /**
    * Attempts to submit form data with retry logic.
+   * Uses FormData when attachment is present; JSON otherwise.
    * Retries up to 3 times on server errors with 1-second cooldown.
    */
   private submitWithRetry = async (): Promise<void> => {
     try {
-      const response = await fetch('/api/ideas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(this.state.formData),
-      });
+      const { formData, attachment } = this.state;
+
+      let response: Response;
+      if (attachment) {
+        const fd = new FormData();
+        fd.append('title', formData.title);
+        fd.append('description', formData.description);
+        fd.append('categoryId', formData.categoryId);
+        fd.append('attachment', attachment);
+        response = await fetch('/api/ideas', { method: 'POST', body: fd });
+      } else {
+        response = await fetch('/api/ideas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
 
       const data = await response.json();
 
@@ -166,14 +185,16 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
       this.setState({
         submitSuccess: true,
         formData: { title: '', description: '', categoryId: '' },
+        attachment: null,
         errors: {},
         isSubmitting: false,
         retryCount: 0,
+        submittedIdeaId: data.idea?.id,
       });
 
       // Clear success message after 3 seconds
       setTimeout(() => {
-        this.setState({ submitSuccess: false });
+        this.setState({ submitSuccess: false, submittedIdeaId: undefined });
       }, 3000);
     } catch (error) {
       this.setState({
@@ -184,7 +205,8 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
   };
 
   render(): JSX.Element {
-    const { formData, errors, isSubmitting, submitError, submitSuccess } = this.state;
+    const { formData, attachment, errors, isSubmitting, submitError, submitSuccess, submittedIdeaId } =
+      this.state;
     const { categories } = this.props;
 
     return (
@@ -198,6 +220,12 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         {submitSuccess && (
           <div className="success-message alert" role="alert" aria-live="polite">
             Your idea has been submitted successfully!
+            {submittedIdeaId && (
+              <span>
+                {' '}
+                <Link href={`/ideas/${submittedIdeaId}`}>View your idea</Link>
+              </span>
+            )}
           </div>
         )}
 
@@ -283,6 +311,13 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             </div>
           )}
         </div>
+
+        <IdeaAttachmentInput
+          value={attachment}
+          onChange={(file) => this.setState({ attachment: file })}
+          error={errors.attachment?.join(', ')}
+          disabled={isSubmitting}
+        />
 
         <button
           type="submit"

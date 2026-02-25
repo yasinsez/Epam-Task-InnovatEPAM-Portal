@@ -1,5 +1,5 @@
 import { validateEmail, validatePassword } from '@/lib/utils/validators';
-import { SubmitIdeaSchema } from '@/lib/validators';
+import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
 
 describe('validators', () => {
   it('validates email format', () => {
@@ -126,6 +126,55 @@ describe('validators', () => {
           categoryId: 'cat_any_id',
         }),
       ).not.toThrow();
+    });
+  });
+
+  describe('validateAttachmentFile', () => {
+    it('should accept valid PDF file', () => {
+      const file = new File(['content'], 'document.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file, 'size', { value: 1024 });
+      expect(validateAttachmentFile(file)).toEqual({ valid: true });
+    });
+
+    it('should accept valid PNG file', () => {
+      const file = new File(['x'], 'image.png', { type: 'image/png' });
+      Object.defineProperty(file, 'size', { value: 500 });
+      expect(validateAttachmentFile(file)).toEqual({ valid: true });
+    });
+
+    it('should reject empty file (0 bytes)', () => {
+      const file = new File([], 'empty.pdf', { type: 'application/pdf' });
+      expect(validateAttachmentFile(file)).toEqual({
+        valid: false,
+        error: 'File is empty. Please select a valid file',
+      });
+    });
+
+    it('should reject file exceeding 25 MB', () => {
+      const file = new File(['x'], 'large.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file, 'size', { value: 26 * 1024 * 1024 });
+      expect(validateAttachmentFile(file)).toEqual({
+        valid: false,
+        error: 'File is too large. Maximum size is 25 MB',
+      });
+    });
+
+    it('should reject unsupported file extension', () => {
+      const file = new File(['x'], 'script.exe', { type: 'application/x-msdownload' });
+      Object.defineProperty(file, 'size', { value: 100 });
+      expect(validateAttachmentFile(file)).toEqual({
+        valid: false,
+        error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
+      });
+    });
+
+    it('should reject file with extension mismatch (wrong MIME)', () => {
+      const file = new File(['x'], 'fake.pdf', { type: 'image/png' });
+      Object.defineProperty(file, 'size', { value: 100 });
+      expect(validateAttachmentFile(file)).toEqual({
+        valid: false,
+        error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
+      });
     });
   });
 });

@@ -51,7 +51,7 @@ description: "Task list for Authentication Landing Page implementation"
 
 - [ ] T005 [P] [US1] Implement AuthLandingHeader component in src/app/components/auth/AuthLandingHeader.tsx
 - [ ] T006 [P] [US1] Implement PrimaryAuthButtons component in src/app/components/auth/PrimaryAuthButtons.tsx
-- [ ] T007 [US1] Build `/auth` landing page with metadata, layout, and Create Account CTA in src/app/auth/page.tsx
+- [ ] T007 [US1] Build `/auth` landing page as Client Component ('use client') with metadata, layout, and Create Account CTA in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 1 functional and independently testable
 
@@ -70,7 +70,7 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Add authenticated redirect + loading state to src/app/auth/page.tsx
+- [ ] T010 [US2] Add useSession hook with authenticated redirect + loading state to src/app/auth/page.tsx
 - [ ] T011 [US2] Ensure Sign In CTA routes to `/auth/login` in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 2 functional and independently testable

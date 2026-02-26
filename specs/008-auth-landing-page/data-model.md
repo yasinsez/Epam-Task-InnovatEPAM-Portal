@@ -9,12 +9,13 @@
 ### 1.1 AuthLandingPage Structure
 
 **Purpose**: Root component for `/auth` route  
-**Location**: `src/app/auth/page.tsx`
+**Location**: `src/app/auth/page.tsx`  
+**Component Type**: Client Component (uses `'use client'` directive)
 
 **Properties**:
 ```typescript
 interface AuthLandingPageProps {
-  // Server Component - no props required (uses context/hooks)
+  // Client Component - no props required (uses NextAuth hooks)
 }
 ```
 

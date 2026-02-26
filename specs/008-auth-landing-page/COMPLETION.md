@@ -15,9 +15,10 @@
 
 **Research Topics Completed:**
 1. ✅ Next.js 14 App Router architecture & auth patterns
-   - Decision: Use Server Component + useSession hook
+   - Decision: Use Client Component with `'use client'` directive and `useSession()` hook
+   - Rationale: Auth landing pages that redirect authenticated users (opposite of route protection) are best handled client-side with NextAuth hooks
    - Redirect: Authenticated users → /dashboard
-   - Benefits: Performance optimization + flexibility
+   - Benefits: Clean separation, standard NextAuth pattern, better UX (no flash)
 
 2. ✅ Accessibility (WCAG 2.1 AA) best practices
    - Keyboard navigation: All elements Tab-navigable

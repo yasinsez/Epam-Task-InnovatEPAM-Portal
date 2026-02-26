@@ -12,22 +12,22 @@ This document consolidates research findings for the authentication landing page
 
 ## Topic 1: Next.js 14 App Router Architecture & Auth Patterns
 
-### Decision: Use Server Component with Client-Side Session Check via useSession Hook
+### Decision: Use Client Component with `'use client'` Directive and `useSession()` Hook
 
 **Rationale:**
-- **Server Component (primary)**: The landing page itself is a stateless Server Component, eliminating JavaScript overhead and improving initial page load
-- **Client-side session check**: Use `useSession()` hook to check authentication status and redirect authenticated users. This is non-blocking and allows the page to render initially
-- **Middleware-based redirect (optional if needed)**: NextAuth middleware can also redirect at routing layer, but client-side hook provides more control
+- **Client Component (required)**: The landing page must use `useSession()` hook from NextAuth, which requires the `'use client'` directive
+- **Client-side session check**: Use `useSession()` hook to check authentication status and redirect authenticated users. This is a standard NextAuth pattern
+- **Middleware (alternative not used)**: While NextAuth middleware can redirect at routing layer, it's designed to *protect* authenticated routes (blocking unauthenticated users). This auth landing page needs the opposite behavior (show to unauthenticated, redirect authenticated), which is best handled with client-side hooks
 
 **Alternatives Considered:**
-1. **Middleware-only redirect**: Simple but less flexible; hiding page entirely vs. showing and then redirecting
-2. **Server Action for auth check**: Would block page rendering; slower UX
-3. **Client component throughout**: More JavaScript; slower initial load
+1. **Middleware-only redirect**: Simpler but middleware is designed to protect authenticated routes, not redirect from public pages
+2. **Server Action for auth check**: Would require additional round-trip; slower UX
+3. **Pure Server Component**: Not possible - `useSession()` requires client component
 
 **Implementation Pattern:**
 ```tsx
-// src/app/auth/page.tsx - Server Component
-'use client'; // Only use this if session check requires client hook
+// src/app/auth/page.tsx - Client Component
+'use client'; // Required for useSession hook
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
@@ -353,7 +353,7 @@ test('user can navigate from landing to register', async ({ page }) => {
 
 | Decision | Rationale | Impact |
 |----------|-----------|--------|
-| **Server Component + useSession hook** | Balance performance + flexibility | Faster initial load; client-side redirect UX |
+| **Client Component with `'use client'` + useSession** | Required for NextAuth hooks; standard pattern for auth landing pages | Small JS overhead (~15KB) for session check; better UX with loading states |
 | **Semantic HTML-first approach** | Accessibility requirement + SEO benefit | Better a11y; reduced ARIA overload; better maintainability |
 | **Mobile-first CSS** | Responsive baseline; fewer overrides | Cleaner code; works on all devices |
 | **44×44px touch targets** | WCAG 2.5.5 guideline | Mobile usability; avoids accidental clicks |

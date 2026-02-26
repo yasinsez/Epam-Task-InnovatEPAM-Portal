@@ -8,7 +8,7 @@
 
 ### 1.1 AuthLandingPage (Main Component)
 
-**Type**: Next.js Server Component  
+**Type**: Next.js Client Component (uses `'use client'` directive)  
 **Location**: `src/app/auth/page.tsx`  
 **Export**: Default export
 
@@ -26,10 +26,10 @@
  * - SEO-optimized with Metadata API
  * - Optional "Forgot Password?" link (P3 feature)
  *
- * **Server Component Benefits:**
- * - No JavaScript overhead for rendering page structure
- * - Direct server access for session validation
- * - Better SEO and performance metrics
+ * **Client Component Rationale:**
+ * - Uses `useSession()` hook for real-time authentication state
+ * - Handles client-side redirect for authenticated users
+ * - This pattern is standard for auth landing pages (opposite of route protection)
  *
  * **Client-Side Interactivity:**
  * - useSession() hook for session checking
@@ -54,7 +54,7 @@ export default function AuthLandingPage(): React.ReactNode
 
 ### 1.2 AuthLandingHeader (Sub-Component)
 
-**Type**: React Server Component  
+**Type**: React Component (can be Server or Client)  
 **Suggested Location**: `src/app/components/auth/AuthLandingHeader.tsx`  
 **Export**: Named export
 
@@ -176,7 +176,7 @@ See [component-interfaces.ts](./component-interfaces.ts) → `PrimaryAuthButtons
 
 ### 1.4 SecondaryAuthLinks (Sub-Component)
 
-**Type**: React Server Component  
+**Type**: React Component (can be Server or Client)  
 **Suggested Location**: `src/app/components/auth/SecondaryAuthLinks.tsx`  
 **Export**: Named export
 
@@ -366,7 +366,7 @@ All components MUST meet these performance targets:
 
 ⚡ **Page Load**: <2 seconds on standard 4G networks  
 ⚡ **Interactive**: <1 second on desktop  
-⚡ **Server Component**: Zero client-side JavaScript overhead for page structure  
+⚡ **Client Component Trade-off**: Minimal JS overhead (<20KB gzipped) for session check and redirect logic  
 ⚡ **Bundle Size**: <50KB gzipped for component JavaScript  
 
 ---

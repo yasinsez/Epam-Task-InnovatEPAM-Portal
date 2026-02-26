@@ -7,43 +7,38 @@
 
 ## Summary
 
-Create a welcoming authentication landing page at `/auth` that serves as the primary entry point for unauthenticated users. The page provides clear navigation to Sign In and Create Account flows, with optional Forgot Password access. Redirects authenticated users to dashboard. Prioritizes new user acquisition (P1) and returning user login experience (P1) while maintaining accessibility (WCAG 2.1 AA) and mobile responsiveness across all devices.
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.8, JavaScript (ES2022)  
-**Framework**: Next.js 14.2.26 (App Router with React 18.3.1)  
-**Primary Dependencies**: NextAuth.js 4.24.11 (sessions), React 18.3.1, Tailwind CSS (via globals.css)  
-**Storage**: N/A (stateless page; uses NextAuth session checks)  
-**Testing**: Jest 29.7.0 + ts-jest + React Testing Library  
-**Target Platform**: Web (modern browsers, mobile-first responsive design)  
-**Project Type**: Full-stack Next.js web application (SaaS innovation management portal)  
-**Performance Goals**: <2 seconds page load on standard 4G networks; <1 second interactive on desktop  
-**Constraints**: WCAG 2.1 AA accessibility compliance; 100% responsive across 320px–1200px+ viewports; keyboard-only navigation support  
-**Scale/Scope**: Single-page landing component; integrates with existing `/auth/login`, `/auth/register`, `/auth/forgot-password` routes
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-### Compliance with InnovatEPAM Constitution
-
-| Principle | Status | Notes |
-|-----------|--------|-------|
-| **I. TypeScript Strict Mode** | ✅ PASS | Project enforces `strict: true` in tsconfig.json. Landing page component will use strict TS with no implicit any. |
-| **II. Clean Code & Maintainability** | ✅ PASS | Landing page will be small, single-purpose component (<50 lines); Button/Link components extracted as reusable; JSDoc documented. |
-| **III. Testing Principles** | ✅ PASS | Tests will follow: 70% unit (component render/navigation logic), 20% integration (route /auth redirects), 10% E2E (user clicks CTA, navigates correctly). TDD approach: tests written before component. Accessibility testing integrated. |
-| **IV. JSDoc Documentation** | ✅ PASS | All functions and React components will have JSDoc with @param, @returns, @example tags. |
-| **V. Secure Auth & NextAuth** | ✅ PASS | Component uses NextAuth.js `useSession()` hook for authenticated user redirect. No sensitive data exposed in component. Follows session-based auth pattern. |
-
-**Overall Gate Status**: ✅ **PASS** — No violations. Feature aligns with NextAuth-first, TypeScript-strict, testing-first approach. Component is small/focused; no architectural complexity requiring exception justification.
+[Gates determined based on constitution file]
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/008-auth-landing-page/
+specs/[###-feature]/
 ├── plan.md              # This file (/speckit.plan command output)
 ├── research.md          # Phase 0 output (/speckit.plan command)
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
@@ -52,47 +47,58 @@ specs/008-auth-landing-page/
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
-### Source Code (repository - Next.js App Router)
+### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── app/
-│   ├── auth/
-│   │   ├── page.tsx             # NEW: Landing page at /auth route
-│   │   ├── login/
-│   │   │   ├── page.tsx         # Existing login form
-│   │   │   └── SignInForm.tsx   # Existing component
-│   │   ├── register/
-│   │   │   ├── page.tsx         # Existing registration form
-│   │   │   └── SignUpForm.tsx   # Existing component
-│   │   ├── forgot-password/
-│   │   │   └── page.tsx         # Existing forgot password page
-│   │   └── reset-password/
-│   │       └── page.tsx         # Existing reset password page
-│   ├── globals.css              # Existing global styles
-│   ├── layout.tsx               # Root layout w/ Providers, NextAuth session
-│   ├── components/              # Shared components (Providers, Navigation, etc.)
-│   ├── middleware.ts            # Auth routing middleware
-│   └── page.tsx                 # Root page (dashboard after auth)
-│
-├── middleware.ts                # NextAuth middleware for auth guards
-│
-└── types/
-    └── next-auth.d.ts           # NextAuth type definitions
-    
+├── models/
+├── services/
+├── cli/
+└── lib/
+
 tests/
-├── unit/
-│   └── app/auth/
-│       └── page.test.tsx        # NEW: Landing page component tests
+├── contract/
 ├── integration/
-│   └── auth/
-│       └── landing-page.test.ts # NEW: Auth flow integration tests
-└── e2e/
-    └── auth-flow.spec.ts        # NEW or EXISTING: E2E tests for /auth navigation
+└── unit/
+
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: Follows Next.js App Router conventions. Landing page created as `/auth/page.tsx` using Server Component with `useSession()` hook for client-side auth checks. Component links to existing `/auth/login`, `/auth/register`, `/auth/forgot-password` routes. Tests mirror source structure per constitution: unit/integration/e2e in `tests/` directory.
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
-> **No Constitution violations** — All gates passed. No architectural exceptions needed. Feature is straightforward: a single landing page component with NextAuth session check and link navigation.
+> **Fill ONLY if Constitution Check has violations that must be justified**
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |

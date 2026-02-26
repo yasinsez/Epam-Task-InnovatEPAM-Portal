@@ -5,13 +5,10 @@ import { getServerSession } from 'next-auth';
 import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
 import { sanitizeText } from '@/lib/sanitizers';
 import { getIdeasForUser } from '@/lib/services/idea-service';
-import { getUserRole } from '@/lib/auth/roles';
+import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { prisma } from '@/server/db/prisma';
 import { saveAttachmentFile } from '@/lib/services/attachment-service';
-
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 /**
  * GET /api/ideas
@@ -22,6 +19,7 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
+    const userEmail = session?.user?.email;
 
     if (!userId) {
       return NextResponse.json(
@@ -31,6 +29,7 @@ export async function GET(request: Request): Promise<Response> {
     }
 
     const role = await getUserRole(userId);
+    const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
     const { searchParams } = new URL(request.url);
     const pageParam = searchParams.get('page');
     const pageSizeParam = searchParams.get('pageSize');
@@ -59,7 +58,7 @@ export async function GET(request: Request): Promise<Response> {
       pageSize = ps;
     }
 
-    const { ideas, pagination } = await getIdeasForUser(userId, role, {
+    const { ideas, pagination } = await getIdeasForUser(resolvedUserId, role, {
       page,
       pageSize,
       categoryId: categoryId || undefined,
@@ -168,10 +167,42 @@ async function parseRequestBody(request: Request): Promise<ParsedPayload> {
 export async function POST(request: Request): Promise<Response> {
   try {
     const session = await getServerSession(authOptions);
-    const userId = session?.user?.id;
+    let userId = session?.user?.id;
+    const userEmail = session?.user?.email;
 
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Mock users (e.g. mock-submitter) don't exist in DB - resolve to real user for idea creation
+    if (userId.startsWith('mock-') && userEmail) {
+      const realUser = await prisma.user.findUnique({
+        where: { email: userEmail.toLowerCase() },
+        select: { id: true },
+      });
+      if (realUser) {
+        userId = realUser.id;
+      } else if (process.env.NODE_ENV === 'development') {
+        // Create dev user for mock credentials so submission works
+        const { hashPassword } = await import('@/lib/auth/password');
+        const realUser = await prisma.user.upsert({
+          where: { email: userEmail.toLowerCase() },
+          create: {
+            email: userEmail.toLowerCase(),
+            name: session?.user?.name ?? 'Dev User',
+            passwordHash: await hashPassword('Dev@12345'),
+            role: userId === 'mock-submitter' ? 'SUBMITTER' : userId === 'mock-evaluator' ? 'EVALUATOR' : 'ADMIN',
+          },
+          update: {},
+          select: { id: true },
+        });
+        userId = realUser.id;
+      } else {
+        return NextResponse.json(
+          { success: false, error: 'Please register an account to submit ideas.' },
+          { status: 403 },
+        );
+      }
     }
 
     const payload = await parseRequestBody(request);

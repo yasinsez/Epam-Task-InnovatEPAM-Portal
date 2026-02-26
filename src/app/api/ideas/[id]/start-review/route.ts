@@ -4,8 +4,7 @@ import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/role-guards';
 import { startReviewIdea } from '@/lib/services/evaluation-service';
 import { prisma } from '@/server/db/prisma';
-
-const authOptions = { secret: process.env.NEXTAUTH_SECRET };
+import { authOptions } from '@/server/auth/route';
 
 /**
  * PATCH /api/ideas/[id]/start-review

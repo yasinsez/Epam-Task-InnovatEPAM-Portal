@@ -1,6 +1,7 @@
 import { validateEmail } from '@/lib/utils/validators';
 import { validatePasswordStrength, verifyPassword } from '@/lib/auth/password';
 import { AuthenticationError, ValidationError } from '@/lib/utils/errors';
+import { MOCK_CREDENTIALS, shouldShowMockCredentials } from '@/lib/auth/mock-credentials';
 import { prisma } from '@/server/db/prisma';
 
 export function validateRegistrationPayload(email: string, password: string): void {
@@ -32,6 +33,23 @@ export function validateLoginPayload(email: string, password: string): void {
 }
 
 export async function verifyLoginCredentials(email: string, password: string) {
+  // Check for mock credentials in development mode
+  if (shouldShowMockCredentials()) {
+    for (const credential of Object.values(MOCK_CREDENTIALS)) {
+      if (credential.email === email && credential.password === password) {
+        // Return a mock user object for development
+        return {
+          id: `mock-${credential.role}`,
+          email: credential.email,
+          name: credential.name,
+          passwordHash: '', // Not used for mock credentials
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+      }
+    }
+  }
+
   const user = await prisma.user.findUnique({
     where: { email },
   });

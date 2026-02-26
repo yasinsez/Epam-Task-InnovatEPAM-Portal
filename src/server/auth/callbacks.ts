@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { verifyPassword } from '@/lib/auth/password';
 import { getUserRole } from '@/lib/auth/roles';
 import { generateJWT, refreshToken } from '@/lib/auth/token';
+import { MOCK_CREDENTIALS, shouldShowMockCredentials } from '@/lib/auth/mock-credentials';
 import { prisma } from '@/server/db/prisma';
 
 /**
@@ -68,6 +69,21 @@ export const credentialsProvider = CredentialsProvider({
     }
 
     const email = credentials.email.toLowerCase().trim();
+
+    // Check for mock credentials in development mode
+    if (shouldShowMockCredentials()) {
+      for (const credential of Object.values(MOCK_CREDENTIALS)) {
+        if (credential.email === email && credential.password === credentials.password) {
+          // Return a mock user object for development
+          return {
+            id: `mock-${credential.role}`,
+            email: credential.email,
+            name: credential.name,
+          };
+        }
+      }
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
 
     if (!user) {
@@ -87,3 +103,4 @@ export const credentialsProvider = CredentialsProvider({
     };
   },
 });
+

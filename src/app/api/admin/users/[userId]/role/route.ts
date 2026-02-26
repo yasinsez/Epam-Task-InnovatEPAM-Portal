@@ -4,12 +4,9 @@ import type { UserRole } from '@prisma/client';
 import { getServerSession } from 'next-auth';
 
 import { requireRole } from '@/lib/auth/role-guards';
+import { resolveUserIdForDb } from '@/lib/auth/roles';
 import { prisma } from '@/server/db/prisma';
-
-// Get auth options from route handler
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 const roleSchema = z.object({
   role: z.enum(['submitter', 'evaluator', 'admin']),
@@ -17,6 +14,7 @@ const roleSchema = z.object({
 
 /**
  * Updates a user's role (admin only).
+ * Admins cannot change their own role.
  *
  * @param request Incoming request.
  * @param context Route context with userId param.
@@ -29,9 +27,13 @@ export const PATCH = requireRole('admin')(async (
   const params = await Promise.resolve(context.params);
   const session = await getServerSession(authOptions);
   const actingUserId = session?.user?.id ?? null;
+  const userEmail = session?.user?.email ?? null;
 
-  if (actingUserId && actingUserId === params.userId) {
-    return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
+  if (actingUserId) {
+    const resolvedActingId = await resolveUserIdForDb(actingUserId, userEmail);
+    if (resolvedActingId === params.userId) {
+      return NextResponse.json({ success: false, error: 'Cannot change your own role' }, { status: 403 });
+    }
   }
 
   const body = await request.json().catch(() => null);

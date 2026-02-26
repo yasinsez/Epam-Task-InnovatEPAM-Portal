@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import React, { FormEvent, useState } from 'react';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -55,37 +56,49 @@ export default function RegisterPage() {
   }
 
   return (
-    <main style={{ maxWidth: 420, margin: '40px auto', padding: 16 }}>
-      <h1>Register</h1>
-      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
+    <main className="auth-page">
+      <div className="auth-card">
+        <header className="auth-header">
+          <span className="auth-header__icon" aria-hidden>◆</span>
+          <h1 className="auth-title">Create account</h1>
+          <p className="auth-subtitle">Join the InnovatEPAM Portal to share your ideas</p>
+        </header>
 
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          minLength={8}
-        />
+        <form onSubmit={onSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              minLength={8}
+            />
+          </div>
+          <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating account...' : 'Create account'}
+          </button>
+          {error ? <p className="auth-form__error">{error}</p> : null}
+          {success ? <p className="auth-form__success">{success}</p> : null}
+        </form>
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating account...' : 'Create account'}
-        </button>
-
-        {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
-        {success ? <p style={{ color: '#0a7c2f' }}>{success}</p> : null}
-      </form>
+        <p className="auth-form__footer" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          Already have an account? <Link href="/auth/login" className="link">Sign in</Link>
+        </p>
+      </div>
     </main>
   );
 }

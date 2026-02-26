@@ -49,6 +49,88 @@ export type GetIdeasOptions = {
   categoryId?: string;
 };
 
+export type SubmissionStats = {
+  total: number;
+  drafts: number;
+  pendingReview: number;
+  approved: number;
+  rejected: number;
+};
+
+export type EvaluatorStats = {
+  pendingReviews: number;
+  completedReviews: number;
+  averageReviewTimeHours: number;
+};
+
+/**
+ * Fetches evaluation queue stats for evaluators/admins.
+ * Pending = ideas in SUBMITTED or UNDER_REVIEW (awaiting evaluation).
+ * Completed = ideas with evaluation (ACCEPTED or REJECTED).
+ *
+ * @returns Counts and average review time
+ */
+export async function getEvaluatorStats(): Promise<EvaluatorStats> {
+  const [pendingReviews, completedReviews, reviewedIdeas] = await Promise.all([
+    prisma.idea.count({
+      where: { status: { in: ['SUBMITTED', 'UNDER_REVIEW'] } },
+    }),
+    prisma.idea.count({
+      where: { evaluation: { isNot: null } },
+    }),
+    prisma.idea.findMany({
+      where: { evaluation: { isNot: null } },
+      select: {
+        submittedAt: true,
+        evaluation: { select: { evaluatedAt: true } },
+      },
+    }),
+  ]);
+
+  let averageReviewTimeHours = 0;
+  if (reviewedIdeas.length > 0) {
+    const totalMs = reviewedIdeas.reduce(
+      (sum, i) =>
+        sum + (i.evaluation!.evaluatedAt.getTime() - i.submittedAt.getTime()),
+      0
+    );
+    averageReviewTimeHours = Math.round((totalMs / (1000 * 60 * 60)) / reviewedIdeas.length * 10) / 10;
+  }
+
+  return {
+    pendingReviews,
+    completedReviews,
+    averageReviewTimeHours,
+  };
+}
+
+/**
+ * Fetches submission stats (counts by status) for a submitter's ideas.
+ * Drafts are always 0 as the schema does not support draft status.
+ *
+ * @param userId - Resolved user ID (real DB id, not mock)
+ * @returns Counts by status
+ */
+export async function getSubmissionStats(userId: string): Promise<SubmissionStats> {
+  const where = { userId };
+
+  const [total, submitted, underReview, accepted, rejected] = await Promise.all([
+    prisma.idea.count({ where }),
+    prisma.idea.count({ where: { ...where, status: 'SUBMITTED' } }),
+    prisma.idea.count({ where: { ...where, status: 'UNDER_REVIEW' } }),
+    prisma.idea.count({ where: { ...where, status: 'ACCEPTED' } }),
+    prisma.idea.count({ where: { ...where, status: 'REJECTED' } }),
+  ]);
+
+  return {
+    total,
+    drafts: 0,
+    pendingReview: submitted + underReview,
+    approved: accepted,
+    rejected,
+  };
+}
+
 /**
  * Fetches paginated ideas for the current user with role-based visibility.
  * Submitters see only their own ideas; evaluators and admins see all submitted ideas.

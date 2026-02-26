@@ -5,14 +5,12 @@ import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
 
 import { getIdeaForDetail } from '@/lib/services/idea-service';
-import { getUserRole } from '@/lib/auth/roles';
+import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { IdeaDetailSkeleton } from '@/components/IdeaDetailSkeleton';
 import { EvaluationForm } from '@/components/EvaluationForm';
 import { StartReviewButton } from '@/components/StartReviewButton';
 
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 /**
  * Page metadata for idea detail
@@ -25,11 +23,13 @@ export async function generateMetadata({
   const { id } = await params;
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
   if (!userId) {
     return { title: 'Idea | InnovatEPAM Portal' };
   }
   const role = await getUserRole(userId);
-  const idea = await getIdeaForDetail(id, userId, role);
+  const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
+  const idea = await getIdeaForDetail(id, resolvedUserId, role);
   return {
     title: idea ? `${idea.title} | InnovatEPAM Portal` : 'Idea | InnovatEPAM Portal',
   };
@@ -38,13 +38,15 @@ export async function generateMetadata({
 async function IdeaDetailContent({ id }: { id: string }) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
 
   if (!userId) {
     notFound();
   }
 
   const role = await getUserRole(userId);
-  const idea = await getIdeaForDetail(id, userId, role);
+  const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
+  const idea = await getIdeaForDetail(id, resolvedUserId, role);
 
   if (!idea) {
     notFound();

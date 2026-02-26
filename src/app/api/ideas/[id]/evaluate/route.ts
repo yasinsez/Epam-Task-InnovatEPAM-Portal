@@ -2,11 +2,11 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 import { requireRole } from '@/lib/auth/role-guards';
+import { resolveUserIdForDb } from '@/lib/auth/roles';
 import { evaluateIdea } from '@/lib/services/evaluation-service';
 import { evaluateIdeaSchema } from '@/lib/validators';
 import { prisma } from '@/server/db/prisma';
-
-const authOptions = { secret: process.env.NEXTAUTH_SECRET };
+import { authOptions } from '@/server/auth/route';
 
 /**
  * POST /api/ideas/[id]/evaluate
@@ -60,6 +60,7 @@ export const POST = requireRole('admin', 'evaluator')(
 
       const session = await getServerSession(authOptions);
       const userId = session?.user?.id;
+      const userEmail = session?.user?.email;
       if (!userId) {
         return NextResponse.json(
           { success: false, error: 'Authentication required' },
@@ -67,9 +68,10 @@ export const POST = requireRole('admin', 'evaluator')(
         );
       }
 
+      const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
       const result = await evaluateIdea(
         id,
-        userId,
+        resolvedUserId,
         decision,
         comments.trim(),
       );

@@ -11,6 +11,7 @@ jest.mock('next-auth/jwt', () => ({
 
 jest.mock('@/lib/auth/roles', () => ({
   getUserRole: jest.fn(),
+  resolveUserIdForDb: jest.fn((id: string) => Promise.resolve(id)),
 }));
 
 jest.mock('@/server/db/prisma', () => ({
@@ -126,7 +127,7 @@ describe('admin user role APIs', () => {
     const body = await response.json();
 
     expect(response.status).toBe(403);
-    expect(body.error).toBe('Forbidden');
+    expect(body.error).toBe('Cannot change your own role');
   });
 
   it('PATCH /api/admin/users/:userId/role returns 403 for non-admin', async () => {

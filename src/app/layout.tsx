@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/app/components/Providers';
-import { Navigation } from '@/app/components/Navigation';
+import { AppShell } from '@/app/components/AppShell';
 
 export const metadata: Metadata = {
   title: 'InnovatEPAM Portal',
-  description: 'Authentication system for InnovatEPAM Portal',
+  description: 'Innovation portal for EPAM',
 };
 
 export default function RootLayout({
@@ -17,8 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Providers>
-          <Navigation />
-          {children}
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

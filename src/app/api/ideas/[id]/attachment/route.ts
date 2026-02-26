@@ -3,11 +3,8 @@ import { getServerSession } from 'next-auth';
 
 import { prisma } from '@/server/db/prisma';
 import { readAttachmentFile } from '@/lib/services/attachment-service';
-import { getUserRole } from '@/lib/auth/roles';
-
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
+import { authOptions } from '@/server/auth/route';
 
 /**
  * GET /api/ideas/[id]/attachment
@@ -25,6 +22,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
+    const userEmail = session?.user?.email;
 
     if (!userId) {
       return NextResponse.json(
@@ -33,6 +31,7 @@ export async function GET(
       );
     }
 
+    const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
     const { id } = await params;
     const idea = await prisma.idea.findUnique({
       where: { id },
@@ -54,7 +53,7 @@ export async function GET(
     }
 
     const role = await getUserRole(userId);
-    const isOwner = idea.userId === userId;
+    const isOwner = idea.userId === resolvedUserId;
     const canAccess = isOwner || role === 'evaluator' || role === 'admin';
     if (!canAccess) {
       return NextResponse.json(

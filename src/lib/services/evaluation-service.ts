@@ -17,7 +17,7 @@ export type IdeaWithEvaluation = {
  * Enforces first-wins concurrency: returns null if idea already evaluated.
  *
  * @param ideaId - Idea to evaluate
- * @param evaluatorId - User ID of evaluator
+ * @param evaluatorId - User ID of evaluator (resolved; use null if not in DB e.g. mock user)
  * @param decision - "ACCEPTED" or "REJECTED"
  * @param comments - Required explanation (1-2000 chars)
  * @returns Updated idea with evaluation, or null if already evaluated (409 case)
@@ -36,6 +36,8 @@ export async function evaluateIdea(
   if (!idea) return null;
   if (idea.status === 'ACCEPTED' || idea.status === 'REJECTED') return null;
 
+  const evaluatorIdForDb = evaluatorId.startsWith('mock-') ? null : evaluatorId;
+
   try {
     const updated = await prisma.$transaction(async (tx) => {
       await tx.evaluation.create({
@@ -43,7 +45,7 @@ export async function evaluateIdea(
           ideaId,
           decision,
           comments,
-          evaluatorId,
+          evaluatorId: evaluatorIdForDb,
         },
       });
       await tx.idea.update({

@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import React, { FormEvent, useState } from 'react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -70,6 +71,10 @@ export default function LoginPage() {
 
         {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
       </form>
+
+      <p style={{ marginTop: 16 }}>
+        Don't have an account? <Link href="/auth/register">Register</Link>
+      </p>
     </main>
   );
 }

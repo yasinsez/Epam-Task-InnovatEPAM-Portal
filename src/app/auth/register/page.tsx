@@ -1,6 +1,7 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import Link from 'next/link';
+import React, { FormEvent, useState } from 'react';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -86,6 +87,10 @@ export default function RegisterPage() {
         {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
         {success ? <p style={{ color: '#0a7c2f' }}>{success}</p> : null}
       </form>
+
+      <p style={{ marginTop: 16 }}>
+        Already have an account? <Link href="/auth/login">Sign in</Link>
+      </p>
     </main>
   );
 }

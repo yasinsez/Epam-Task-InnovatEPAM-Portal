@@ -22,7 +22,7 @@ description: "Task list for Authentication Landing Page implementation"
 
 **Purpose**: Project initialization and shared types for this feature
 
-- [ ] T001 Create type definitions in src/types/auth-landing.types.ts from specs/008-auth-landing-page/contracts/component-interfaces.ts
+- [X] T001 Create type definitions in src/types/auth-landing.types.ts from specs/008-auth-landing-page/contracts/component-interfaces.ts
 
 ---
 
@@ -30,7 +30,7 @@ description: "Task list for Authentication Landing Page implementation"
 
 **Purpose**: Shared styling foundation required by all stories
 
-- [ ] T002 Add auth landing base styles (layout, buttons, links, focus-visible) in src/app/globals.css
+- [X] T002 Add auth landing base styles (layout, buttons, links, focus-visible) in src/app/globals.css
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -44,14 +44,14 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Tests for User Story 1
 
-- [ ] T003 [P] [US1] Add unit tests for header + Create Account CTA and a11y check in tests/unit/app/auth/page.test.tsx
-- [ ] T004 [P] [US1] Add e2e test for Create Account navigation in tests/e2e/auth-landing.spec.ts
+- [X] T003 [P] [US1] Add unit tests for header + Create Account CTA and a11y check in tests/unit/app/auth/page.test.tsx
+- [X] T004 [P] [US1] Add e2e test for Create Account navigation in tests/e2e/auth-landing.spec.ts
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Implement AuthLandingHeader component with JSDoc in src/app/components/auth/AuthLandingHeader.tsx
-- [ ] T006 [P] [US1] Implement PrimaryAuthButtons component with JSDoc in src/app/components/auth/PrimaryAuthButtons.tsx
-- [ ] T007 [US1] Build `/auth` landing page as Client Component ('use client') with JSDoc, metadata, and layout in src/app/auth/page.tsx
+- [X] T005 [P] [US1] Implement AuthLandingHeader component with JSDoc in src/app/components/auth/AuthLandingHeader.tsx
+- [X] T006 [P] [US1] Implement PrimaryAuthButtons component with JSDoc in src/app/components/auth/PrimaryAuthButtons.tsx
+- [X] T007 [US1] Build `/auth` landing page as Client Component ('use client') with JSDoc, metadata, and layout in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 1 functional and independently testable
 
@@ -65,13 +65,13 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Tests for User Story 2
 
-- [ ] T008 [US2] Extend unit tests for Sign In CTA in tests/unit/app/auth/page.test.tsx
-- [ ] T009 [P] [US2] Add integration test for authenticated redirect in tests/integration/auth/landing-page.test.ts
+- [X] T008 [US2] Extend unit tests for Sign In CTA in tests/unit/app/auth/page.test.tsx
+- [X] T009 [P] [US2] Add integration test for authenticated redirect in tests/integration/auth/landing-page.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Add useSession hook with authenticated redirect + loading state to src/app/auth/page.tsx
-- [ ] T011 [US2] Ensure Sign In CTA routes to `/auth/login` in src/app/auth/page.tsx
+- [X] T010 [US2] Add useSession hook with authenticated redirect + loading state to src/app/auth/page.tsx
+- [X] T011 [US2] Ensure Sign In CTA routes to `/auth/login` in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 2 functional and independently testable
 
@@ -85,13 +85,13 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Tests for User Story 3
 
-- [ ] T012 [P] [US3] Add unit tests for auth form cross-links in tests/unit/app/auth/auth-cross-links.test.tsx
-- [ ] T013 [P] [US3] Add e2e test for login/register cross-link navigation in tests/e2e/auth-cross-links.spec.ts
+- [X] T012 [P] [US3] Add unit tests for auth form cross-links in tests/unit/app/auth/auth-cross-links.test.tsx
+- [X] T013 [P] [US3] Add e2e test for login/register cross-link navigation in tests/e2e/auth-cross-links.spec.ts
 
 ### Implementation for User Story 3
 
-- [ ] T014 [US3] Add "Don't have an account? Register" link in src/app/auth/login/page.tsx
-- [ ] T015 [US3] Add "Already have an account? Sign in" link in src/app/auth/register/page.tsx
+- [X] T014 [US3] Add "Don't have an account? Register" link in src/app/auth/login/page.tsx
+- [X] T015 [US3] Add "Already have an account? Sign in" link in src/app/auth/register/page.tsx
 
 **Checkpoint**: User Story 3 functional and independently testable
 
@@ -105,13 +105,13 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Tests for User Story 4
 
-- [ ] T016 [US4] Extend unit tests for Forgot Password link in tests/unit/app/auth/page.test.tsx
-- [ ] T017 [US4] Extend e2e auth landing test for Forgot Password link in tests/e2e/auth-landing.spec.ts
+- [X] T016 [US4] Extend unit tests for Forgot Password link in tests/unit/app/auth/page.test.tsx
+- [X] T017 [US4] Extend e2e auth landing test for Forgot Password link in tests/e2e/auth-landing.spec.ts
 
 ### Implementation for User Story 4
 
-- [ ] T018 [P] [US4] Implement SecondaryAuthLinks component with JSDoc in src/app/components/auth/SecondaryAuthLinks.tsx
-- [ ] T019 [US4] Wire "Forgot Password?" link on landing page in src/app/auth/page.tsx
+- [X] T018 [P] [US4] Implement SecondaryAuthLinks component with JSDoc in src/app/components/auth/SecondaryAuthLinks.tsx
+- [X] T019 [US4] Wire "Forgot Password?" link on landing page in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 4 functional and independently testable
 
@@ -121,7 +121,7 @@ description: "Task list for Authentication Landing Page implementation"
 
 **Purpose**: Final validation, documentation, and quality checks
 
-- [ ] T020 [P] Verify all components have JSDoc documentation with @param, @returns, @example tags per Constitution
+- [X] T020 [P] Verify all components have JSDoc documentation with @param, @returns, @example tags per Constitution
 - [ ] T021 [P] Run Lighthouse performance audit to verify <2s page load target (SC-003)
 - [ ] T022 [P] Run Lighthouse accessibility audit to verify WCAG 2.1 AA compliance score ≥90 (SC-004)
 - [ ] T023 [P] Run quickstart validation steps in specs/008-auth-landing-page/quickstart.md

@@ -7,6 +7,7 @@ import {
   recordFailedLogin,
   resetFailedLogins,
 } from '@/lib/auth/rate-limiter';
+import { shouldShowMockCredentials } from '@/lib/auth/mock-credentials';
 import { AuthenticationError } from '@/lib/utils/errors';
 import { prisma, logAuthEvent } from '@/server/db/prisma';
 import { validateLoginPayload, verifyLoginCredentials } from '@/server/api/auth/validators';
@@ -23,6 +24,16 @@ function getRequestContext(request: Request): { ipAddress?: string; userAgent?: 
   };
 }
 
+/**
+ * Checks if the given email is a mock credential in development mode
+ */
+function isMockCredential(email: string): boolean {
+  if (!shouldShowMockCredentials()) {
+    return false;
+  }
+  return ['admin@epam.com', 'submitter@epam.com', 'evaluator@epam.com'].includes(email.toLowerCase());
+}
+
 export async function POST(request: Request): Promise<Response> {
   const context = getRequestContext(request);
   let email = '';
@@ -34,60 +45,67 @@ export async function POST(request: Request): Promise<Response> {
 
     validateLoginPayload(email, password);
 
-    const userLookup = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    });
+    // For non-mock users, check rate limiting
+    if (!isMockCredential(email)) {
+      const userLookup = await prisma.user.findUnique({
+        where: { email },
+        select: { id: true },
+      });
 
-    if (userLookup) {
-      const currentDelay = await getCurrentLoginDelay(userLookup.id);
-      if (currentDelay > 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Too many login attempts. Please try again in ${currentDelay} seconds.`,
-            delaySeconds: currentDelay,
-          },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': String(currentDelay),
+      if (userLookup) {
+        const currentDelay = await getCurrentLoginDelay(userLookup.id);
+        if (currentDelay > 0) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Too many login attempts. Please try again in ${currentDelay} seconds.`,
+              delaySeconds: currentDelay,
             },
-          },
-        );
+            {
+              status: 429,
+              headers: {
+                'Retry-After': String(currentDelay),
+              },
+            },
+          );
+        }
       }
     }
 
     const user = await verifyLoginCredentials(email, password);
 
-    await resetFailedLogins(user.id);
+    // Skip database operations for mock users in development
+    if (!user.id.startsWith('mock-')) {
+      await resetFailedLogins(user.id);
+
+      await prisma.session.create({
+        data: {
+          userId: user.id,
+          sessionToken: crypto.randomUUID(),
+          jwt: '',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          userAgent: context.userAgent,
+          ipAddress: context.ipAddress,
+        },
+      });
+
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+    }
 
     const authToken = generateJWT(user.id, user.email, user.name ?? undefined);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    await prisma.session.create({
-      data: {
+    if (!user.id.startsWith('mock-')) {
+      await logAuthEvent({
         userId: user.id,
-        sessionToken: crypto.randomUUID(),
-        jwt: authToken,
-        expiresAt,
-        userAgent: context.userAgent,
+        action: 'login',
+        status: 'success',
         ipAddress: context.ipAddress,
-      },
-    });
-
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
-    await logAuthEvent({
-      userId: user.id,
-      action: 'login',
-      status: 'success',
-      ipAddress: context.ipAddress,
-      userAgent: context.userAgent,
-    });
+        userAgent: context.userAgent,
+      });
+    }
 
     const response = NextResponse.json(
       {
@@ -118,46 +136,48 @@ export async function POST(request: Request): Promise<Response> {
     return response;
   } catch (error) {
     if (error instanceof AuthenticationError) {
-      const userLookup = await prisma.user.findUnique({
-        where: { email },
-        select: { id: true },
-      });
+      // For non-mock users, record failed login
+      if (!isMockCredential(email)) {
+        const userLookup = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true },
+        });
 
-      let delaySeconds = 0;
-      if (userLookup) {
-        delaySeconds = await recordFailedLogin(userLookup.id);
-      }
+        let delaySeconds = 0;
+        if (userLookup) {
+          delaySeconds = await recordFailedLogin(userLookup.id);
+        }
 
-      await logAuthEvent({
-        userId: userLookup?.id,
-        action: 'login',
-        status: 'failed',
-        ipAddress: context.ipAddress,
-        userAgent: context.userAgent,
-        reason: 'invalid_credentials',
-      });
+        await logAuthEvent({
+          userId: userLookup?.id,
+          action: 'login',
+          status: 'failed',
+          ipAddress: context.ipAddress,
+          userAgent: context.userAgent,
+          reason: 'invalid_credentials',
+        });
 
-      if (delaySeconds > 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Too many login attempts. Please try again in ${delaySeconds} seconds.`,
-            delaySeconds,
-          },
-          {
-            status: 429,
-            headers: {
-              'Retry-After': String(delaySeconds),
+        if (delaySeconds > 0) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Too many login attempts. Please try again in ${delaySeconds} seconds.`,
+              delaySeconds,
             },
-          },
-        );
+            {
+              status: 429,
+              headers: {
+                'Retry-After': String(delaySeconds),
+              },
+            },
+          );
+        }
       }
 
       return NextResponse.json(
         {
           success: false,
           error: 'Invalid email or password',
-          delaySeconds,
         },
         { status: 401 },
       );

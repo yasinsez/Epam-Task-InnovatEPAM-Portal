@@ -271,7 +271,7 @@ describe('AuthLandingPage', () => {
 
       const { container } = render(<AuthLandingPage />);
 
-      const buttons = container.querySelectorAll('a[href*="/auth"]');
+      const buttons = container.querySelectorAll('a.btn[href*="/auth"]');
 
       // Ensure base button class is applied to enable WCAG-compliant sizing
       buttons.forEach((button) => {

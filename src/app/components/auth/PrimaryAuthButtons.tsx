@@ -60,22 +60,18 @@ export function PrimaryAuthButtons({
   className,
 }: PrimaryAuthButtonsProps): React.ReactElement {
   /**
-   * Handles Sign In button click
-   * Calls optional callback while allowing Link navigation
-   *
-   * @param {React.MouseEvent} e - Click event
+   * Handles Sign In button click.
+   * Calls optional callback while allowing Link navigation.
    */
-  const handleSignInClick = (e: React.MouseEvent) => {
+  const handleSignInClick = () => {
     onSignInClick?.();
   };
 
   /**
-   * Handles Create Account button click
-   * Calls optional callback while allowing Link navigation
-   *
-   * @param {React.MouseEvent} e - Click event
+   * Handles Create Account button click.
+   * Calls optional callback while allowing Link navigation.
    */
-  const handleCreateAccountClick = (e: React.MouseEvent) => {
+  const handleCreateAccountClick = () => {
     onCreateAccountClick?.();
   };
 

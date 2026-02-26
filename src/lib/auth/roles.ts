@@ -12,6 +12,14 @@ export type UserRole = 'submitter' | 'evaluator' | 'admin';
  * const role = await getUserRole('user-id');
  */
 export async function getUserRole(userId: string): Promise<UserRole> {
+  // Check for mock user ID in development (format: mock-{role})
+  if (userId.startsWith('mock-')) {
+    const mockRole = userId.slice(5) as UserRole; // Remove 'mock-' prefix
+    if (['admin', 'submitter', 'evaluator'].includes(mockRole)) {
+      return mockRole;
+    }
+  }
+
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true },

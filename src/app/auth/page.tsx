@@ -28,7 +28,6 @@ import React, { useEffect } from 'react';
 import { AuthLandingHeader } from '@/app/components/auth/AuthLandingHeader';
 import { PrimaryAuthButtons } from '@/app/components/auth/PrimaryAuthButtons';
 import { SecondaryAuthLinks } from '@/app/components/auth/SecondaryAuthLinks';
-import type { AuthLandingPageProps } from '@/types/auth-landing.types';
 
 /**
  * Authentication Landing Page Component
@@ -40,7 +39,6 @@ import type { AuthLandingPageProps } from '@/types/auth-landing.types';
  * Automatically redirects authenticated users to /dashboard using
  * NextAuth session state and Next.js router.
  *
- * @param {AuthLandingPageProps} [props] - Optional display flags for links and hints
  * @returns {React.ReactElement | null} Rendered landing page, loading state, or null during redirect
  *
  * @example
@@ -56,9 +54,7 @@ import type { AuthLandingPageProps } from '@/types/auth-landing.types';
  * // 2. Automatic redirect to /dashboard
  * // 3. No visible content (null return during navigation)
  */
-export default function AuthLandingPage(
-  { showForgotPassword = true, showCrossLinksHint = false }: AuthLandingPageProps = {}
-): React.ReactElement | null {
+export default function AuthLandingPage(): React.ReactElement | null {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -125,9 +121,9 @@ export default function AuthLandingPage(
         />
 
         <SecondaryAuthLinks
-          showForgotPassword={showForgotPassword}
+          showForgotPassword={true}
           forgotPasswordLabel="Forgot Password?"
-          showCrossLinksHint={showCrossLinksHint}
+          showCrossLinksHint={false}
         />
       </div>
     </main>

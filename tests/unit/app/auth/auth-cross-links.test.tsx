@@ -9,6 +9,8 @@
 
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import LoginPage from '@/app/auth/login/page';
 import RegisterPage from '@/app/auth/register/page';
 
@@ -21,7 +23,28 @@ jest.mock('next/link', () => ({
   ),
 }));
 
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+}));
+
+jest.mock('next-auth/react', () => ({
+  useSession: jest.fn(),
+  signIn: jest.fn(),
+}));
+
 describe('Auth Cross-Links', () => {
+  beforeEach(() => {
+    (useSession as jest.Mock).mockReturnValue({
+      data: null,
+      status: 'unauthenticated',
+    });
+    (useRouter as jest.Mock).mockReturnValue({
+      replace: jest.fn(),
+      push: jest.fn(),
+      refresh: jest.fn(),
+    });
+  });
+
   it('renders Register link on Login page', () => {
     render(<LoginPage />);
 

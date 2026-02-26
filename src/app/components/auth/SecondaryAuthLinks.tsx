@@ -63,7 +63,7 @@ export function SecondaryAuthLinks({
       )}
       {showCrossLinksHint && (
         <p className="auth-hint">
-          Can't remember your password? Click &quot;Forgot Password?&quot; on the
+          Can&apos;t remember your password? Click &quot;Forgot Password?&quot; on the
           Sign In page.
         </p>
       )}

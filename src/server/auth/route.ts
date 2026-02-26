@@ -10,6 +10,9 @@ import { authCallbacks, credentialsProvider } from '@/server/auth/callbacks';
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   useSecureCookies: process.env.NODE_ENV === 'production',
+  pages: {
+    signIn: '/auth/login',
+  },
   cookies: {
     csrfToken: {
       name:
@@ -34,14 +37,17 @@ export const authOptions: NextAuthOptions = {
 
 const handler = NextAuth(authOptions);
 
+type RouteContext = { params: Promise<{ nextauth?: string[] }> };
+
 /**
  * Applies baseline security headers to auth responses.
- *
- * @param request Incoming request object.
- * @returns Response with security headers attached.
+ * Passes both request and context to NextAuth so it can resolve route params (nextauth action).
  */
-const withSecurityHeaders = async (request: Request): Promise<Response> => {
-  const response = await handler(request);
+async function withSecurityHeaders(
+  request: Request,
+  context: RouteContext,
+): Promise<Response> {
+  const response = await handler(request, context);
 
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   response.headers.set('X-Frame-Options', 'DENY');
@@ -49,7 +55,7 @@ const withSecurityHeaders = async (request: Request): Promise<Response> => {
   response.headers.set('Referrer-Policy', 'no-referrer');
 
   return response;
-};
+}
 
 export const GET = withSecurityHeaders;
 export const POST = withSecurityHeaders;

@@ -2,11 +2,7 @@ import { getServerSession } from 'next-auth';
 import { NextResponse } from 'next/server';
 
 import { getUserRole, type UserRole } from '@/lib/auth/roles';
-
-// Import authOptions directly to avoid circular dependency
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 type RouteHandler<Params extends Record<string, string> = Record<string, string>> = (
   request: Request,

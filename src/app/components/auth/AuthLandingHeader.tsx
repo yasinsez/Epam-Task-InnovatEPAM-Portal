@@ -54,7 +54,7 @@ export function AuthLandingHeader({
 }: AuthLandingHeaderProps): React.ReactElement {
   return (
     <header className={className ?? 'auth-header'}>
-      {logoUrl && (
+      {logoUrl ? (
         <Image
           src={logoUrl}
           alt={`${title} logo`}
@@ -62,6 +62,8 @@ export function AuthLandingHeader({
           height={120}
           className="auth-logo"
         />
+      ) : (
+        <span className="auth-header__icon" aria-hidden>◆</span>
       )}
       <h1 className="auth-title">{title}</h1>
       <p className="auth-subtitle">{subtitle}</p>

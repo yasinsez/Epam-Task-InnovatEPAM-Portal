@@ -4,15 +4,12 @@ import { redirect } from 'next/navigation';
 
 import { prisma } from '@/server/db/prisma';
 import { getIdeasForUser } from '@/lib/services/idea-service';
-import { getUserRole } from '@/lib/auth/roles';
+import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { IdeaListItem } from '@/components/IdeaListItem';
 import { IdeaListSkeleton } from '@/components/IdeaListSkeleton';
 import { PaginationControls } from '@/components/PaginationControls';
 import { CategoryFilter } from '@/components/CategoryFilter';
-
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 type IdeasPageProps = {
   searchParams: Promise<{ page?: string; pageSize?: string; categoryId?: string }>;
@@ -25,12 +22,14 @@ async function IdeasListContent({
 }) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
+  const userEmail = session?.user?.email;
 
   if (!userId) {
     redirect('/api/auth/signin');
   }
 
   const role = await getUserRole(userId);
+  const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
   const params = await searchParams;
   const page = params.page ? parseInt(params.page, 10) : 1;
   const pageSize = params.pageSize ? parseInt(params.pageSize, 10) : 15;
@@ -42,7 +41,7 @@ async function IdeasListContent({
       orderBy: { order: 'asc' },
       select: { id: true, name: true },
     }),
-    getIdeasForUser(userId, role, {
+    getIdeasForUser(resolvedUserId, role, {
       page,
       pageSize,
       categoryId,

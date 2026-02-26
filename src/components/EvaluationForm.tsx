@@ -38,6 +38,7 @@ export function EvaluationForm({ ideaId, onSuccess }: EvaluationFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision, comments: comments.trim() }),
+        credentials: 'include',
       });
       const data = await res.json();
 

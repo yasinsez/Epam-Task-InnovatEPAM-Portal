@@ -34,7 +34,10 @@ export default function LoginPage() {
       });
 
       if (!result?.ok) {
-        setError(result?.error ?? 'Invalid email or password');
+        const msg = result?.error;
+        setError(
+          msg === 'CredentialsSignin' ? 'Invalid email or password' : (msg ?? 'Invalid email or password'),
+        );
         return;
       }
 
@@ -56,101 +59,106 @@ export default function LoginPage() {
   };
 
   return (
-    <main style={{ maxWidth: 420, margin: '40px auto', padding: 16 }}>
-      <h1>Login</h1>
-      <form onSubmit={onSubmit} style={{ display: 'grid', gap: 12 }}>
-        <label htmlFor="email">Email</label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-        />
+    <main className="auth-page">
+      <div className="auth-card">
+        <header className="auth-header">
+          <span className="auth-header__icon" aria-hidden>◆</span>
+          <h1 className="auth-title">Sign in</h1>
+          <p className="auth-subtitle">Enter your credentials to access the portal</p>
+        </header>
 
-        <label htmlFor="password">Password</label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-        />
-
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
-        </button>
-
-        {error ? <p style={{ color: '#b00020' }}>{error}</p> : null}
-      </form>
-
-      <p style={{ marginTop: 16 }}>
-        Don&apos;t have an account? <Link href="/auth/register">Register</Link>
-      </p>
-
-      {/* Development Only: Mock Credentials */}
-      {showMockCredentials && (
-        <div
-          style={{
-            marginTop: 32,
-            padding: 16,
-            backgroundColor: '#f5f5f5',
-            border: '1px solid #ddd',
-            borderRadius: 8,
-          }}
-        >
-          <p style={{ margin: '0 0 12px 0', fontWeight: 'bold', fontSize: '0.9rem' }}>
-            🔧 Development Credentials
-          </p>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {Object.entries(MOCK_CREDENTIALS).map(([key, creds]) => (
-              <div
-                key={key}
-                style={{
-                  padding: 8,
-                  backgroundColor: '#fff',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 4,
-                }}
-              >
-                <p style={{ margin: '0 0 4px 0', fontSize: '0.85rem', fontWeight: '500' }}>
-                  {creds.name} ({creds.role})
-                </p>
-                <p style={{ margin: '0 0 4px 0', fontSize: '0.8rem', color: '#666' }}>
-                  📧 {creds.email}
-                </p>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.8rem', color: '#666' }}>
-                  🔑 {creds.password}
-                </p>
-                <p style={{ margin: '0 0 8px 0', fontSize: '0.8rem', color: '#999' }}>
-                  {creds.description}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill(creds)}
-                  style={{
-                    padding: '4px 12px',
-                    fontSize: '0.8rem',
-                    backgroundColor: '#003da5',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 4,
-                    cursor: 'pointer',
-                  }}
-                  data-testid={`quick-fill-${key}`}
-                >
-                  Quick Fill
-                </button>
-              </div>
-            ))}
+        <form onSubmit={onSubmit} className="auth-form">
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
+            />
           </div>
-          <p style={{ margin: '12px 0 0 0', fontSize: '0.75rem', color: '#999' }}>
-            ⚠️ These credentials are for development only
-          </p>
-        </div>
-      )}
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing in...' : 'Sign in'}
+          </button>
+          {error ? <p className="auth-form__error">{error}</p> : null}
+        </form>
+
+        <p className="auth-form__footer" style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          Don&apos;t have an account? <Link href="/auth/register" className="link">Register</Link>
+        </p>
+
+        <p style={{ marginTop: '1rem', textAlign: 'center' }}>
+          <Link href="/auth/forgot-password" className="link link--tertiary">Forgot password?</Link>
+        </p>
+
+        {showMockCredentials && (
+          <div
+            className="auth-mock-credentials"
+            style={{
+              marginTop: '2rem',
+              padding: '1rem',
+              backgroundColor: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '8px',
+            }}
+          >
+            <p style={{ margin: '0 0 12px 0', fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>
+              🔧 Development Credentials
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {Object.entries(MOCK_CREDENTIALS).map(([key, creds]) => (
+                <div
+                  key={key}
+                  style={{
+                    padding: '0.75rem',
+                    backgroundColor: '#fff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <p style={{ margin: '0 0 4px 0', fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+                    {creds.name} ({creds.role})
+                  </p>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '0.8125rem', color: '#64748b' }}>
+                    📧 {creds.email}
+                  </p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.8125rem', color: '#64748b' }}>
+                    🔑 {creds.password}
+                  </p>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '0.75rem', color: '#94a3b8' }}>
+                    {creds.description}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickFill(creds)}
+                    className="btn btn--primary"
+                    style={{ padding: '0.5rem 1rem', fontSize: '0.8125rem' }}
+                    data-testid={`quick-fill-${key}`}
+                  >
+                    Quick Fill
+                  </button>
+                </div>
+              ))}
+            </div>
+            <p style={{ margin: '12px 0 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>
+              ⚠️ Development only
+            </p>
+          </div>
+        )}
+      </div>
     </main>
   );
 }

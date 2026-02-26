@@ -51,12 +51,17 @@ export async function POST(request: Request): Promise<Response> {
       userAgent: context.userAgent,
     });
 
-    await emailService.sendConfirmationEmail(email);
+    if (process.env.NODE_ENV !== 'development') {
+      await emailService.sendConfirmationEmail(email);
+    }
 
     return NextResponse.json(
       {
         success: true,
-        message: 'User registered successfully. Confirmation email sent.',
+        message:
+          process.env.NODE_ENV === 'development'
+            ? 'User registered successfully.'
+            : 'User registered successfully. Confirmation email sent.',
         user,
       },
       { status: 201 },

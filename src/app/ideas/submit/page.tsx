@@ -4,10 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { SubmitIdeaForm } from '@/components/SubmitIdeaForm';
 import { prisma } from '@/server/db/prisma';
-
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 /**
  * Page metadata for SEO
@@ -54,8 +51,13 @@ export default async function IdeaSubmitPage(): Promise<JSX.Element> {
           Share your innovation ideas and help us improve our processes, technology, costs, and
           company culture.
         </p>
-
-        <SubmitIdeaForm categories={categories} />
+        {categories.length === 0 ? (
+          <div className="error-message alert" role="alert">
+            No categories are available yet. Please contact an administrator to set up categories before submitting ideas.
+          </div>
+        ) : (
+          <SubmitIdeaForm categories={categories} />
+        )}
       </div>
     </div>
   );

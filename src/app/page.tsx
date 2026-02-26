@@ -62,7 +62,7 @@ export default function HomePage(): React.ReactElement | null {
    */
   if (status === 'loading') {
     return (
-      <div role="status" aria-live="polite">
+      <div className="auth-loading" role="status" aria-live="polite">
         <p>Loading...</p>
       </div>
     );

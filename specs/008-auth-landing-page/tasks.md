@@ -49,9 +49,9 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Implementation for User Story 1
 
-- [ ] T005 [P] [US1] Implement AuthLandingHeader component in src/app/components/auth/AuthLandingHeader.tsx
-- [ ] T006 [P] [US1] Implement PrimaryAuthButtons component in src/app/components/auth/PrimaryAuthButtons.tsx
-- [ ] T007 [US1] Build `/auth` landing page as Client Component ('use client') with metadata, layout, and Create Account CTA in src/app/auth/page.tsx
+- [ ] T005 [P] [US1] Implement AuthLandingHeader component with JSDoc in src/app/components/auth/AuthLandingHeader.tsx
+- [ ] T006 [P] [US1] Implement PrimaryAuthButtons component with JSDoc in src/app/components/auth/PrimaryAuthButtons.tsx
+- [ ] T007 [US1] Build `/auth` landing page as Client Component ('use client') with JSDoc, metadata, and layout in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 1 functional and independently testable
 
@@ -110,7 +110,7 @@ description: "Task list for Authentication Landing Page implementation"
 
 ### Implementation for User Story 4
 
-- [ ] T018 [P] [US4] Implement SecondaryAuthLinks component in src/app/components/auth/SecondaryAuthLinks.tsx
+- [ ] T018 [P] [US4] Implement SecondaryAuthLinks component with JSDoc in src/app/components/auth/SecondaryAuthLinks.tsx
 - [ ] T019 [US4] Wire "Forgot Password?" link on landing page in src/app/auth/page.tsx
 
 **Checkpoint**: User Story 4 functional and independently testable
@@ -119,9 +119,12 @@ description: "Task list for Authentication Landing Page implementation"
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-**Purpose**: Final validation and documentation updates
+**Purpose**: Final validation, documentation, and quality checks
 
-- [ ] T020 [P] Run quickstart validation steps in specs/008-auth-landing-page/quickstart.md
+- [ ] T020 [P] Verify all components have JSDoc documentation with @param, @returns, @example tags per Constitution
+- [ ] T021 [P] Run Lighthouse performance audit to verify <2s page load target (SC-003)
+- [ ] T022 [P] Run Lighthouse accessibility audit to verify WCAG 2.1 AA compliance score ≥90 (SC-004)
+- [ ] T023 [P] Run quickstart validation steps in specs/008-auth-landing-page/quickstart.md
 
 ---
 

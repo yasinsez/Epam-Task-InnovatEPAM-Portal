@@ -28,6 +28,8 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
       token.email = user.email;
       token.name = user.name;
       token.authToken = generateJWT(user.id, user.email ?? '', user.name ?? undefined);
+      // Store role in JWT so middleware can read it (middleware runs on Edge, no Prisma)
+      token.role = await getUserRole(user.id);
       return token;
     }
 
@@ -46,7 +48,7 @@ export const authCallbacks: NextAuthOptions['callbacks'] = {
       session.user.id = token.sub;
       session.user.email = token.email ?? null;
       session.user.name = token.name ?? null;
-      session.user.role = await getUserRole(token.sub);
+      session.user.role = (token.role as 'submitter' | 'evaluator' | 'admin') ?? (await getUserRole(token.sub));
       session.authToken = (token as JWT & { authToken?: string }).authToken;
     }
 

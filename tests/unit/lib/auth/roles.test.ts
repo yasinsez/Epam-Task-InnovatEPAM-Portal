@@ -27,9 +27,9 @@ describe('getUserRole', () => {
     await expect(getUserRole('missing-user')).rejects.toThrow('User not found');
   });
 
-  it('throws when role is missing', async () => {
+  it('defaults to submitter when role is missing', async () => {
     prisma.user.findUnique.mockResolvedValue({ role: null });
 
-    await expect(getUserRole('user-2')).rejects.toThrow('User role missing');
+    await expect(getUserRole('user-2')).resolves.toBe('submitter');
   });
 });

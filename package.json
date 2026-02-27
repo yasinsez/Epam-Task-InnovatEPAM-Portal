@@ -14,7 +14,7 @@
     "test:contract": "jest tests/contract",
     "test:e2e": "jest tests/e2e",
     "test:e2e:playwright": "playwright test",
-"test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage",
     "db:seed": "npx prisma db seed"
   },
   "prisma": {
@@ -45,6 +45,7 @@
     "autoprefixer": "^10.4.27",
     "eslint": "^8.57.1",
     "eslint-config-next": "^14.2.26",
+    "identity-obj-proxy": "^3.0.0",
     "jest": "^29.7.0",
     "jest-axe": "^10.0.0",
     "jest-environment-jsdom": "^30.2.0",
@@ -53,6 +54,7 @@
     "prisma": "^6.4.1",
     "tailwindcss": "^4.2.1",
     "ts-jest": "^29.2.5",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "undici": "^7.22.0"
   }
 }

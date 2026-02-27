@@ -716,6 +716,8 @@ button.loading {
 .main-content {
   flex: 1;
   padding: 1.5rem 2rem;
+  min-height: 400px;
+  overflow: visible;
 }
 
 @media (max-width: 768px) {

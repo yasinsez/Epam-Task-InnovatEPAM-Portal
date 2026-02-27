@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
 
-const authOptions = {
-  secret: process.env.NEXTAUTH_SECRET,
-};
+import { authOptions } from '@/server/auth/route';
 
 const roleLabel: Record<'submitter' | 'evaluator' | 'admin', string> = {
   submitter: 'Submitter',
@@ -13,10 +12,16 @@ const roleLabel: Record<'submitter' | 'evaluator' | 'admin', string> = {
 
 /**
  * Access denied page for role-protected routes.
+ * Redirects users with a valid role to their appropriate dashboard.
  */
 export default async function AccessDeniedPage() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role ?? null;
+
+  // Redirect users with a valid role to their dashboard instead of showing access denied
+  if (role === 'submitter') redirect('/dashboard/submitter');
+  if (role === 'evaluator') redirect('/dashboard/evaluator');
+  if (role === 'admin') redirect('/admin');
 
   return (
     <main>

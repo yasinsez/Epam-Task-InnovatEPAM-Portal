@@ -18,9 +18,9 @@ expect.extend(toHaveNoViolations);
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
-  useRouter: jest.fn(),
-  usePathname: jest.fn(),
-  useSearchParams: jest.fn(),
+  useRouter: jest.fn(() => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() })),
+  usePathname: jest.fn(() => '/'),
+  useSearchParams: jest.fn(() => new URLSearchParams()),
 }));
 
 // Mock NextAuth
@@ -29,6 +29,18 @@ jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),
   signOut: jest.fn(),
   SessionProvider: ({ children }) => children,
+}));
+
+// Mock next-auth (server) - required when API routes import authOptions from auth route
+jest.mock('next-auth', () => ({
+  __esModule: true,
+  default: () => () => Promise.resolve({ status: 200 }),
+  getServerSession: jest.fn(),
+}));
+
+// Mock auth route to avoid loading NextAuth - tests that import role-guards or API routes need this
+jest.mock('@/server/auth/route', () => ({
+  authOptions: {},
 }));
 
 // Mock Next.js Image component

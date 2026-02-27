@@ -51,9 +51,7 @@ export async function getUserRole(userId: string): Promise<UserRole> {
     throw new Error('User not found');
   }
 
-  if (!user.role) {
-    throw new Error('User role missing');
-  }
-
-  return user.role.toLowerCase() as UserRole;
+  // Default to submitter for users missing role (e.g. created before role migration)
+  const role = user.role?.toLowerCase() ?? 'submitter';
+  return role as UserRole;
 }

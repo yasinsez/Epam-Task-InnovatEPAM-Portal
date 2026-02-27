@@ -14,6 +14,7 @@ jest.mock('next-auth', () => ({
 
 jest.mock('@/lib/auth/roles', () => ({
   getUserRole: jest.fn(),
+  resolveUserIdForDb: jest.fn((id: string) => Promise.resolve(id)),
 }));
 
 jest.mock('@/lib/services/attachment-service', () => ({

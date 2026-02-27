@@ -35,6 +35,7 @@ export async function POST(request: Request): Promise<Response> {
       data: {
         email,
         passwordHash,
+        role: 'SUBMITTER',
       },
       select: {
         id: true,

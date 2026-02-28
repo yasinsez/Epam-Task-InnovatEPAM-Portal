@@ -5,6 +5,16 @@
 **Status**: Draft  
 **Input**: User description: "create Smart Submission Forms (dynamic fields)."
 
+## Clarifications
+
+### Session 2026-02-28
+
+- Q: How should backward compatibility with the existing fixed schema (title, description, category) be handled? → A: Retain fixed fields – Title, description, and category stay as mandatory fixed fields; dynamic fields are added alongside them.
+- Q: When no dynamic fields are configured, should the system use a minimal default form or prevent submission until configured? → A: Minimal default – New deployments seed with title, description, category; submissions allowed before custom dynamic fields are configured.
+- Q: How does the system handle concurrent admin edits to form configuration? → A: Last-write-wins – The most recent save overwrites previous changes; no conflict detection or locking.
+- Q: Which dynamic fields appear in the idea list view? → A: All dynamic fields – Include every dynamic field in the list row; truncate or wrap as needed.
+- Q: Should form configuration changes be audited? → A: Basic audit log – Record who changed the config and when; no detailed diff history.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Admin Configures Submission Form Fields (Priority: P1)
@@ -52,7 +62,7 @@ Viewers (submitters, evaluators, admins) see submitted ideas with their dynamic 
 
 **Acceptance Scenarios**:
 
-1. **Given** an idea was submitted with dynamic field values, **When** a user views the idea list, **Then** key configured fields (or a summary) are visible in the list row
+1. **Given** an idea was submitted with dynamic field values, **When** a user views the idea list, **Then** all dynamic fields are visible in the list row (with truncation or wrapping as needed)
 2. **Given** an idea was submitted with dynamic field values, **When** a user opens the idea detail page, **Then** all submitted field values are displayed with their configured labels
 3. **Given** the form configuration was changed after an idea was submitted, **When** a user views that older idea, **Then** the historical field values are still displayed (even if the field was later removed from configuration)
 4. **Given** an idea has dynamic fields, **When** evaluators or admins review it, **Then** they see all dynamic field data alongside the existing fixed fields (title, description, category) and file attachment
@@ -61,11 +71,12 @@ Viewers (submitters, evaluators, admins) see submitted ideas with their dynamic 
 
 ### Edge Cases
 
-- What happens when no fields are configured? The system must either retain a minimal default form (e.g., title, description, category as fallback) or clearly prevent submission until at least one field is configured.
+- What happens when no fields are configured? The system retains a minimal default form (title, description, category). Submissions are allowed before any dynamic fields are configured.
 - How does the system handle a field configuration change (type or removal) while a submitter has the form open? The submitter's session continues with the configuration at load time; any in-progress data for removed fields is discarded on submission.
+- How does the system handle concurrent admin edits? Last-write-wins: the most recent save overwrites; no conflict detection or optimistic locking.
 - What happens when validation rules conflict (e.g., required field with no value and max length 0)? Configuration must prevent invalid rules; if invalid configuration exists, the system rejects submission and shows a generic validation error.
 - How does the system handle very long field labels or values? Display truncates or wraps appropriately; storage accepts values up to a reasonable limit (e.g., 10,000 characters for long text).
-- What happens when the form configuration is empty and an admin tries to save? The system prevents saving an empty configuration or requires at least one field.
+- What happens when the form configuration is empty and an admin tries to save? The system allows saving an empty dynamic-field configuration; the minimal default form (title, description, category) applies.
 
 ## Requirements *(mandatory)*
 
@@ -80,7 +91,8 @@ Viewers (submitters, evaluators, admins) see submitted ideas with their dynamic 
 - **FR-007**: System MUST allow admins to reorder fields, and submitters MUST see fields in the configured order
 - **FR-008**: System MUST maintain backward compatibility: ideas submitted with the previous fixed schema (title, description, category) MUST remain viewable and functional
 - **FR-009**: System MUST restrict form configuration access to users with admin role; submitters MUST NOT be able to modify form configuration
-- **FR-010**: System MUST require at least one field in the form configuration before allowing idea submissions
+- **FR-010**: System MUST provide a minimal default form (title, description, category) when no dynamic fields are configured; submissions are allowed with the default form alone
+- **FR-011**: System MUST record a basic audit log for form configuration changes (who, when); no diff or rollback required
 
 ### Key Entities
 
@@ -103,7 +115,9 @@ Viewers (submitters, evaluators, admins) see submitted ideas with their dynamic 
 
 - **Single form configuration**: One active submission form configuration applies globally; no per-category or per-campaign form variations in this phase.
 - **Field limits**: Maximum of 25 configurable fields per form to keep the UI manageable; single-select and multi-select options limited to 50 choices per field.
-- **Backward compatibility**: The existing fixed schema (title, description, category) can be represented as dynamic fields in the new model, or retained as mandatory fixed fields with dynamic fields added; the spec allows either approach as long as existing ideas remain viewable.
+- **Backward compatibility**: Title, description, and category remain mandatory fixed fields; dynamic fields are added alongside them. Existing ideas and the evaluation workflow continue to use the fixed fields unchanged.
 - **Admin-only configuration**: Only admins configure forms; evaluators have read-only access to configuration unless explicitly given edit rights (assumed admin-only for simplicity).
+- **Concurrent edits**: Last-write-wins for form configuration; no conflict detection or optimistic locking.
+- **Audit**: Basic audit log (who, when) for form configuration changes; no versioned snapshots or rollback.
 - **No conditional logic**: Fields are always shown when configured; no "show field X only when field Y has value Z" in this phase.
 - **Localization**: Field labels and validation messages use the system's primary language; multi-language support is out of scope.

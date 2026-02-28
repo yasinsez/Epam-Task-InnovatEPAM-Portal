@@ -10,6 +10,7 @@ const UPLOADS_BASE = process.env.UPLOADS_BASE_PATH || './uploads';
  *
  * @param ideaId - Idea ID for directory structure (uploads/ideas/<ideaId>/)
  * @param file - The File from FormData
+ * @param allowedExtensions - Optional override for allowed extensions (for config-driven validation)
  * @returns Stored relative path (e.g., ideas/<ideaId>/<uuid>.<ext>)
  * @throws {Error} If directory creation or file write fails
  *
@@ -17,8 +18,12 @@ const UPLOADS_BASE = process.env.UPLOADS_BASE_PATH || './uploads';
  *   const storedPath = await saveAttachmentFile(idea.id, file);
  *   await prisma.attachment.create({ data: { ideaId, storedPath, ... } });
  */
-export async function saveAttachmentFile(ideaId: string, file: File): Promise<string> {
-  const ext = getValidatedExtension(file.name);
+export async function saveAttachmentFile(
+  ideaId: string,
+  file: File,
+  allowedExtensions?: readonly string[] | string[],
+): Promise<string> {
+  const ext = getValidatedExtension(file.name, allowedExtensions);
   const safeFilename = `${randomUUID()}${ext}`;
   const relativePath = path.join('ideas', ideaId, safeFilename);
   const absolutePath = path.join(UPLOADS_BASE, relativePath);
@@ -80,13 +85,19 @@ export async function deleteAttachmentFile(storedPath: string): Promise<void> {
 
 /**
  * Extracts and validates extension against allowed list.
+ * @param filename - File name
+ * @param allowedExtensions - Optional override; defaults to ALLOWED_EXTENSIONS
  * @throws {Error} If extension is not in allowed list
  */
-function getValidatedExtension(filename: string): string {
+function getValidatedExtension(
+  filename: string,
+  allowedExtensions?: readonly string[] | string[],
+): string {
   const lastDot = filename.lastIndexOf('.');
   if (lastDot === -1) throw new Error('No file extension');
   const ext = filename.slice(lastDot).toLowerCase();
-  if (!ALLOWED_EXTENSIONS.includes(ext as (typeof ALLOWED_EXTENSIONS)[number])) {
+  const allowed = allowedExtensions ?? ALLOWED_EXTENSIONS;
+  if (!(allowed as readonly string[]).includes(ext)) {
     throw new Error(`Extension ${ext} not allowed`);
   }
   return ext;

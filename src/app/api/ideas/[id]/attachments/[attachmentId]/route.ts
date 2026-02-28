@@ -7,17 +7,16 @@ import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { authOptions } from '@/server/auth/route';
 
 /**
- * GET /api/ideas/[id]/attachment
- * Returns the file content of an idea's attachment.
+ * GET /api/ideas/[id]/attachments/[attachmentId]
+ * Returns the file content of a specific attachment.
+ * Access control: idea owner, evaluator, or admin.
+ * Content-Disposition: inline for images, attachment for others.
  *
- * @param request - Incoming request (unused)
- * @param params - Route params with id (idea ID)
- * @returns 200 with file body, or 404/403/500 on error
- * @throws Requires session; enforces idea access control
+ * @see contracts/api-attachments-download.md
  */
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string; attachmentId: string }> },
 ): Promise<Response> {
   try {
     const session = await getServerSession(authOptions);
@@ -32,10 +31,11 @@ export async function GET(
     }
 
     const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
-    const { id } = await params;
+    const { id: ideaId, attachmentId } = await params;
+
     const idea = await prisma.idea.findUnique({
-      where: { id },
-      include: { attachments: { orderBy: { displayOrder: 'asc' } }, user: true },
+      where: { id: ideaId },
+      include: { attachments: true, user: true },
     });
 
     if (!idea) {
@@ -45,21 +45,13 @@ export async function GET(
       );
     }
 
-    if (!idea.attachments?.length) {
+    const attachment = idea.attachments.find((a) => a.id === attachmentId);
+    if (!attachment) {
       return NextResponse.json(
-        { success: false, error: 'This idea has no attachment' },
+        { success: false, error: 'Attachment not found' },
         { status: 404 },
       );
     }
-
-    if (idea.attachments.length > 1) {
-      return NextResponse.json(
-        { success: false, error: 'This idea has multiple attachments; use /attachments/:attachmentId' },
-        { status: 404 },
-      );
-    }
-
-    const attachment = idea.attachments[0];
 
     const role = await getUserRole(userId);
     const isOwner = idea.userId === resolvedUserId;

@@ -54,6 +54,31 @@ async function main() {
     });
     console.log('Seeded default FormConfiguration (zero fields)');
   }
+
+  // Seed default UploadConfiguration for multi-media support
+  const existingUploadConfig = await prisma.uploadConfiguration.findFirst();
+  if (!existingUploadConfig) {
+    await prisma.uploadConfiguration.create({
+      data: {
+        maxFileCount: 10,
+        maxFileSizeBytes: 10 * 1024 * 1024,
+        maxTotalSizeBytes: 50 * 1024 * 1024,
+        allowedExtensions: ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg', '.gif', '.xls', '.xlsx'],
+        mimeByExtension: {
+          '.pdf': 'application/pdf',
+          '.doc': 'application/msword',
+          '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          '.png': 'image/png',
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.gif': 'image/gif',
+          '.xls': 'application/vnd.ms-excel',
+          '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        },
+      },
+    });
+    console.log('Seeded default UploadConfiguration');
+  }
 }
 
 main()

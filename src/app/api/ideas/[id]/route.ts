@@ -60,7 +60,7 @@ export async function GET(
         submitter: idea.submitter,
         status: idea.status,
         dynamicFieldValues: idea.dynamicFieldValues,
-        attachment: idea.attachment,
+        attachments: idea.attachments,
         evaluation: idea.evaluation,
       },
       dynamicFieldLabels,

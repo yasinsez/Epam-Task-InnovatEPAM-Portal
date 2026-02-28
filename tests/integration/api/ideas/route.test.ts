@@ -38,16 +38,40 @@ jest.mock('@/lib/services/form-config-service', () => ({
   getActiveConfig: jest.fn(),
 }));
 
+jest.mock('@/lib/services/upload-config-service', () => ({
+  getUploadConfig: jest.fn(),
+}));
+
 describe('POST /api/ideas', () => {
   const prisma = jest.requireMock('@/server/db/prisma').prisma;
   const getServerSession = jest.requireMock('next-auth').getServerSession;
   const saveAttachmentFile = jest.requireMock('@/lib/services/attachment-service').saveAttachmentFile;
   const getActiveConfig = jest.requireMock('@/lib/services/form-config-service').getActiveConfig;
+  const getUploadConfig = jest.requireMock('@/lib/services/upload-config-service').getUploadConfig;
+
+  const defaultUploadConfig = {
+    maxFileCount: 10,
+    maxFileSizeBytes: 10 * 1024 * 1024,
+    maxTotalSizeBytes: 50 * 1024 * 1024,
+    allowedExtensions: ['.pdf', '.doc', '.docx', '.png', '.jpg', '.jpeg', '.gif', '.xls', '.xlsx'],
+    mimeByExtension: {
+      '.pdf': 'application/pdf',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.xls': 'application/vnd.ms-excel',
+      '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    },
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     getServerSession.mockResolvedValue({ user: { id: 'user-123', email: 'user@example.com' } });
     getActiveConfig.mockResolvedValue(null); // No dynamic fields by default
+    getUploadConfig.mockResolvedValue(defaultUploadConfig);
   });
 
   it('should successfully submit an idea with valid JSON data', async () => {
@@ -89,7 +113,7 @@ describe('POST /api/ideas', () => {
     expect(response.status).toBe(201);
     expect(data.success).toBe(true);
     expect(data.idea.id).toBe('idea-123');
-    expect(data.idea.attachment).toBeNull();
+    expect(data.idea.attachments).toEqual([]);
   });
 
   it('should successfully submit an idea with multipart attachment', async () => {
@@ -125,12 +149,14 @@ describe('POST /api/ideas', () => {
     });
     prisma.idea.findUnique.mockResolvedValue({
       ...createdIdea,
-      attachment: {
-        id: 'att-1',
-        originalFileName: 'mock.pdf',
-        fileSizeBytes: 100,
-        mimeType: 'application/pdf',
-      },
+      attachments: [
+        {
+          id: 'att-1',
+          originalFileName: 'mock.pdf',
+          fileSizeBytes: 100,
+          mimeType: 'application/pdf',
+        },
+      ],
     });
 
     const file = new File(['pdf content'], 'mock.pdf', { type: 'application/pdf' });
@@ -150,9 +176,13 @@ describe('POST /api/ideas', () => {
 
     expect(response.status).toBe(201);
     expect(data.success).toBe(true);
-    expect(data.idea.attachment).toBeTruthy();
-    expect(data.idea.attachment.originalFileName).toBe('mock.pdf');
-    expect(saveAttachmentFile).toHaveBeenCalledWith('idea-123', expect.any(File));
+    expect(data.idea.attachments).toHaveLength(1);
+    expect(data.idea.attachments[0].originalFileName).toBe('mock.pdf');
+    expect(saveAttachmentFile).toHaveBeenCalledWith(
+      'idea-123',
+      expect.any(File),
+      expect.any(Array),
+    );
   });
 
   it('should return 401 if user is not authenticated', async () => {
@@ -300,7 +330,7 @@ describe('POST /api/ideas', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toContain('too large');
+    expect(data.error).toMatch(/too large|exceeds|per-file size limit/i);
     expect(prisma.idea.create).not.toHaveBeenCalled();
   });
 
@@ -325,7 +355,7 @@ describe('POST /api/ideas', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toContain('not supported');
+    expect(data.error).toMatch(/not supported|not allowed|file type/i);
     expect(prisma.idea.create).not.toHaveBeenCalled();
   });
 

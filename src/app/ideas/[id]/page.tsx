@@ -8,6 +8,7 @@ import { getIdeaForDetail } from '@/lib/services/idea-service';
 import { getActiveConfig } from '@/lib/services/form-config-service';
 import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { IdeaDetailSkeleton } from '@/components/IdeaDetailSkeleton';
+import { IdeaAttachmentsList } from '@/components/IdeaAttachmentsList';
 import { EvaluationForm } from '@/components/EvaluationForm';
 import { StartReviewButton } from '@/components/StartReviewButton';
 
@@ -139,17 +140,12 @@ async function IdeaDetailContent({ id }: { id: string }) {
             </dl>
           </section>
         )}
-        {idea.attachment && (
-          <section className="idea-attachment">
-            <h2>Attachment</h2>
-            <a
-              href={`/api/ideas/${idea.id}/attachment`}
-              download={idea.attachment.originalFileName}
-              className="attachment-download-link"
-            >
-              Download {idea.attachment.originalFileName}
-            </a>
-          </section>
+        {idea.attachments && idea.attachments.length > 0 && (
+          <IdeaAttachmentsList
+            attachments={idea.attachments}
+            ideaId={idea.id}
+            showImagePreviews
+          />
         )}
         {(role === 'evaluator' || role === 'admin') &&
           (idea.status === 'SUBMITTED' || idea.status === 'UNDER_REVIEW') && (

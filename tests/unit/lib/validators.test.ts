@@ -3,6 +3,7 @@ import {
   SubmitIdeaSchema,
   evaluateIdeaSchema,
   validateAttachmentFile,
+  validateAttachments,
 } from '@/lib/validators';
 
 describe('validators', () => {
@@ -179,6 +180,80 @@ describe('validators', () => {
         valid: false,
         error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
       });
+    });
+  });
+
+  describe('validateAttachments [US1]', () => {
+    const config = {
+      maxFileCount: 10,
+      maxFileSizeBytes: 10 * 1024 * 1024,
+      maxTotalSizeBytes: 50 * 1024 * 1024,
+      allowedExtensions: ['.pdf', '.png'],
+      mimeByExtension: { '.pdf': 'application/pdf', '.png': 'image/png' },
+    };
+
+    it('should accept valid single file', () => {
+      const file = new File(['x'], 'doc.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file, 'size', { value: 1000 });
+      expect(validateAttachments([file], config)).toEqual({ valid: true });
+    });
+
+    it('should accept valid multiple files', () => {
+      const f1 = new File(['a'], 'a.pdf', { type: 'application/pdf' });
+      const f2 = new File(['b'], 'b.png', { type: 'image/png' });
+      Object.defineProperty(f1, 'size', { value: 100 });
+      Object.defineProperty(f2, 'size', { value: 200 });
+      expect(validateAttachments([f1, f2], config)).toEqual({ valid: true });
+    });
+
+    it('should reject when file count exceeds max', () => {
+      const files = Array(11)
+        .fill(null)
+        .map((_, i) => {
+          const f = new File(['x'], `doc${i}.pdf`, { type: 'application/pdf' });
+          Object.defineProperty(f, 'size', { value: 100 });
+          return f;
+        });
+      const result = validateAttachments(files, config);
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('Maximum file count exceeded');
+    });
+
+    it('should reject when per-file size exceeds limit', () => {
+      const file = new File(['x'], 'large.pdf', { type: 'application/pdf' });
+      Object.defineProperty(file, 'size', { value: 11 * 1024 * 1024 });
+      const result = validateAttachments([file], config);
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('exceeds the per-file size limit');
+    });
+
+    it('should reject when total size exceeds limit', () => {
+      const f1 = new File(['a'], 'a.pdf', { type: 'application/pdf' });
+      const f2 = new File(['b'], 'b.pdf', { type: 'application/pdf' });
+      Object.defineProperty(f1, 'size', { value: 30 * 1024 * 1024 });
+      Object.defineProperty(f2, 'size', { value: 25 * 1024 * 1024 });
+      const result = validateAttachments([f1, f2], config);
+      expect(result.valid).toBe(false);
+      expect(result.error).toContain('Total attachment size');
+    });
+
+    it('should reject disallowed file type', () => {
+      const file = new File(['x'], 'script.exe', { type: 'application/x-msdownload' });
+      Object.defineProperty(file, 'size', { value: 100 });
+      const result = validateAttachments([file], config);
+      expect(result.valid).toBe(false);
+      expect(result.error).toMatch(/not allowed|type/);
+    });
+
+    it('should reject extension/MIME mismatch', () => {
+      const file = new File(['x'], 'doc.pdf', { type: 'image/png' });
+      Object.defineProperty(file, 'size', { value: 100 });
+      const result = validateAttachments([file], config);
+      expect(result.valid).toBe(false);
+    });
+
+    it('should accept empty array', () => {
+      expect(validateAttachments([], config)).toEqual({ valid: true });
     });
   });
 

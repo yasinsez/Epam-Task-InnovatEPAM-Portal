@@ -2,10 +2,11 @@ import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { getServerSession } from 'next-auth';
 
-import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
+import { SubmitIdeaSchema, validateAttachments } from '@/lib/validators';
 import { sanitizeText } from '@/lib/sanitizers';
 import { createSubmissionSchema } from '@/lib/utils/dynamic-schema';
 import { getActiveConfig } from '@/lib/services/form-config-service';
+import { getUploadConfig } from '@/lib/services/upload-config-service';
 import { getIdeasForUser } from '@/lib/services/idea-service';
 import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { prisma } from '@/server/db/prisma';
@@ -119,7 +120,7 @@ type ParsedPayload = {
   description: string;
   categoryId: string;
   dynamicFieldValues: Record<string, unknown> | null;
-  attachment: File | null;
+  attachments: File[];
 };
 
 /**
@@ -158,8 +159,7 @@ async function parseRequestBody(request: Request): Promise<ParsedPayload> {
     const title = (formData.get('title') as string) || '';
     const description = (formData.get('description') as string) || '';
     const categoryId = (formData.get('categoryId') as string) || '';
-    const raw = formData.get('attachment');
-    const attachment = raw instanceof File ? raw : null;
+    const attachments = extractAttachmentsFromFormData(formData);
     const dynamicFieldValues = parseDynamicFieldsFromFormData(formData);
 
     return {
@@ -167,7 +167,7 @@ async function parseRequestBody(request: Request): Promise<ParsedPayload> {
       description,
       categoryId,
       dynamicFieldValues,
-      attachment,
+      attachments,
     };
   }
 
@@ -185,8 +185,27 @@ async function parseRequestBody(request: Request): Promise<ParsedPayload> {
     description: body.description ?? '',
     categoryId: body.categoryId ?? '',
     dynamicFieldValues,
-    attachment: null,
+    attachments: [],
   };
+}
+
+/**
+ * Extracts attachment(s) from FormData.
+ * Accepts `attachment` (single, legacy), `attachments`, or `attachments[]`.
+ * Includes empty files so validation can reject them.
+ */
+function extractAttachmentsFromFormData(formData: FormData): File[] {
+  const files: File[] = [];
+  const single = formData.get('attachment');
+  if (single instanceof File) {
+    files.push(single);
+  }
+  const multi = formData.getAll('attachments');
+  const multiBrackets = formData.getAll('attachments[]');
+  for (const item of [...multi, ...multiBrackets]) {
+    if (item instanceof File) files.push(item);
+  }
+  return files;
 }
 
 /**
@@ -239,7 +258,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const payload = await parseRequestBody(request);
-    const { title, description, categoryId, dynamicFieldValues: rawDynamic, attachment } = payload;
+    const { title, description, categoryId, dynamicFieldValues: rawDynamic, attachments } = payload;
 
     const parsed = SubmitIdeaSchema.safeParse({ title, description, categoryId });
     if (!parsed.success) {
@@ -247,8 +266,16 @@ export async function POST(request: Request): Promise<Response> {
       return NextResponse.json({ success: false, details: errors }, { status: 400 });
     }
 
-    if (attachment) {
-      const validation = validateAttachmentFile(attachment);
+    const uploadConfig = await getUploadConfig();
+    const configForValidation = {
+      maxFileCount: uploadConfig.maxFileCount,
+      maxFileSizeBytes: uploadConfig.maxFileSizeBytes,
+      maxTotalSizeBytes: uploadConfig.maxTotalSizeBytes,
+      allowedExtensions: uploadConfig.allowedExtensions,
+      mimeByExtension: uploadConfig.mimeByExtension,
+    };
+    if (attachments.length > 0) {
+      const validation = validateAttachments(attachments, configForValidation);
       if (!validation.valid) {
         return NextResponse.json(
           { success: false, error: validation.error },
@@ -281,7 +308,7 @@ export async function POST(request: Request): Promise<Response> {
     // Validate dynamic fields against current form config
     const formConfig = await getActiveConfig();
     const rawDynamicValues: Record<string, unknown> | null = rawDynamic ?? null;
-    let validatedDynamicFields: Record<string, unknown> = {};
+    const validatedDynamicFields: Record<string, unknown> = {};
 
     if (formConfig && formConfig.fields.length > 0) {
       const dynamicSchema = createSubmissionSchema(formConfig.fields);
@@ -327,20 +354,33 @@ export async function POST(request: Request): Promise<Response> {
       },
     });
 
-    if (attachment) {
+    if (attachments.length > 0) {
       try {
-        const storedPath = await saveAttachmentFile(idea.id, attachment);
-        await prisma.attachment.create({
-          data: {
-            ideaId: idea.id,
-            originalFileName: attachment.name.slice(0, 255),
-            storedPath,
-            fileSizeBytes: attachment.size,
-            mimeType: attachment.type || 'application/octet-stream',
-          },
-        });
+        const allowedExts = uploadConfig.allowedExtensions;
+        for (let i = 0; i < attachments.length; i++) {
+          const file = attachments[i];
+          const storedPath = await saveAttachmentFile(idea.id, file, allowedExts);
+          await prisma.attachment.create({
+            data: {
+              ideaId: idea.id,
+              originalFileName: file.name.slice(0, 255),
+              storedPath,
+              fileSizeBytes: file.size,
+              mimeType: file.type || 'application/octet-stream',
+              displayOrder: i,
+            },
+          });
+        }
       } catch (err) {
         console.error('Failed to save attachment, rolling back idea:', err);
+        const ideaWithAtts = await prisma.idea.findUnique({
+          where: { id: idea.id },
+          include: { attachments: true },
+        });
+        const { deleteAttachmentFile } = await import('@/lib/services/attachment-service');
+        for (const att of ideaWithAtts?.attachments ?? []) {
+          await deleteAttachmentFile(att.storedPath);
+        }
         await prisma.idea.delete({ where: { id: idea.id } });
         return NextResponse.json(
           { success: false, error: 'Failed to save attachment. Please try again.' },
@@ -349,18 +389,20 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    const ideaWithAttachment = await prisma.idea.findUnique({
+    const ideaWithAttachments = await prisma.idea.findUnique({
       where: { id: idea.id },
-      include: { category: true, attachment: true },
+      include: { category: true, attachments: true },
     });
 
-    const responseIdea = ideaWithAttachment ?? idea;
+    const responseIdea = ideaWithAttachments ?? idea;
     type AttachmentShape = { id: string; originalFileName: string; fileSizeBytes: number; mimeType: string };
-    const att = (responseIdea && 'attachment' in responseIdea ? responseIdea.attachment : null) as AttachmentShape | null;
-    const attachmentMeta =
-      att
-        ? { id: att.id, originalFileName: att.originalFileName, fileSizeBytes: att.fileSizeBytes, mimeType: att.mimeType }
-        : null;
+    const atts = (responseIdea && 'attachments' in responseIdea ? responseIdea.attachments : []) as AttachmentShape[];
+    const attachmentsMeta = atts.map((a) => ({
+      id: a.id,
+      originalFileName: a.originalFileName,
+      fileSizeBytes: a.fileSizeBytes,
+      mimeType: a.mimeType,
+    }));
 
     const responseCategory =
       'category' in responseIdea && responseIdea.category
@@ -383,7 +425,7 @@ export async function POST(request: Request): Promise<Response> {
           submittedAt: responseIdea.submittedAt,
           createdAt: responseIdea.createdAt,
           updatedAt: responseIdea.updatedAt,
-          attachment: attachmentMeta,
+          attachments: attachmentsMeta,
           dynamicFieldValues: validatedDynamicFields,
         },
       },

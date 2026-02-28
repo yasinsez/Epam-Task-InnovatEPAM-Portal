@@ -43,6 +43,9 @@ export function AdminTabs() {
       <AdminTabLink href="/admin/form-config" isActive={pathname === '/admin/form-config'}>
         Form Configuration
       </AdminTabLink>
+      <AdminTabLink href="/admin/upload-config" isActive={pathname === '/admin/upload-config'}>
+        Upload Settings
+      </AdminTabLink>
     </div>
   );
 }

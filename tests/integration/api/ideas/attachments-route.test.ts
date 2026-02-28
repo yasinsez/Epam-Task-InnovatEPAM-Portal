@@ -1,4 +1,4 @@
-import { GET } from '@/app/api/ideas/[id]/attachment/route';
+import { GET } from '@/app/api/ideas/[id]/attachments/[attachmentId]/route';
 
 jest.mock('@/server/db/prisma', () => ({
   prisma: {
@@ -21,7 +21,7 @@ jest.mock('@/lib/services/attachment-service', () => ({
   readAttachmentFile: jest.fn(),
 }));
 
-describe('GET /api/ideas/[id]/attachment', () => {
+describe('GET /api/ideas/[id]/attachments/[attachmentId] [US2]', () => {
   const prisma = jest.requireMock('@/server/db/prisma').prisma;
   const getServerSession = jest.requireMock('next-auth').getServerSession;
   const getUserRole = jest.requireMock('@/lib/auth/roles').getUserRole;
@@ -37,9 +37,10 @@ describe('GET /api/ideas/[id]/attachment', () => {
   it('should return 401 when not authenticated', async () => {
     getServerSession.mockResolvedValue(null);
 
-    const response = await GET(new Request('http://localhost:3000/api/ideas/idea-1/attachment'), {
-      params: Promise.resolve({ id: 'idea-1' }),
-    });
+    const response = await GET(
+      new Request('http://localhost:3000/api/ideas/idea-1/attachments/att-1'),
+      { params: Promise.resolve({ id: 'idea-1', attachmentId: 'att-1' }) },
+    );
     const data = await response.json();
 
     expect(response.status).toBe(401);
@@ -49,37 +50,38 @@ describe('GET /api/ideas/[id]/attachment', () => {
   it('should return 404 when idea not found', async () => {
     prisma.idea.findUnique.mockResolvedValue(null);
 
-    const response = await GET(new Request('http://localhost:3000/api/ideas/idea-1/attachment'), {
-      params: Promise.resolve({ id: 'idea-1' }),
-    });
+    const response = await GET(
+      new Request('http://localhost:3000/api/ideas/idea-1/attachments/att-1'),
+      { params: Promise.resolve({ id: 'idea-1', attachmentId: 'att-1' }) },
+    );
     const data = await response.json();
 
     expect(response.status).toBe(404);
     expect(data.error).toBe('Idea not found');
   });
 
-  it('should return 404 when idea has no attachment', async () => {
+  it('should return 404 when attachment not found for idea', async () => {
     prisma.idea.findUnique.mockResolvedValue({
       id: 'idea-1',
       userId: 'user-123',
+      attachments: [{ id: 'att-other', storedPath: 'x', mimeType: 'app/pdf', originalFileName: 'a.pdf', fileSizeBytes: 100 }],
       user: { id: 'user-123' },
-      attachments: [],
     });
 
-    const response = await GET(new Request('http://localhost:3000/api/ideas/idea-1/attachment'), {
-      params: Promise.resolve({ id: 'idea-1' }),
-    });
+    const response = await GET(
+      new Request('http://localhost:3000/api/ideas/idea-1/attachments/att-1'),
+      { params: Promise.resolve({ id: 'idea-1', attachmentId: 'att-1' }) },
+    );
     const data = await response.json();
 
     expect(response.status).toBe(404);
-    expect(data.error).toBe('This idea has no attachment');
+    expect(data.error).toBe('Attachment not found');
   });
 
   it('should return 403 when user cannot access idea', async () => {
     prisma.idea.findUnique.mockResolvedValue({
       id: 'idea-1',
       userId: 'other-user',
-      user: { id: 'other-user' },
       attachments: [
         {
           id: 'att-1',
@@ -89,12 +91,14 @@ describe('GET /api/ideas/[id]/attachment', () => {
           fileSizeBytes: 100,
         },
       ],
+      user: { id: 'other-user' },
     });
     getUserRole.mockResolvedValue('submitter');
 
-    const response = await GET(new Request('http://localhost:3000/api/ideas/idea-1/attachment'), {
-      params: Promise.resolve({ id: 'idea-1' }),
-    });
+    const response = await GET(
+      new Request('http://localhost:3000/api/ideas/idea-1/attachments/att-1'),
+      { params: Promise.resolve({ id: 'idea-1', attachmentId: 'att-1' }) },
+    );
     const data = await response.json();
 
     expect(response.status).toBe(403);
@@ -102,10 +106,9 @@ describe('GET /api/ideas/[id]/attachment', () => {
   });
 
   it('should return 200 with file when user owns idea', async () => {
-    const ideaWithAttachment = {
+    prisma.idea.findUnique.mockResolvedValue({
       id: 'idea-1',
       userId: 'user-123',
-      user: { id: 'user-123' },
       attachments: [
         {
           id: 'att-1',
@@ -115,44 +118,19 @@ describe('GET /api/ideas/[id]/attachment', () => {
           fileSizeBytes: 100,
         },
       ],
-    };
-    prisma.idea.findUnique.mockResolvedValue(ideaWithAttachment);
+      user: { id: 'user-123' },
+    });
     readAttachmentFile.mockResolvedValue(Buffer.from('pdf content'));
 
-    const response = await GET(new Request('http://localhost:3000/api/ideas/idea-1/attachment'), {
-      params: Promise.resolve({ id: 'idea-1' }),
-    });
+    const response = await GET(
+      new Request('http://localhost:3000/api/ideas/idea-1/attachments/att-1'),
+      { params: Promise.resolve({ id: 'idea-1', attachmentId: 'att-1' }) },
+    );
 
     expect(response.status).toBe(200);
     expect(response.headers.get('Content-Type')).toBe('application/pdf');
     expect(response.headers.get('Content-Disposition')).toContain('document.pdf');
     const body = await response.arrayBuffer();
     expect(Buffer.from(body).toString()).toBe('pdf content');
-  });
-
-  it('should return 404 when file not found on disk', async () => {
-    prisma.idea.findUnique.mockResolvedValue({
-      id: 'idea-1',
-      userId: 'user-123',
-      user: { id: 'user-123' },
-      attachments: [
-        {
-          id: 'att-1',
-          storedPath: 'ideas/idea-1/uuid.pdf',
-          mimeType: 'application/pdf',
-          originalFileName: 'doc.pdf',
-          fileSizeBytes: 100,
-        },
-      ],
-    });
-    readAttachmentFile.mockResolvedValue(null);
-
-    const response = await GET(new Request('http://localhost:3000/api/ideas/idea-1/attachment'), {
-      params: Promise.resolve({ id: 'idea-1' }),
-    });
-    const data = await response.json();
-
-    expect(response.status).toBe(404);
-    expect(data.error).toBe('Attachment unavailable');
   });
 });

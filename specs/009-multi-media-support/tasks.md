@@ -25,8 +25,8 @@
 
 **Purpose**: Ensure project structure and uploads directory for multi-file support
 
-- [ ] T001 Create uploads directory structure and ensure `uploads/ideas/` exists per plan in project root
-- [ ] T002 [P] Add UploadConfiguration defaults to `src/lib/constants/attachment.ts` (fallback when no DB config)
+- [x] T001 Create uploads directory structure and ensure `uploads/ideas/` exists per plan in project root
+- [x] T002 [P] Add UploadConfiguration defaults to `src/lib/constants/attachment.ts` (fallback when no DB config)
 
 ---
 
@@ -38,21 +38,21 @@
 
 ### Database & Migration
 
-- [ ] T003 Add UploadConfiguration model and User.uploadConfigurationsBy relation in `prisma/schema.prisma`
-- [ ] T004 Modify Attachment model: remove `@unique` from ideaId, add `displayOrder Int @default(0)` in `prisma/schema.prisma`
-- [ ] T005 Modify Idea model: change `attachment Attachment?` to `attachments Attachment[]` in `prisma/schema.prisma`
-- [ ] T006 Run `npx prisma migrate dev --name multi_media_support` and add UploadConfiguration seed in `prisma/seed.mjs`
+- [x] T003 Add UploadConfiguration model and User.uploadConfigurationsBy relation in `prisma/schema.prisma`
+- [x] T004 Modify Attachment model: remove `@unique` from ideaId, add `displayOrder Int @default(0)` in `prisma/schema.prisma`
+- [x] T005 Modify Idea model: change `attachment Attachment?` to `attachments Attachment[]` in `prisma/schema.prisma`
+- [x] T006 Run `npx prisma migrate dev --name multi_media_support` and add UploadConfiguration seed in `prisma/seed.mjs`
 
 ### Upload Config Service & API
 
-- [ ] T007 Create `getUploadConfig` and `updateUploadConfig` in `src/lib/services/upload-config-service.ts`
-- [ ] T008 Create GET handler in `src/app/api/admin/upload-config/route.ts` (admin role required)
-- [ ] T009 Create PUT handler in `src/app/api/admin/upload-config/route.ts` with Zod validation per `contracts/api-upload-config.md`
+- [x] T007 Create `getUploadConfig` and `updateUploadConfig` in `src/lib/services/upload-config-service.ts`
+- [x] T008 Create GET handler in `src/app/api/admin/upload-config/route.ts` (admin role required)
+- [x] T009 Create PUT handler in `src/app/api/admin/upload-config/route.ts` with Zod validation per `contracts/api-upload-config.md`
 
 ### Admin UI
 
-- [ ] T010 Create `/admin/upload-config` page with form in `src/app/admin/upload-config/page.tsx`
-- [ ] T011 Add "Upload Settings" tab link to `src/app/admin/AdminTabs.tsx`
+- [x] T010 Create `/admin/upload-config` page with form in `src/app/admin/upload-config/page.tsx`
+- [x] T011 Add "Upload Settings" tab link to `src/app/admin/AdminTabs.tsx`
 
 **Checkpoint**: Foundation ready — upload config API/UI functional; user story implementation can begin
 
@@ -66,19 +66,19 @@
 
 ### Tests for User Story 1 (TDD — write first, ensure FAIL)
 
-- [ ] T012 [P] [US1] Unit test for `validateAttachments` in `tests/unit/lib/validators.test.ts`
-- [ ] T013 [P] [US1] Unit test for `upload-config-service` in `tests/unit/lib/services/upload-config-service.test.ts`
-- [ ] T014 [US1] Integration test for POST /api/ideas with multiple attachments in `tests/integration/api/ideas/route.test.ts`
-- [ ] T015 [P] [US1] Contract test for POST /api/ideas multi-attachment response shape in `tests/contract/api-ideas-multi-attachment.test.ts`
+- [x] T012 [P] [US1] Unit test for `validateAttachments` in `tests/unit/lib/validators.test.ts`
+- [x] T013 [P] [US1] Unit test for `upload-config-service` in `tests/unit/lib/services/upload-config-service.test.ts`
+- [x] T014 [US1] Integration test for POST /api/ideas with multiple attachments in `tests/integration/api/ideas/route.test.ts`
+- [x] T015 [P] [US1] Contract test for POST /api/ideas multi-attachment response shape in `tests/contract/api-ideas-multi-attachment.test.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [US1] Add `validateAttachments(files, config)` to `src/lib/validators.ts` per `data-model.md` (count, per-file size, total size, extension, MIME)
-- [ ] T017 [US1] Update `src/lib/services/attachment-service.ts` for multi-file save (saveAttachmentFile per file, return array of Attachment records)
-- [ ] T018 [US1] Update POST `src/app/api/ideas/route.ts`: fetch config, normalize `attachment`/`attachments` to File[], validate, create Idea then each attachment per `contracts/api-ideas-multi-attachment.md`
-- [ ] T019 [US1] Update `IdeaAttachmentInput` for multi-file: `value: File[]`, `onChange: (files: File[]) => void`, `config: UploadConfigDisplay` in `src/components/IdeaAttachmentInput.tsx`
-- [ ] T020 [US1] Update `SubmitIdeaForm` to use `files: File[]` state and append each to FormData as `attachments`/`attachments[]` in `src/components/SubmitIdeaForm.tsx`
-- [ ] T021 [US1] Update `getIdeaForDetail` and idea creation to use `attachments` array in `src/lib/services/idea-service.ts`
+- [x] T016 [US1] Add `validateAttachments(files, config)` to `src/lib/validators.ts` per `data-model.md` (count, per-file size, total size, extension, MIME)
+- [x] T017 [US1] Update `src/lib/services/attachment-service.ts` for multi-file save (saveAttachmentFile per file, return array of Attachment records)
+- [x] T018 [US1] Update POST `src/app/api/ideas/route.ts`: fetch config, normalize `attachment`/`attachments` to File[], validate, create Idea then each attachment per `contracts/api-ideas-multi-attachment.md`
+- [x] T019 [US1] Update `IdeaAttachmentInput` for multi-file: `value: File[]`, `onChange: (files: File[]) => void`, `config: UploadConfigDisplay` in `src/components/IdeaAttachmentInput.tsx`
+- [x] T020 [US1] Update `SubmitIdeaForm` to use `files: File[]` state and append each to FormData as `attachments`/`attachments[]` in `src/components/SubmitIdeaForm.tsx`
+- [x] T021 [US1] Update `getIdeaForDetail` and idea creation to use `attachments` array in `src/lib/services/idea-service.ts`
 
 **Checkpoint**: User Story 1 complete — multi-file submission works, validated against config
 
@@ -92,16 +92,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Integration test for GET /api/ideas/[id]/attachments/[attachmentId] in `tests/integration/api/ideas/attachments-route.test.ts`
-- [ ] T023 [P] [US2] Contract test for attachment download response in `tests/contract/api-attachments-download.test.ts`
+- [x] T022 [P] [US2] Integration test for GET /api/ideas/[id]/attachments/[attachmentId] in `tests/integration/api/ideas/attachments-route.test.ts`
+- [x] T023 [P] [US2] Contract test for attachment download response in `tests/contract/api-attachments-download.test.ts`
 
 ### Implementation for User Story 2
 
-- [ ] T024 [US2] Create GET handler in `src/app/api/ideas/[id]/attachments/[attachmentId]/route.ts` per `contracts/api-attachments-download.md` (access control, Content-Disposition inline for images)
-- [ ] T025 [US2] Update legacy `src/app/api/ideas/[id]/attachment/route.ts`: if exactly 1 attachment, serve; else 404 with message to use per-attachment URL
-- [ ] T026 [P] [US2] Create `IdeaAttachmentsList` component with props per `contracts/component-interfaces.ts` in `src/components/IdeaAttachmentsList.tsx`
-- [ ] T027 [US2] Update idea detail page to use `IdeaAttachmentsList` with `idea.attachments` in `src/app/ideas/[id]/page.tsx`
-- [ ] T028 [US2] Update `deleteIdeaWithCleanup` to delete all attachment files for `idea.attachments` in `src/lib/services/idea-service.ts` and `src/lib/services/attachment-service.ts`
+- [x] T024 [US2] Create GET handler in `src/app/api/ideas/[id]/attachments/[attachmentId]/route.ts` per `contracts/api-attachments-download.md` (access control, Content-Disposition inline for images)
+- [x] T025 [US2] Update legacy `src/app/api/ideas/[id]/attachment/route.ts`: if exactly 1 attachment, serve; else 404 with message to use per-attachment URL
+- [x] T026 [P] [US2] Create `IdeaAttachmentsList` component with props per `contracts/component-interfaces.ts` in `src/components/IdeaAttachmentsList.tsx`
+- [x] T027 [US2] Update idea detail page to use `IdeaAttachmentsList` with `idea.attachments` in `src/app/ideas/[id]/page.tsx`
+- [x] T028 [US2] Update `deleteIdeaWithCleanup` to delete all attachment files for `idea.attachments` in `src/lib/services/idea-service.ts` and `src/lib/services/attachment-service.ts`
 
 **Checkpoint**: User Story 2 complete — viewers can list, download, and preview attachments
 

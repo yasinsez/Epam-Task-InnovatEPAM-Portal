@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { SubmitIdeaForm } from '@/components/SubmitIdeaForm';
 import { getActiveConfig } from '@/lib/services/form-config-service';
+import { getUploadConfig } from '@/lib/services/upload-config-service';
 import { prisma } from '@/server/db/prisma';
 import { authOptions } from '@/server/auth/route';
 
@@ -38,14 +39,25 @@ export default async function IdeaSubmitPage(): Promise<JSX.Element> {
     redirect('/auth/login');
   }
 
-  // Fetch active categories and form config
-  const [categories, formConfig] = await Promise.all([
+  // Fetch active categories, form config, and upload config
+  const [categories, formConfig, uploadConfig] = await Promise.all([
     prisma.category.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
     }),
     getActiveConfig(),
+    getUploadConfig(),
   ]);
+
+  const uploadConfigDisplay = {
+    maxFileCount: uploadConfig.maxFileCount,
+    maxFileSizeBytes: uploadConfig.maxFileSizeBytes,
+    maxTotalSizeBytes: uploadConfig.maxTotalSizeBytes,
+    allowedExtensions: uploadConfig.allowedExtensions,
+    allowedTypesLabel: uploadConfig.allowedExtensions
+      .map((e) => e.replace(/^\./, '').toUpperCase())
+      .join(', '),
+  };
 
   return (
     <div className="page-container">
@@ -60,7 +72,11 @@ export default async function IdeaSubmitPage(): Promise<JSX.Element> {
             No categories are available yet. Please contact an administrator to set up categories before submitting ideas.
           </div>
         ) : (
-          <SubmitIdeaForm categories={categories} formConfig={formConfig} />
+          <SubmitIdeaForm
+            categories={categories}
+            formConfig={formConfig}
+            uploadConfig={uploadConfigDisplay}
+          />
         )}
       </div>
     </div>

@@ -6,6 +6,15 @@ import {
 } from '@/lib/constants/attachment';
 import { MAX_EVALUATION_COMMENTS_LENGTH } from '@/lib/constants/evaluation';
 
+/** Config shape for validateAttachments */
+export type UploadConfigForValidation = {
+  maxFileCount: number;
+  maxFileSizeBytes: number;
+  maxTotalSizeBytes: number;
+  allowedExtensions: string[];
+  mimeByExtension: Record<string, string>;
+};
+
 /**
  * Validates an attachment file (size, type, non-empty).
  * Uses server-side File API (from FormData).
@@ -45,6 +54,71 @@ export function validateAttachmentFile(
       valid: false,
       error: 'File type not supported. Accepted formats: PDF, DOCX, PNG, JPG, GIF',
     };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Validates an array of attachment files against config-driven limits.
+ * Checks count, per-file size, total size, extension, and MIME type.
+ *
+ * @param files - Array of Files from FormData
+ * @param config - Upload config (from getUploadConfig)
+ * @returns { valid: true } or { valid: false, error: string }
+ */
+export function validateAttachments(
+  files: File[],
+  config: UploadConfigForValidation,
+): { valid: true } | { valid: false; error: string } {
+  if (files.length === 0) return { valid: true };
+
+  if (files.length > config.maxFileCount) {
+    return {
+      valid: false,
+      error: `Maximum file count exceeded. Maximum is ${config.maxFileCount} files per idea`,
+    };
+  }
+
+  const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+  if (totalBytes > config.maxTotalSizeBytes) {
+    return {
+      valid: false,
+      error: `Total attachment size exceeds ${Math.round(config.maxTotalSizeBytes / (1024 * 1024))} MB limit`,
+    };
+  }
+
+  const allowedSet = new Set(config.allowedExtensions.map((e) => e.toLowerCase()));
+  const extLabel = config.allowedExtensions
+    .map((e) => e.replace(/^\./, '').toUpperCase())
+    .join(', ');
+
+  for (const file of files) {
+    if (!file || file.size === 0) {
+      return { valid: false, error: 'File is empty. Please select a valid file' };
+    }
+    if (file.size > config.maxFileSizeBytes) {
+      const maxMb = Math.round(config.maxFileSizeBytes / (1024 * 1024));
+      return {
+        valid: false,
+        error: `File '${file.name}' exceeds the per-file size limit (max ${maxMb} MB)`,
+      };
+    }
+    const ext = getExtension(file.name);
+    if (!ext || !allowedSet.has(ext.toLowerCase())) {
+      return {
+        valid: false,
+        error: `File type not allowed. Accepted formats: ${extLabel}`,
+      };
+    }
+    const expectedMime = config.mimeByExtension[ext] ?? config.mimeByExtension[ext.toLowerCase()];
+    const actualMime = file.type?.toLowerCase();
+    if (!actualMime || (expectedMime && expectedMime.toLowerCase() !== actualMime)) {
+      return {
+        valid: false,
+        error: 'File type validation failed: extension and MIME type must match allowed mapping',
+      };
+    }
   }
 
   return { valid: true };

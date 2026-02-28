@@ -30,12 +30,12 @@ export type IdeaDetail = {
     evaluatedAt: Date;
     evaluatorDisplayName: string;
   } | null;
-  attachment?: {
+  attachments: {
     id: string;
     originalFileName: string;
     fileSizeBytes: number;
     mimeType: string;
-  } | null;
+  }[];
 };
 
 export type PaginationMeta = {
@@ -175,7 +175,7 @@ export async function getIdeasForUser(
     take: safePageSize,
     include: {
       category: { select: { id: true, name: true } },
-      attachment: { select: { id: true } },
+      attachments: { select: { id: true } },
     },
   });
 
@@ -185,7 +185,7 @@ export async function getIdeasForUser(
       title: i.title,
       category: i.category,
       submittedAt: i.submittedAt,
-      hasAttachment: !!i.attachment,
+      hasAttachment: (i.attachments?.length ?? 0) > 0,
       status: i.status,
       dynamicFieldValues: (i.dynamicFieldValues as Record<string, unknown>) ?? null,
     })),
@@ -220,7 +220,7 @@ export async function getIdeaForDetail(
     where: { id: ideaId },
     include: {
       category: { select: { id: true, name: true } },
-      attachment: true,
+      attachments: { orderBy: { displayOrder: 'asc' } },
       user: { select: { name: true, email: true } },
       evaluation: {
         include: {
@@ -262,14 +262,12 @@ export async function getIdeaForDetail(
           evaluatorDisplayName: evaluatorDisplayName ?? 'Administrator',
         }
       : null,
-    attachment: idea.attachment
-      ? {
-          id: idea.attachment.id,
-          originalFileName: idea.attachment.originalFileName,
-          fileSizeBytes: idea.attachment.fileSizeBytes,
-          mimeType: idea.attachment.mimeType,
-        }
-      : null,
+    attachments: (idea.attachments ?? []).map((a) => ({
+      id: a.id,
+      originalFileName: a.originalFileName,
+      fileSizeBytes: a.fileSizeBytes,
+      mimeType: a.mimeType,
+    })),
   };
 }
 
@@ -286,15 +284,15 @@ export async function getIdeaForDetail(
 export async function deleteIdeaWithCleanup(ideaId: string): Promise<void> {
   const idea = await prisma.idea.findUnique({
     where: { id: ideaId },
-    include: { attachment: true },
+    include: { attachments: true },
   });
 
   if (!idea) {
     throw new Error('Idea not found');
   }
 
-  if (idea.attachment) {
-    await deleteAttachmentFile(idea.attachment.storedPath);
+  for (const att of idea.attachments ?? []) {
+    await deleteAttachmentFile(att.storedPath);
   }
 
   await prisma.idea.delete({ where: { id: ideaId } });

@@ -3,13 +3,15 @@
 import { Component, ChangeEvent, FormEvent } from 'react';
 import Link from 'next/link';
 import { Category } from '@prisma/client';
-import { IdeaAttachmentInput } from '@/components/IdeaAttachmentInput';
+import { IdeaAttachmentInput, type UploadConfigDisplay } from '@/components/IdeaAttachmentInput';
 import { DynamicFieldRenderer } from '@/components/DynamicFieldRenderer';
 import type { FormConfigDto } from '@/lib/services/form-config-service';
+import { UPLOAD_CONFIG_DEFAULTS } from '@/lib/constants/attachment';
 
 interface SubmitIdeaFormProps {
   categories: Category[];
   formConfig?: FormConfigDto | null;
+  uploadConfig?: UploadConfigDisplay | null;
 }
 
 interface FormData {
@@ -29,7 +31,7 @@ interface FormErrors {
 interface SubmitIdeaFormState {
   formData: FormData;
   dynamicFieldValues: Record<string, string | number | boolean | string[]>;
-  attachment: File | null;
+  files: File[];
   errors: FormErrors;
   isSubmitting: boolean;
   submitError?: string;
@@ -65,7 +67,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         categoryId: '',
       },
       dynamicFieldValues: {},
-      attachment: null,
+      files: [],
       errors: {},
       isSubmitting: false,
       submitSuccess: false,
@@ -121,7 +123,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
    */
   private submitWithRetry = async (): Promise<void> => {
     try {
-      const { formData, dynamicFieldValues, attachment } = this.state;
+      const { formData, dynamicFieldValues, files } = this.state;
 
       // Build payload - omit empty optional dynamic values
       const cleanedDynamic: Record<string, string | number | boolean | string[]> = {};
@@ -132,13 +134,15 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
       });
 
       let response: Response;
-      if (attachment) {
+      if (files.length > 0) {
         const fd = new FormData();
         fd.append('title', formData.title);
         fd.append('description', formData.description);
         fd.append('categoryId', formData.categoryId);
         fd.append('dynamicFieldValues', JSON.stringify(cleanedDynamic));
-        fd.append('attachment', attachment);
+        for (const file of files) {
+          fd.append('attachments', file);
+        }
         response = await fetch('/api/ideas', { method: 'POST', body: fd });
       } else {
         response = await fetch('/api/ideas', {
@@ -190,9 +194,12 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             isSubmitting: false,
           });
         } else {
-          // General error
+          // General error (may be attachment-related)
+          const err = data.error || 'Failed to submit idea. Please try again.';
+          const isAttachmentError = /file|attachment|type|size|count/i.test(err);
           this.setState({
-            submitError: data.error || 'Failed to submit idea. Please try again.',
+            errors: isAttachmentError ? { attachment: [err] } : {},
+            submitError: isAttachmentError ? undefined : err,
             isSubmitting: false,
           });
         }
@@ -204,7 +211,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         submitSuccess: true,
         formData: { title: '', description: '', categoryId: '' },
         dynamicFieldValues: {},
-        attachment: null,
+        files: [],
         errors: {},
         isSubmitting: false,
         retryCount: 0,
@@ -224,9 +231,20 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
   };
 
   render(): JSX.Element {
-    const { formData, dynamicFieldValues, attachment, errors, isSubmitting, submitError, submitSuccess, submittedIdeaId } =
+    const { formData, dynamicFieldValues, files, errors, isSubmitting, submitError, submitSuccess, submittedIdeaId } =
       this.state;
-    const { categories } = this.props;
+    const { categories, uploadConfig: uploadConfigProp } = this.props;
+
+    const uploadConfig: UploadConfigDisplay =
+      uploadConfigProp ?? {
+        maxFileCount: UPLOAD_CONFIG_DEFAULTS.maxFileCount,
+        maxFileSizeBytes: UPLOAD_CONFIG_DEFAULTS.maxFileSizeBytes,
+        maxTotalSizeBytes: UPLOAD_CONFIG_DEFAULTS.maxTotalSizeBytes,
+        allowedExtensions: [...UPLOAD_CONFIG_DEFAULTS.allowedExtensions],
+        allowedTypesLabel: UPLOAD_CONFIG_DEFAULTS.allowedExtensions
+          .map((e) => e.replace(/^\./, '').toUpperCase())
+          .join(', '),
+      };
 
     return (
       <form onSubmit={this.handleSubmit} className="submit-idea-form">
@@ -347,8 +365,9 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         ))}
 
         <IdeaAttachmentInput
-          value={attachment}
-          onChange={(file) => this.setState({ attachment: file })}
+          value={files}
+          onChange={(newFiles) => this.setState({ files: newFiles })}
+          config={uploadConfig}
           error={errors.attachment?.join(', ')}
           disabled={isSubmitting}
         />

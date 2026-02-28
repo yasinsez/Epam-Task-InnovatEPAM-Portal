@@ -31,9 +31,7 @@ describe('idea-service', () => {
   it('should delete idea and attachment file when idea has attachment', async () => {
     prisma.idea.findUnique.mockResolvedValue({
       id: 'idea-123',
-      attachment: {
-        storedPath: 'ideas/idea-123/uuid.pdf',
-      },
+      attachments: [{ storedPath: 'ideas/idea-123/uuid.pdf' }],
     });
     prisma.idea.delete.mockResolvedValue({});
 
@@ -46,7 +44,7 @@ describe('idea-service', () => {
   it('should delete idea without calling deleteAttachmentFile when no attachment', async () => {
     prisma.idea.findUnique.mockResolvedValue({
       id: 'idea-123',
-      attachment: null,
+      attachments: [],
     });
     prisma.idea.delete.mockResolvedValue({});
 
@@ -79,7 +77,7 @@ describe('getIdeasForUser', () => {
         title: 'Idea One',
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
-        attachment: { id: 'att1' },
+        attachments: [{ id: 'att1' }],
         status: 'SUBMITTED',
       },
       {
@@ -87,7 +85,7 @@ describe('getIdeasForUser', () => {
         title: 'Idea Two',
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
-        attachment: null,
+        attachments: [],
         status: 'ACCEPTED',
       },
     ]);
@@ -120,7 +118,7 @@ describe('getIdeasForUser', () => {
         title: 'Any Idea',
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
-        attachment: null,
+        attachments: [],
         status: 'SUBMITTED',
       },
     ]);
@@ -152,7 +150,7 @@ describe('getIdeasForUser', () => {
         title: 'Filtered',
         category: { id: 'cat-1', name: 'Process' },
         submittedAt: new Date(),
-        attachment: null,
+        attachments: [],
         status: 'SUBMITTED',
       },
     ]);
@@ -190,7 +188,7 @@ describe('getIdeasForUser', () => {
         title: 'Last',
         category: { id: 'c1', name: 'Tech' },
         submittedAt: new Date(),
-        attachment: null,
+        attachments: [],
         status: 'SUBMITTED',
       },
     ]);

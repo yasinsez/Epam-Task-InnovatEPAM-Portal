@@ -44,9 +44,10 @@ model User {
   passwordResetTokens PasswordResetToken[]
   failedLoginAttempts FailedLoginAttempt[]
   authLogs               AuthLog[]
-  ideas                  Idea[]
-  evaluations            Evaluation[]
-  formConfigurationsBy   FormConfiguration[]
+  ideas                     Idea[]
+  evaluations                Evaluation[]
+  formConfigurationsBy      FormConfiguration[]
+  uploadConfigurationsBy     UploadConfiguration[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -171,7 +172,7 @@ model Idea {
   updatedAt            DateTime    @updatedAt
   status               IdeaStatus  @default(SUBMITTED)
   dynamicFieldValues   Json?
-  attachment           Attachment?
+  attachments          Attachment[]
   evaluation           Evaluation?
 
   @@index([userId])
@@ -194,17 +195,33 @@ model Evaluation {
   @@index([evaluatorId])
 }
 
-// Attachment model - single file per idea
+// Attachment model - multiple files per idea
 model Attachment {
   id               String   @id @default(cuid())
-  ideaId           String   @unique
+  ideaId           String
   idea             Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
   originalFileName String   @db.VarChar(255)
   storedPath       String   @unique @db.VarChar(500)
   fileSizeBytes    Int
   mimeType         String   @db.VarChar(100)
+  displayOrder     Int      @default(0)
   createdAt        DateTime @default(now())
 
   @@index([ideaId])
   @@index([storedPath])
+}
+
+// Upload configuration (admin-configurable limits and allowed types)
+model UploadConfiguration {
+  id                 String   @id @default(cuid())
+  maxFileCount       Int      @default(10)
+  maxFileSizeBytes   Int      @default(10485760)
+  maxTotalSizeBytes  Int      @default(52428800)
+  allowedExtensions  Json
+  mimeByExtension    Json
+  updatedAt          DateTime @updatedAt
+  updatedById        String?
+  updatedBy          User?    @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@index([updatedAt])
 }

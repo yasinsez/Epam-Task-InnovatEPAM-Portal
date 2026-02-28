@@ -25,6 +25,26 @@ describe('attachment-service', () => {
       expect(mockWriteFile).toHaveBeenCalled();
       expect(storedPath).toMatch(/^ideas\/idea-123\/[a-f0-9-]+\.pdf$/);
     });
+
+    it('should throw when file has no extension', async () => {
+      const file = new File(['content'], 'noext', { type: 'application/octet-stream' });
+
+      await expect(saveAttachmentFile('idea-123', file)).rejects.toThrow(
+        'No file extension',
+      );
+      expect(mockMkdir).not.toHaveBeenCalled();
+    });
+
+    it('should throw when file has disallowed extension', async () => {
+      const file = new File(['content'], 'script.exe', {
+        type: 'application/x-msdownload',
+      });
+
+      await expect(saveAttachmentFile('idea-123', file)).rejects.toThrow(
+        /Extension .* not allowed/,
+      );
+      expect(mockMkdir).not.toHaveBeenCalled();
+    });
   });
 
   describe('readAttachmentFile', () => {
@@ -45,6 +65,14 @@ describe('attachment-service', () => {
 
       expect(result).toBeNull();
     });
+
+    it('should rethrow when read fails for non-ENOENT error', async () => {
+      mockReadFile.mockRejectedValue(new Error('Permission denied'));
+
+      await expect(readAttachmentFile('ideas/idea-123/file.pdf')).rejects.toThrow(
+        'Permission denied',
+      );
+    });
   });
 
   describe('deleteAttachmentFile', () => {
@@ -62,6 +90,14 @@ describe('attachment-service', () => {
       mockUnlink.mockRejectedValue(Object.assign(new Error('ENOENT'), { code: 'ENOENT' }));
 
       await expect(deleteAttachmentFile('ideas/idea-123/missing.pdf')).resolves.toBeUndefined();
+    });
+
+    it('should rethrow when delete fails for non-ENOENT error', async () => {
+      mockUnlink.mockRejectedValue(new Error('Permission denied'));
+
+      await expect(
+        deleteAttachmentFile('ideas/idea-123/file.pdf'),
+      ).rejects.toThrow('Permission denied');
     });
   });
 });

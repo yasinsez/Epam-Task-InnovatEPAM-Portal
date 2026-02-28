@@ -394,4 +394,64 @@ describe('GET /api/ideas', () => {
     expect(data.ideas[0].title).toBe('My Idea');
     expect(data.pagination.page).toBe(1);
   });
+
+  it('should return 400 for invalid page parameter', async () => {
+    const request = new Request('http://localhost:3000/api/ideas?page=0');
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('Invalid pagination parameters');
+  });
+
+  it('should return 400 for invalid pageSize (too large)', async () => {
+    const request = new Request(
+      'http://localhost:3000/api/ideas?pageSize=101',
+    );
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('Invalid pagination parameters');
+  });
+
+  it('should accept valid page and pageSize', async () => {
+    const getIdeasForUser =
+      jest.requireMock('@/lib/services/idea-service').getIdeasForUser;
+    getIdeasForUser.mockResolvedValue({
+      ideas: [],
+      pagination: { page: 2, pageSize: 25, totalCount: 0, totalPages: 0 },
+    });
+
+    const request = new Request(
+      'http://localhost:3000/api/ideas?page=2&pageSize=25',
+    );
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.pagination.page).toBe(2);
+    expect(data.pagination.pageSize).toBe(25);
+  });
+
+  it('should pass categoryId filter when provided', async () => {
+    const getIdeasForUser =
+      jest.requireMock('@/lib/services/idea-service').getIdeasForUser;
+    getIdeasForUser.mockResolvedValue({
+      ideas: [],
+      pagination: { page: 1, pageSize: 15, totalCount: 0, totalPages: 0 },
+    });
+
+    const request = new Request(
+      'http://localhost:3000/api/ideas?categoryId=cat_001',
+    );
+    const response = await GET(request);
+
+    expect(response.status).toBe(200);
+    expect(getIdeasForUser).toHaveBeenCalledWith(
+      'user-123',
+      'submitter',
+      expect.objectContaining({ categoryId: 'cat_001' }),
+    );
+  });
 });

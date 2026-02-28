@@ -50,4 +50,36 @@ describe('token utils', () => {
     expect(isPasswordResetTokenExpired(validExpiry)).toBe(false);
     expect(isPasswordResetTokenExpired(expired)).toBe(true);
   });
+
+  it('validateJWT returns null for invalid or malformed token', () => {
+    expect(validateJWT('invalid-token')).toBeNull();
+    expect(validateJWT('')).toBeNull();
+  });
+
+  it('validateJWT returns payload with name when present', () => {
+    const token = generateJWT('user-1', 'user@epam.com', 'Display Name');
+    const payload = validateJWT(token);
+    expect(payload?.name).toBe('Display Name');
+  });
+
+  it('validateJWT returns payload with undefined name when omitted', () => {
+    const token = generateJWT('user-1', 'user@epam.com');
+    const payload = validateJWT(token);
+    expect(payload?.name).toBeUndefined();
+  });
+
+  it('refreshToken returns null when token has plenty of time left', () => {
+    const token = generateJWT('user-1', 'user@epam.com');
+    expect(refreshToken(token)).toBeNull();
+  });
+
+  it('refreshToken returns null when token is invalid', () => {
+    expect(refreshToken('invalid')).toBeNull();
+  });
+
+  it('getPasswordResetExpiry uses default 24 hours when not specified', () => {
+    const expiry = getPasswordResetExpiry();
+    const expected = Date.now() + 24 * 60 * 60 * 1000;
+    expect(Math.abs(expiry.getTime() - expected)).toBeLessThan(2000);
+  });
 });

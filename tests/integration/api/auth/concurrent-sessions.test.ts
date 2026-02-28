@@ -14,6 +14,43 @@ describe('GET /api/auth/sessions', () => {
     process.env.NEXTAUTH_SECRET = 'test-secret';
   });
 
+  it('returns 401 when Authorization header is missing', async () => {
+    const request = new Request(
+      'http://localhost:3000/api/auth/sessions',
+    );
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Unauthorized');
+  });
+
+  it('returns 401 when Authorization header does not start with Bearer ', async () => {
+    const request = new Request(
+      'http://localhost:3000/api/auth/sessions',
+      { headers: { Authorization: 'InvalidFormat token123' } },
+    );
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.success).toBe(false);
+  });
+
+  it('returns 401 when token is invalid or expired', async () => {
+    const request = new Request(
+      'http://localhost:3000/api/auth/sessions',
+      { headers: { Authorization: 'Bearer invalid-or-expired-token' } },
+    );
+    const response = await GET(request);
+    const body = await response.json();
+
+    expect(response.status).toBe(401);
+    expect(body.success).toBe(false);
+    expect(body.error).toBe('Unauthorized');
+  });
+
   it('returns active sessions for authenticated user', async () => {
     const prisma = jest.requireMock('@/server/db/prisma').prisma;
 

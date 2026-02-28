@@ -1,6 +1,7 @@
 import { validateEmail, validatePassword } from '@/lib/utils/validators';
 import {
   SubmitIdeaSchema,
+  DraftSaveSchema,
   evaluateIdeaSchema,
   validateAttachmentFile,
   validateAttachments,
@@ -134,6 +135,54 @@ describe('validators', () => {
     });
   });
 
+  describe('DraftSaveSchema', () => {
+    it('should accept empty title and default to Untitled draft', () => {
+      const result = DraftSaveSchema.parse({});
+      expect(result.title).toBe('Untitled draft');
+      expect(result.description).toBe('');
+      expect(result.categoryId).toBeNull();
+    });
+
+    it('should accept partial data with optional fields', () => {
+      const result = DraftSaveSchema.parse({
+        title: 'My draft',
+        description: 'Work in progress',
+      });
+      expect(result.title).toBe('My draft');
+      expect(result.description).toBe('Work in progress');
+      expect(result.categoryId).toBeNull();
+    });
+
+    it('should accept categoryId when provided', () => {
+      const result = DraftSaveSchema.parse({
+        title: 'Draft',
+        categoryId: 'cat_001',
+      });
+      expect(result.categoryId).toBe('cat_001');
+    });
+
+    it('should transform empty categoryId to null', () => {
+      const result = DraftSaveSchema.parse({
+        title: 'Draft',
+        categoryId: '',
+      });
+      expect(result.categoryId).toBeNull();
+    });
+
+    it('should accept dynamicFieldValues', () => {
+      const result = DraftSaveSchema.parse({
+        title: 'Draft',
+        dynamicFieldValues: { field1: 'value1' },
+      });
+      expect(result.dynamicFieldValues).toEqual({ field1: 'value1' });
+    });
+
+    it('should default dynamicFieldValues to empty object when absent', () => {
+      const result = DraftSaveSchema.parse({ title: 'Draft' });
+      expect(result.dynamicFieldValues).toEqual({});
+    });
+  });
+
   describe('validateAttachmentFile', () => {
     it('should accept valid PDF file', () => {
       const file = new File(['content'], 'document.pdf', { type: 'application/pdf' });
@@ -216,7 +265,7 @@ describe('validators', () => {
         });
       const result = validateAttachments(files, config);
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('Maximum file count exceeded');
+      if (!result.valid) expect(result.error).toContain('Maximum file count exceeded');
     });
 
     it('should reject when per-file size exceeds limit', () => {
@@ -224,7 +273,7 @@ describe('validators', () => {
       Object.defineProperty(file, 'size', { value: 11 * 1024 * 1024 });
       const result = validateAttachments([file], config);
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('exceeds the per-file size limit');
+      if (!result.valid) expect(result.error).toContain('exceeds the per-file size limit');
     });
 
     it('should reject when total size exceeds limit', () => {
@@ -234,7 +283,7 @@ describe('validators', () => {
       Object.defineProperty(f2, 'size', { value: 25 * 1024 * 1024 });
       const result = validateAttachments([f1, f2], config);
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('Total attachment size');
+      if (!result.valid) expect(result.error).toContain('Total attachment size');
     });
 
     it('should reject disallowed file type', () => {
@@ -242,7 +291,7 @@ describe('validators', () => {
       Object.defineProperty(file, 'size', { value: 100 });
       const result = validateAttachments([file], config);
       expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/not allowed|type/);
+      if (!result.valid) expect(result.error).toMatch(/not allowed|type/);
     });
 
     it('should reject extension/MIME mismatch', () => {

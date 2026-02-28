@@ -93,11 +93,11 @@ describe('getIdeasForUser', () => {
     const result = await getIdeasForUser('user-123', 'submitter', { page: 1 });
 
     expect(prisma.idea.count).toHaveBeenCalledWith({
-      where: { userId: 'user-123' },
+      where: { userId: 'user-123', status: { not: 'DRAFT' } },
     });
     expect(prisma.idea.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { userId: 'user-123' },
+        where: { userId: 'user-123', status: { not: 'DRAFT' } },
         orderBy: { submittedAt: 'desc' },
         skip: 0,
         take: 15,
@@ -125,10 +125,12 @@ describe('getIdeasForUser', () => {
 
     await getIdeasForUser('user-123', 'evaluator', { page: 1 });
 
-    expect(prisma.idea.count).toHaveBeenCalledWith({ where: {} });
+    expect(prisma.idea.count).toHaveBeenCalledWith({
+      where: { status: { not: 'DRAFT' } },
+    });
     expect(prisma.idea.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: {},
+        where: { status: { not: 'DRAFT' } },
       }),
     );
   });
@@ -139,7 +141,9 @@ describe('getIdeasForUser', () => {
 
     await getIdeasForUser('user-123', 'admin', { page: 1 });
 
-    expect(prisma.idea.count).toHaveBeenCalledWith({ where: {} });
+    expect(prisma.idea.count).toHaveBeenCalledWith({
+      where: { status: { not: 'DRAFT' } },
+    });
   });
 
   it('should apply categoryId filter when provided', async () => {
@@ -161,7 +165,7 @@ describe('getIdeasForUser', () => {
     });
 
     expect(prisma.idea.count).toHaveBeenCalledWith({
-      where: { categoryId: 'cat-1' },
+      where: { status: { not: 'DRAFT' }, categoryId: 'cat-1' },
     });
   });
 

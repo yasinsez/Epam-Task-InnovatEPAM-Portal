@@ -164,6 +164,35 @@ export const SubmitIdeaSchema = z.object({
 export type SubmitIdeaInput = z.infer<typeof SubmitIdeaSchema>;
 
 /**
+ * Relaxed schema for draft save. Title and description optional; categoryId optional.
+ * Used for Save draft - no required-field validation.
+ *
+ * @example
+ *   const data = { title: '', description: '', categoryId: null };
+ *   const validated = DraftSaveSchema.parse(data); // title -> "Untitled draft", description -> ""
+ */
+export const DraftSaveSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v == null || v === '' ? 'Untitled draft' : v)),
+  description: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v == null ? '' : v)),
+  categoryId: z.string().optional().nullable().transform((v) => (v === '' ? null : v ?? null)),
+  dynamicFieldValues: z
+    .record(z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]))
+    .optional()
+    .nullable()
+    .transform((v) => (v ?? {})),
+});
+
+export type DraftCreateInput = z.infer<typeof DraftSaveSchema>;
+
+/**
  * Schema for evaluate idea API payload.
  * Validates decision (ACCEPTED|REJECTED) and required comments (1-2000 chars).
  *

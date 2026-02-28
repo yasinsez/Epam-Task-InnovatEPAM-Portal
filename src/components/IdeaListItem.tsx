@@ -23,6 +23,7 @@ export type IdeaListItemProps = {
 };
 
 const STATUS_LABELS: Record<IdeaStatus, string> = {
+  DRAFT: 'Draft',
   SUBMITTED: 'Submitted',
   UNDER_REVIEW: 'Under Review',
   ACCEPTED: 'Accepted',

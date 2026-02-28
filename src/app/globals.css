@@ -1002,6 +1002,16 @@ button.loading {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.dashboard-stats__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.dashboard-stats__link:hover {
+  opacity: 0.9;
+}
+
 .dashboard-stats__card::after {
   content: '';
   position: absolute;

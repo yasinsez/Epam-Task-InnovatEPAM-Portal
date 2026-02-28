@@ -116,8 +116,9 @@ export async function getEvaluatorStats(): Promise<EvaluatorStats> {
 export async function getSubmissionStats(userId: string): Promise<SubmissionStats> {
   const where = { userId };
 
-  const [total, submitted, underReview, accepted, rejected] = await Promise.all([
-    prisma.idea.count({ where }),
+  const [total, drafts, submitted, underReview, accepted, rejected] = await Promise.all([
+    prisma.idea.count({ where: { ...where, status: { not: 'DRAFT' } } }),
+    prisma.idea.count({ where: { ...where, status: 'DRAFT' } }),
     prisma.idea.count({ where: { ...where, status: 'SUBMITTED' } }),
     prisma.idea.count({ where: { ...where, status: 'UNDER_REVIEW' } }),
     prisma.idea.count({ where: { ...where, status: 'ACCEPTED' } }),
@@ -126,7 +127,7 @@ export async function getSubmissionStats(userId: string): Promise<SubmissionStat
 
   return {
     total,
-    drafts: 0,
+    drafts,
     pendingReview: submitted + underReview,
     approved: accepted,
     rejected,
@@ -156,9 +157,13 @@ export async function getIdeasForUser(
   const safePage = Math.max(1, Math.floor(Number(page)) || 1);
   const safePageSize = Math.min(100, Math.max(1, Math.floor(Number(pageSize)) || 15));
 
-  const where: { userId?: string; categoryId?: string } = {};
+  const where: { userId?: string; categoryId?: string; status?: { not: 'DRAFT' } } = {};
   if (role === 'submitter') {
     where.userId = userId;
+    where.status = { not: 'DRAFT' };
+  } else {
+    // Evaluator/admin: exclude drafts from evaluation queue
+    where.status = { not: 'DRAFT' };
   }
   if (categoryId) {
     where.categoryId = categoryId;
@@ -183,7 +188,7 @@ export async function getIdeasForUser(
     ideas: resultIdeas.map((i) => ({
       id: i.id,
       title: i.title,
-      category: i.category,
+      category: i.category ?? { id: '', name: '—' },
       submittedAt: i.submittedAt,
       hasAttachment: (i.attachments?.length ?? 0) > 0,
       status: i.status,
@@ -249,7 +254,7 @@ export async function getIdeaForDetail(
     id: idea.id,
     title: idea.title,
     description: idea.description,
-    category: idea.category,
+    category: idea.category ?? { id: '', name: '—' },
     submittedAt: idea.submittedAt,
     submitter,
     status: idea.status,

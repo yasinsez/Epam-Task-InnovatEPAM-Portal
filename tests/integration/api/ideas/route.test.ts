@@ -34,14 +34,20 @@ jest.mock('@/lib/services/idea-service', () => ({
   getIdeasForUser: jest.fn(),
 }));
 
+jest.mock('@/lib/services/form-config-service', () => ({
+  getActiveConfig: jest.fn(),
+}));
+
 describe('POST /api/ideas', () => {
   const prisma = jest.requireMock('@/server/db/prisma').prisma;
   const getServerSession = jest.requireMock('next-auth').getServerSession;
   const saveAttachmentFile = jest.requireMock('@/lib/services/attachment-service').saveAttachmentFile;
+  const getActiveConfig = jest.requireMock('@/lib/services/form-config-service').getActiveConfig;
 
   beforeEach(() => {
     jest.clearAllMocks();
     getServerSession.mockResolvedValue({ user: { id: 'user-123', email: 'user@example.com' } });
+    getActiveConfig.mockResolvedValue(null); // No dynamic fields by default
   });
 
   it('should successfully submit an idea with valid JSON data', async () => {
@@ -323,6 +329,136 @@ describe('POST /api/ideas', () => {
     expect(prisma.idea.create).not.toHaveBeenCalled();
   });
 
+  it('should successfully submit idea with dynamicFieldValues when form config has fields', async () => {
+    getActiveConfig.mockResolvedValue({
+      id: 'cfg1',
+      updatedAt: '2026-02-28T10:00:00.000Z',
+      updatedById: null,
+      fields: [
+        {
+          id: 'fld_dept',
+          label: 'Department',
+          fieldType: 'SINGLE_SELECT',
+          required: true,
+          displayOrder: 0,
+          options: ['Engineering', 'Product'],
+          minValue: null,
+          maxValue: null,
+          maxLength: null,
+        },
+        {
+          id: 'fld_score',
+          label: 'Impact Score',
+          fieldType: 'NUMBER',
+          required: false,
+          displayOrder: 1,
+          options: null,
+          minValue: 0,
+          maxValue: 10,
+          maxLength: null,
+        },
+      ],
+    });
+
+    prisma.category.findUnique.mockResolvedValue({
+      id: 'cat_001',
+      name: 'Process Improvement',
+      isActive: true,
+    });
+
+    const createdIdea = {
+      id: 'idea-123',
+      title: 'Improve Code Review',
+      description: 'Implement an automated code review system for better code quality.',
+      sanitizedTitle: 'Improve Code Review',
+      sanitizedDescription: 'Implement an automated code review system for better code quality.',
+      categoryId: 'cat_001',
+      userId: 'user-123',
+      status: 'SUBMITTED',
+      submittedAt: new Date('2026-02-25T10:00:00.000Z'),
+      createdAt: new Date('2026-02-25T10:00:00.000Z'),
+      updatedAt: new Date('2026-02-25T10:00:00.000Z'),
+      category: { id: 'cat_001', name: 'Process Improvement' },
+    };
+    prisma.idea.create.mockResolvedValue(createdIdea);
+
+    const request = new Request('http://localhost:3000/api/ideas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Improve Code Review',
+        description: 'Implement an automated code review system for better code quality.',
+        categoryId: 'cat_001',
+        dynamicFieldValues: {
+          fld_dept: 'Engineering',
+          fld_score: 7,
+        },
+      }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(data.success).toBe(true);
+    expect(data.idea.dynamicFieldValues).toEqual({
+      fld_dept: 'Engineering',
+      fld_score: 7,
+    });
+    expect(prisma.idea.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          dynamicFieldValues: { fld_dept: 'Engineering', fld_score: 7 },
+        }),
+      }),
+    );
+  });
+
+  it('should return 400 when required dynamic field is missing', async () => {
+    getActiveConfig.mockResolvedValue({
+      id: 'cfg1',
+      updatedAt: '2026-02-28T10:00:00.000Z',
+      updatedById: null,
+      fields: [
+        {
+          id: 'fld_req',
+          label: 'Required Field',
+          fieldType: 'TEXT',
+          required: true,
+          displayOrder: 0,
+          options: null,
+          minValue: null,
+          maxValue: null,
+          maxLength: null,
+        },
+      ],
+    });
+
+    prisma.category.findUnique.mockResolvedValue({
+      id: 'cat_001',
+      name: 'Process',
+      isActive: true,
+    });
+
+    const request = new Request('http://localhost:3000/api/ideas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'Valid Title Here',
+        description: 'This is a valid description with enough characters.',
+        categoryId: 'cat_001',
+        dynamicFieldValues: {},
+      }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.success).toBe(false);
+    expect(data.details).toBeDefined();
+  });
+
   it('should return 400 for empty file', async () => {
     prisma.category.findUnique.mockResolvedValue({
       id: 'cat_001',
@@ -379,6 +515,8 @@ describe('GET /api/ideas', () => {
           category: { id: 'c1', name: 'Tech' },
           submittedAt: new Date('2026-02-25T10:00:00.000Z'),
           hasAttachment: false,
+          status: 'SUBMITTED',
+          dynamicFieldValues: null,
         },
       ],
       pagination: { page: 1, pageSize: 15, totalCount: 1, totalPages: 1 },

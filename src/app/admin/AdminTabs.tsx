@@ -40,6 +40,9 @@ export function AdminTabs() {
       <AdminTabLink href="/admin/users" isActive={pathname === '/admin/users'}>
         User Management
       </AdminTabLink>
+      <AdminTabLink href="/admin/form-config" isActive={pathname === '/admin/form-config'}>
+        Form Configuration
+      </AdminTabLink>
     </div>
   );
 }

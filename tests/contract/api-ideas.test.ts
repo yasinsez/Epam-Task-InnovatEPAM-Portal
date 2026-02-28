@@ -15,6 +15,7 @@ const submitIdeaSuccessSchema = z.object({
     submittedAt: z.union([z.string(), z.date()]),
     createdAt: z.union([z.string(), z.date()]),
     updatedAt: z.union([z.string(), z.date()]),
+    dynamicFieldValues: z.record(z.union([z.string(), z.number(), z.boolean(), z.array(z.string())])).optional(),
   }),
 });
 

@@ -20,6 +20,16 @@ enum IdeaStatus {
   REJECTED
 }
 
+enum FormFieldType {
+  TEXT
+  LONG_TEXT
+  NUMBER
+  SINGLE_SELECT
+  MULTI_SELECT
+  CHECKBOX
+  DATE
+}
+
 model User {
   id                  String               @id @default(cuid())
   email               String               @unique @db.VarChar(254)
@@ -33,9 +43,10 @@ model User {
   sessions            Session[]
   passwordResetTokens PasswordResetToken[]
   failedLoginAttempts FailedLoginAttempt[]
-  authLogs            AuthLog[]
-  ideas               Idea[]
-  evaluations         Evaluation[]
+  authLogs               AuthLog[]
+  ideas                  Idea[]
+  evaluations            Evaluation[]
+  formConfigurationsBy   FormConfiguration[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -101,6 +112,33 @@ model AuthLog {
   @@index([timestamp])
 }
 
+// Form configuration for dynamic submission fields
+model FormConfiguration {
+  id                   String               @id @default(cuid())
+  updatedAt            DateTime             @updatedAt
+  updatedById          String?
+  updatedBy            User?                @relation(fields: [updatedById], references: [id], onDelete: SetNull)
+  formFieldDefinitions FormFieldDefinition[]
+
+  @@index([updatedAt])
+}
+
+model FormFieldDefinition {
+  id                     String            @id @default(cuid())
+  formConfigurationId    String
+  formConfiguration      FormConfiguration @relation(fields: [formConfigurationId], references: [id], onDelete: Cascade)
+  label                  String            @db.VarChar(100)
+  fieldType              FormFieldType
+  required               Boolean           @default(false)
+  displayOrder           Int               @default(0)
+  options                Json?
+  minValue               Float?
+  maxValue               Float?
+  maxLength              Int?
+
+  @@index([formConfigurationId, displayOrder])
+}
+
 // Category model (new)
 model Category {
   id          String   @id @default(cuid())
@@ -132,6 +170,7 @@ model Idea {
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   status               IdeaStatus  @default(SUBMITTED)
+  dynamicFieldValues   Json?
   attachment           Attachment?
   evaluation           Evaluation?
 

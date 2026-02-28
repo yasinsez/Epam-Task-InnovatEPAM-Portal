@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 
 import { SubmitIdeaForm } from '@/components/SubmitIdeaForm';
+import { getActiveConfig } from '@/lib/services/form-config-service';
 import { prisma } from '@/server/db/prisma';
 import { authOptions } from '@/server/auth/route';
 
@@ -37,11 +38,14 @@ export default async function IdeaSubmitPage(): Promise<JSX.Element> {
     redirect('/auth/login');
   }
 
-  // Fetch active categories
-  const categories = await prisma.category.findMany({
-    where: { isActive: true },
-    orderBy: { order: 'asc' },
-  });
+  // Fetch active categories and form config
+  const [categories, formConfig] = await Promise.all([
+    prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { order: 'asc' },
+    }),
+    getActiveConfig(),
+  ]);
 
   return (
     <div className="page-container">
@@ -56,7 +60,7 @@ export default async function IdeaSubmitPage(): Promise<JSX.Element> {
             No categories are available yet. Please contact an administrator to set up categories before submitting ideas.
           </div>
         ) : (
-          <SubmitIdeaForm categories={categories} />
+          <SubmitIdeaForm categories={categories} formConfig={formConfig} />
         )}
       </div>
     </div>

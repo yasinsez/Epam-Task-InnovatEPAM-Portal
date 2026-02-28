@@ -45,6 +45,15 @@ async function main() {
       console.log(`Created dev user: ${u.email}`);
     }
   }
+
+  // Seed minimal default FormConfiguration (zero fields)
+  const existingConfig = await prisma.formConfiguration.findFirst();
+  if (!existingConfig) {
+    await prisma.formConfiguration.create({
+      data: {},
+    });
+    console.log('Seeded default FormConfiguration (zero fields)');
+  }
 }
 
 main()

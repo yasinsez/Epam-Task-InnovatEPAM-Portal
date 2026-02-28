@@ -11,6 +11,14 @@ function truncate(value: unknown): string {
   return s.length > TRUNCATE_LENGTH ? `${s.slice(0, TRUNCATE_LENGTH)}…` : s;
 }
 
+type CurrentStageInfo = {
+  id: string;
+  name: string;
+  position: number;
+  totalStages: number;
+  isFinal: boolean;
+};
+
 export type IdeaListItemProps = {
   id: string;
   title: string;
@@ -18,6 +26,7 @@ export type IdeaListItemProps = {
   submittedAt: Date;
   hasAttachment: boolean;
   status: IdeaStatus;
+  currentStage?: CurrentStageInfo | null;
   dynamicFieldValues?: Record<string, unknown> | null;
   dynamicFieldLabels?: Record<string, string>;
 };
@@ -40,6 +49,7 @@ export function IdeaListItem({
   submittedAt,
   hasAttachment,
   status,
+  currentStage,
   dynamicFieldValues,
   dynamicFieldLabels,
 }: IdeaListItemProps): JSX.Element {
@@ -72,6 +82,14 @@ export function IdeaListItem({
                 {truncate(val)}
               </span>
             ))}
+          {currentStage && (
+            <>
+              <span>•</span>
+              <span className="text-gray-600">
+                Stage {currentStage.position}/{currentStage.totalStages}: {currentStage.name}
+              </span>
+            </>
+          )}
           <span>•</span>
           <span
             className="inline-flex rounded px-2 py-0.5 text-xs font-medium"

@@ -46,6 +46,9 @@ export function AdminTabs() {
       <AdminTabLink href="/admin/upload-config" isActive={pathname === '/admin/upload-config'}>
         Upload Settings
       </AdminTabLink>
+      <AdminTabLink href="/admin/stages" isActive={pathname === '/admin/stages'}>
+        Review Stages
+      </AdminTabLink>
     </div>
   );
 }

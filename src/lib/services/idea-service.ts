@@ -12,7 +12,16 @@ export type IdeaListItem = {
   submittedAt: Date;
   hasAttachment: boolean;
   status: IdeaStatus;
+  currentStage?: CurrentStageInfo | null;
   dynamicFieldValues: Record<string, unknown> | null;
+};
+
+export type CurrentStageInfo = {
+  id: string;
+  name: string;
+  position: number;
+  totalStages: number;
+  isFinal: boolean;
 };
 
 export type IdeaDetail = {
@@ -23,6 +32,9 @@ export type IdeaDetail = {
   submittedAt: Date;
   submitter?: string; // name || email; only for evaluator/admin
   status: IdeaStatus;
+  currentStage?: CurrentStageInfo | null;
+  /** Completed stage names (from transitions) for StageProgressDisplay path */
+  completedStageNames?: string[];
   dynamicFieldValues: Record<string, unknown> | null;
   evaluation?: {
     decision: string;
@@ -180,20 +192,39 @@ export async function getIdeasForUser(
     take: safePageSize,
     include: {
       category: { select: { id: true, name: true } },
+      currentStage: true,
       attachments: { select: { id: true } },
     },
   });
 
+  const stages = await prisma.reviewStage.findMany({ orderBy: { displayOrder: 'asc' } });
+  const maxOrder = stages.length > 0 ? Math.max(...stages.map((s) => s.displayOrder)) : -1;
+
   return {
-    ideas: resultIdeas.map((i) => ({
-      id: i.id,
-      title: i.title,
-      category: i.category ?? { id: '', name: '—' },
-      submittedAt: i.submittedAt,
-      hasAttachment: (i.attachments?.length ?? 0) > 0,
-      status: i.status,
-      dynamicFieldValues: (i.dynamicFieldValues as Record<string, unknown>) ?? null,
-    })),
+    ideas: resultIdeas.map((i) => {
+      let currentStage: CurrentStageInfo | null = null;
+      if (i.currentStage) {
+        const totalStages = stages.length;
+        const isFinal = totalStages > 0 && i.currentStage.displayOrder === maxOrder;
+        currentStage = {
+          id: i.currentStage.id,
+          name: i.currentStage.name,
+          position: i.currentStage.displayOrder + 1,
+          totalStages,
+          isFinal,
+        };
+      }
+      return {
+        id: i.id,
+        title: i.title,
+        category: i.category ?? { id: '', name: '—' },
+        submittedAt: i.submittedAt,
+        hasAttachment: (i.attachments?.length ?? 0) > 0,
+        status: i.status,
+        currentStage,
+        dynamicFieldValues: (i.dynamicFieldValues as Record<string, unknown>) ?? null,
+      };
+    }),
     pagination: {
       page: normalizedPage,
       pageSize: safePageSize,
@@ -225,6 +256,7 @@ export async function getIdeaForDetail(
     where: { id: ideaId },
     include: {
       category: { select: { id: true, name: true } },
+      currentStage: true,
       attachments: { orderBy: { displayOrder: 'asc' } },
       user: { select: { name: true, email: true } },
       evaluation: {
@@ -250,6 +282,26 @@ export async function getIdeaForDetail(
       ? 'Administrator'
       : undefined;
 
+  let currentStage: CurrentStageInfo | null = null;
+  let completedStageNames: string[] = [];
+  if (idea.currentStage) {
+    const stages = await prisma.reviewStage.findMany({ orderBy: { displayOrder: 'asc' } });
+    const totalStages = stages.length;
+    const isFinal =
+      totalStages > 0 &&
+      idea.currentStage.displayOrder === Math.max(...stages.map((s) => s.displayOrder));
+    currentStage = {
+      id: idea.currentStage.id,
+      name: idea.currentStage.name,
+      position: idea.currentStage.displayOrder + 1,
+      totalStages,
+      isFinal,
+    };
+    completedStageNames = stages
+      .filter((s) => s.displayOrder < idea.currentStage!.displayOrder)
+      .map((s) => s.name);
+  }
+
   return {
     id: idea.id,
     title: idea.title,
@@ -258,6 +310,8 @@ export async function getIdeaForDetail(
     submittedAt: idea.submittedAt,
     submitter,
     status: idea.status,
+    currentStage,
+    completedStageNames,
     dynamicFieldValues: (idea.dynamicFieldValues as Record<string, unknown>) ?? null,
     evaluation: idea.evaluation
       ? {

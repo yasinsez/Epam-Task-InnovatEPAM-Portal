@@ -214,3 +214,33 @@ export const evaluateIdeaSchema = z.object({
 });
 
 export type EvaluateIdeaInput = z.infer<typeof evaluateIdeaSchema>;
+
+/**
+ * Schema for creating a review stage.
+ * Validates name (1-100 chars), optional description (max 500), optional displayOrder.
+ */
+export const stageCreateSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must not exceed 100 characters'),
+  description: z.string().max(500).optional(),
+  displayOrder: z.number().int().min(0).optional(),
+});
+
+export type StageCreateInput = z.infer<typeof stageCreateSchema>;
+
+/**
+ * Schema for updating a review stage.
+ * All fields optional.
+ */
+export const stageUpdateSchema = stageCreateSchema.partial();
+
+export type StageUpdateInput = z.infer<typeof stageUpdateSchema>;
+
+/**
+ * Schema for advance-stage API payload.
+ * Comments optional (1-2000 chars when provided).
+ */
+export const advanceStageSchema = z.object({
+  comments: z.string().max(2000).optional(),
+});
+
+export type AdvanceStageInput = z.infer<typeof advanceStageSchema>;

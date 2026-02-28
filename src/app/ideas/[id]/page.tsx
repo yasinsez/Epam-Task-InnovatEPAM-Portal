@@ -11,6 +11,7 @@ import { IdeaDetailSkeleton } from '@/components/IdeaDetailSkeleton';
 import { IdeaAttachmentsList } from '@/components/IdeaAttachmentsList';
 import { EvaluationForm } from '@/components/EvaluationForm';
 import { StartReviewButton } from '@/components/StartReviewButton';
+import { StageProgressDisplay } from '@/components/StageProgressDisplay';
 
 import { authOptions } from '@/server/auth/route';
 
@@ -121,6 +122,12 @@ async function IdeaDetailContent({ id }: { id: string }) {
         {(role === 'evaluator' || role === 'admin') && idea.submitter && (
           <p className="idea-submitter">Submitted by: {idea.submitter}</p>
         )}
+        {idea.currentStage && (
+          <StageProgressDisplay
+            currentStage={idea.currentStage}
+            completedStageNames={idea.completedStageNames}
+          />
+        )}
         <section className="idea-description">
           <h2>Description</h2>
           <p>{idea.description}</p>
@@ -150,12 +157,12 @@ async function IdeaDetailContent({ id }: { id: string }) {
         {(role === 'evaluator' || role === 'admin') &&
           (idea.status === 'SUBMITTED' || idea.status === 'UNDER_REVIEW') && (
             <>
-              {idea.status === 'SUBMITTED' && (
+              {idea.status === 'SUBMITTED' && !idea.currentStage && (
                 <div className="mb-4">
                   <StartReviewButton ideaId={idea.id} />
                 </div>
               )}
-              <EvaluationForm ideaId={idea.id} />
+              <EvaluationForm ideaId={idea.id} currentStage={idea.currentStage} />
             </>
           )}
         {idea.evaluation && (

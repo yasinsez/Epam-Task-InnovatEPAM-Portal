@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { requireRole } from '@/lib/auth/role-guards';
 import { resolveUserIdForDb } from '@/lib/auth/roles';
 import { evaluateIdea } from '@/lib/services/evaluation-service';
+import { isFinalStage } from '@/lib/services/stage-service';
 import { evaluateIdeaSchema } from '@/lib/validators';
 import { prisma } from '@/server/db/prisma';
 import { authOptions } from '@/server/auth/route';
@@ -33,6 +34,19 @@ export const POST = requireRole('admin', 'evaluator')(
           { success: false, error: 'Idea not found' },
           { status: 404 },
         );
+      }
+
+      if (idea.currentStageId) {
+        const final = await isFinalStage(idea.currentStageId);
+        if (!final) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Idea is not in final stage. Advance to next stage first.',
+            },
+            { status: 400 },
+          );
+        }
       }
 
       let body: unknown;

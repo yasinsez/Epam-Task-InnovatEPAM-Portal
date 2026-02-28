@@ -2,6 +2,7 @@ import { prisma } from '@/server/db/prisma';
 import { sanitizeText } from '@/lib/sanitizers';
 import { saveAttachmentFile } from '@/lib/services/attachment-service';
 import { deleteIdeaWithCleanup } from '@/lib/services/idea-service';
+import { getFirstStage } from '@/lib/services/stage-service';
 import { getActiveConfig } from '@/lib/services/form-config-service';
 import { getUploadConfig } from '@/lib/services/upload-config-service';
 import { createSubmissionSchema } from '@/lib/utils/dynamic-schema';
@@ -383,6 +384,8 @@ export async function submitDraft(
   const sanitizedTitle = sanitizeText(title);
   const sanitizedDescription = sanitizeText(description);
 
+  const firstStage = await getFirstStage();
+
   const idea = await prisma.idea.update({
     where: { id: draftId },
     data: {
@@ -393,6 +396,7 @@ export async function submitDraft(
       categoryId: fixedValidation.data.categoryId,
       status: 'SUBMITTED',
       submittedAt: new Date(),
+      currentStageId: firstStage?.id ?? null,
       dynamicFieldValues:
         dynamicFieldValues && Object.keys(dynamicFieldValues).length > 0
           ? (dynamicFieldValues as object)

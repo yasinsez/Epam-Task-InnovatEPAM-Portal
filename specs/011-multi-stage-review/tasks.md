@@ -24,9 +24,9 @@
 
 **Purpose**: Verify prerequisites and prepare for multi-stage review feature
 
-- [ ] T001 [P] Verify existing evaluation flow (spec 007) and Idea/Evaluation models in prisma/schema.prisma
-- [ ] T002 [P] Verify Zod is available in package.json; add if missing for API validation
-- [ ] T003 Ensure branch `011-multi-stage-review` exists and is checked out
+- [x] T001 [P] Verify existing evaluation flow (spec 007) and Idea/Evaluation models in prisma/schema.prisma
+- [x] T002 [P] Verify Zod is available in package.json; add if missing for API validation
+- [x] T003 Ensure branch `011-multi-stage-review` exists and is checked out
 
 ---
 
@@ -36,12 +36,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Add ReviewStage and StageTransition models to prisma/schema.prisma per data-model.md
-- [ ] T005 Add currentStageId, currentStage, stageTransitions to Idea model in prisma/schema.prisma
-- [ ] T006 Add stageTransitions relation to User model in prisma/schema.prisma
-- [ ] T007 Run migration: `npx prisma migrate dev --name multi_stage_review`
-- [ ] T008 [P] Add stageCreateSchema, stageUpdateSchema, advanceStageSchema to src/lib/validators.ts per quickstart.md
-- [ ] T009 Add MAX_REVIEW_STAGES constant (20) to src/lib/constants/ or evaluation constants
+- [x] T004 Add ReviewStage and StageTransition models to prisma/schema.prisma per data-model.md
+- [x] T005 Add currentStageId, currentStage, stageTransitions to Idea model in prisma/schema.prisma
+- [x] T006 Add stageTransitions relation to User model in prisma/schema.prisma
+- [x] T007 Run migration: `npx prisma migrate dev --name multi_stage_review`
+- [x] T008 [P] Add stageCreateSchema, stageUpdateSchema, advanceStageSchema to src/lib/validators.ts per quickstart.md
+- [x] T009 Add MAX_REVIEW_STAGES constant (20) to src/lib/constants/ or evaluation constants
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -53,13 +53,13 @@
 
 **Independent Test**: Log in as admin, open stage config, add/edit/reorder stages, save, verify persistence.
 
-- [ ] T010 [P] [US1] Create stage-service.ts with getStages, createStage, updateStage, deleteStage, getFirstStage, getNextStage, isFinalStage in src/lib/services/stage-service.ts
-- [ ] T011 [US1] Implement getStages with ideaCount; enforce max 20 on create; block delete when ideas in stage per data-model.md
-- [ ] T012 [US1] Create GET and POST handlers in src/app/api/admin/review-stages/route.ts per contracts/api-review-stages.md
-- [ ] T013 [US1] Create PATCH and DELETE handlers in src/app/api/admin/review-stages/[stageId]/route.ts per contracts/api-review-stages.md
-- [ ] T014 [US1] Create StageConfigForm component for add/edit/reorder stages in src/components/StageConfigForm.tsx
-- [ ] T015 [US1] Add stage config page under admin area (e.g., src/app/admin/stages/page.tsx) with list and StageConfigForm
-- [ ] T016 [US1] Add admin nav link to stage configuration in src/app/admin/AdminTabs.tsx or Navigation
+- [x] T010 [P] [US1] Create stage-service.ts with getStages, createStage, updateStage, deleteStage, getFirstStage, getNextStage, isFinalStage in src/lib/services/stage-service.ts
+- [x] T011 [US1] Implement getStages with ideaCount; enforce max 20 on create; block delete when ideas in stage per data-model.md
+- [x] T012 [US1] Create GET and POST handlers in src/app/api/admin/review-stages/route.ts per contracts/api-review-stages.md
+- [x] T013 [US1] Create PATCH and DELETE handlers in src/app/api/admin/review-stages/[stageId]/route.ts per contracts/api-review-stages.md
+- [x] T014 [US1] Create StageConfigForm component for add/edit/reorder stages in src/components/StageConfigForm.tsx
+- [x] T015 [US1] Add stage config page under admin area (e.g., src/app/admin/stages/page.tsx) with list and StageConfigForm
+- [x] T016 [US1] Add admin nav link to stage configuration in src/app/admin/AdminTabs.tsx or Navigation
 
 **Checkpoint**: Admin can configure stages; list persists; add/edit/reorder/delete work; delete blocked when ideas in stage
 
@@ -71,13 +71,13 @@
 
 **Independent Test**: Submit idea, log in as evaluator, advance through stages, accept/reject at final stage.
 
-- [ ] T017 [US2] Implement advanceIdeaToNextStage in src/lib/services/evaluation-service.ts (first-wins, StageTransition creation)
-- [ ] T018 [US2] Extend idea creation (submit) to set currentStageId = first stage when stages exist in src/lib/services/idea-service.ts or draft-service
-- [ ] T019 [US2] Create POST handler in src/app/api/ideas/[id]/advance-stage/route.ts per contracts/api-advance-stage.md
-- [ ] T020 [US2] Extend evaluate endpoint in src/app/api/ideas/[id]/evaluate/route.ts to accept ideas in final stage (when stages configured)
-- [ ] T021 [US2] Extend EvaluationForm in src/components/EvaluationForm.tsx: show "Advance to Next Stage" when not final; Accept/Reject when final
-- [ ] T022 [US2] Add advance-stage button and optional comments input to evaluator idea detail flow
-- [ ] T023 [US2] Include currentStage in idea list/detail responses in src/lib/services/idea-service.ts
+- [x] T017 [US2] Implement advanceIdeaToNextStage in src/lib/services/evaluation-service.ts (first-wins, StageTransition creation)
+- [x] T018 [US2] Extend idea creation (submit) to set currentStageId = first stage when stages exist in src/lib/services/idea-service.ts or draft-service
+- [x] T019 [US2] Create POST handler in src/app/api/ideas/[id]/advance-stage/route.ts per contracts/api-advance-stage.md
+- [x] T020 [US2] Extend evaluate endpoint in src/app/api/ideas/[id]/evaluate/route.ts to accept ideas in final stage (when stages configured)
+- [x] T021 [US2] Extend EvaluationForm in src/components/EvaluationForm.tsx: show "Advance to Next Stage" when not final; Accept/Reject when final
+- [x] T022 [US2] Add advance-stage button and optional comments input to evaluator idea detail flow
+- [x] T023 [US2] Include currentStage in idea list/detail responses in src/lib/services/idea-service.ts
 
 **Checkpoint**: Evaluator can advance ideas; final stage uses evaluate; first-wins returns 409; default flow works when no stages
 
@@ -89,10 +89,10 @@
 
 **Independent Test**: Submit idea, evaluator advances it, submitter sees stage and progress in idea detail.
 
-- [ ] T024 [P] [US3] Create StageProgressDisplay component showing "Stage X of Y: Name" and optional completed path in src/components/StageProgressDisplay.tsx
-- [ ] T025 [US3] Extend getIdeaById to include currentStage (name, position, totalStages) and stageHistory in src/lib/services/idea-service.ts
-- [ ] T026 [US3] Add StageProgressDisplay to idea detail page in src/app/ideas/[id]/page.tsx for submitter view
-- [ ] T027 [US3] Ensure idea list shows current stage in IdeaListItem when applicable in src/components/IdeaListItem.tsx
+- [x] T024 [P] [US3] Create StageProgressDisplay component showing "Stage X of Y: Name" and optional completed path in src/components/StageProgressDisplay.tsx
+- [x] T025 [US3] Extend getIdeaById to include currentStage (name, position, totalStages) and stageHistory in src/lib/services/idea-service.ts
+- [x] T026 [US3] Add StageProgressDisplay to idea detail page in src/app/ideas/[id]/page.tsx for submitter view
+- [x] T027 [US3] Ensure idea list shows current stage in IdeaListItem when applicable in src/components/IdeaListItem.tsx
 
 **Checkpoint**: Submitter sees current stage and completed path; accepted/rejected shows final decision
 
@@ -104,9 +104,9 @@
 
 **Independent Test**: No stages configured → submit idea → evaluate accept/reject works as today.
 
-- [ ] T028 [US4] Ensure new ideas get currentStageId = null when getStages() returns empty in idea creation flow
-- [ ] T029 [US4] Ensure evaluator sees standard Start review → Accept/Reject when no stages; no advance button in src/components/EvaluationForm.tsx
-- [ ] T030 [US4] Ensure evaluate endpoint handles ideas with currentStageId null (default flow) in src/app/api/ideas/[id]/evaluate/route.ts
+- [x] T028 [US4] Ensure new ideas get currentStageId = null when getStages() returns empty in idea creation flow
+- [x] T029 [US4] Ensure evaluator sees standard Start review → Accept/Reject when no stages; no advance button in src/components/EvaluationForm.tsx
+- [x] T030 [US4] Ensure evaluate endpoint handles ideas with currentStageId null (default flow) in src/app/api/ideas/[id]/evaluate/route.ts
 
 **Checkpoint**: Zero stages = default workflow; single stage = accept/reject at that stage; no regression
 
@@ -116,9 +116,9 @@
 
 **Purpose**: Improvements, validation, and documentation
 
-- [ ] T031 [P] Add JSDoc to stage-service, advanceIdeaToNextStage, and new components per constitution
-- [ ] T032 Run quickstart.md validation: admin configures stages, evaluator advances, submitter sees progress, no-stages default flow
-- [ ] T033 Ensure RBAC: admin-only for stage config; evaluator/admin for advance; submitter sees own ideas only
+- [x] T031 [P] Add JSDoc to stage-service, advanceIdeaToNextStage, and new components per constitution
+- [x] T032 Run quickstart.md validation: admin configures stages, evaluator advances, submitter sees progress, no-stages default flow
+- [x] T033 Ensure RBAC: admin-only for stage config; evaluator/admin for advance; submitter sees own ideas only
 
 ---
 

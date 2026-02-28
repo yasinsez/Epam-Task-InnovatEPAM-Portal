@@ -49,6 +49,7 @@ model User {
   evaluations                Evaluation[]
   formConfigurationsBy      FormConfiguration[]
   uploadConfigurationsBy     UploadConfiguration[]
+  stageTransitions          StageTransition[]
 
   @@index([email])
   @@index([lastLoginAt])
@@ -157,6 +158,41 @@ model Category {
   @@index([isActive, order, name])
 }
 
+// Review stage configuration (multi-stage review pipeline)
+model ReviewStage {
+  id             String   @id @default(cuid())
+  name           String   @db.VarChar(100)
+  description    String?  @db.VarChar(500)
+  displayOrder   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  ideasInStage     Idea[]
+  transitionsFrom  StageTransition[] @relation("FromStage")
+  transitionsTo    StageTransition[] @relation("ToStage")
+
+  @@index([displayOrder])
+}
+
+// Record of idea moving between stages
+model StageTransition {
+  id          String       @id @default(cuid())
+  ideaId      String
+  idea        Idea         @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  fromStageId String?
+  fromStage   ReviewStage? @relation("FromStage", fields: [fromStageId], references: [id], onDelete: SetNull)
+  toStageId   String?
+  toStage     ReviewStage? @relation("ToStage", fields: [toStageId], references: [id], onDelete: SetNull)
+  comments    String?      @db.Text
+  evaluatorId String?
+  evaluator   User?        @relation(fields: [evaluatorId], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now())
+
+  @@index([ideaId])
+  @@index([evaluatorId])
+  @@index([createdAt])
+}
+
 // Idea model (new)
 model Idea {
   id                   String      @id @default(cuid())
@@ -173,12 +209,16 @@ model Idea {
   updatedAt            DateTime    @updatedAt
   status               IdeaStatus  @default(SUBMITTED)
   dynamicFieldValues   Json?
+  currentStageId       String?
+  currentStage         ReviewStage? @relation(fields: [currentStageId], references: [id], onDelete: SetNull)
   attachments          Attachment[]
   evaluation           Evaluation?
+  stageTransitions     StageTransition[]
 
   @@index([userId])
   @@index([userId, status])
   @@index([categoryId])
+  @@index([currentStageId])
   @@index([submittedAt])
   @@index([userId, submittedAt])
 }

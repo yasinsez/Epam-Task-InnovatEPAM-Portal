@@ -1,5 +1,20 @@
 import { prisma } from '@/server/db/prisma';
 import type { IdeaStatus } from '@prisma/client';
+import {
+  getNextStage,
+  isFinalStage,
+} from '@/lib/services/stage-service';
+
+export type AdvanceResult = {
+  id: string;
+  status: IdeaStatus;
+  currentStage: {
+    id: string;
+    name: string;
+    position: number;
+    totalStages: number;
+  };
+};
 
 export type IdeaWithEvaluation = {
   id: string;
@@ -83,6 +98,83 @@ export async function evaluateIdea(
       return null;
     }
     throw err;
+  }
+}
+
+/**
+ * Advance idea from current stage to next in multi-stage pipeline.
+ * First-wins concurrency: returns null if another evaluator already advanced.
+ *
+ * @param ideaId - Idea to advance
+ * @param evaluatorId - Evaluator user ID (resolved; use null if mock)
+ * @param comments - Optional comments (1-2000 chars)
+ * @returns AdvanceResult or null if already advanced, in final stage, or no stages
+ */
+export async function advanceIdeaToNextStage(
+  ideaId: string,
+  evaluatorId: string,
+  comments?: string,
+): Promise<AdvanceResult | null> {
+  const idea = await prisma.idea.findUnique({
+    where: { id: ideaId },
+    include: { currentStage: true },
+  });
+  if (!idea) return null;
+  if (idea.status === 'ACCEPTED' || idea.status === 'REJECTED') return null;
+  if (!idea.currentStageId || !idea.currentStage) return null;
+
+  const stages = await prisma.reviewStage.findMany({ orderBy: { displayOrder: 'asc' } });
+  if (stages.length === 0) return null;
+
+  const isFinal = await isFinalStage(idea.currentStage.id);
+  if (isFinal) return null;
+
+  const nextStage = await getNextStage(idea.currentStage);
+  if (!nextStage) return null;
+
+  const evaluatorIdForDb = evaluatorId.startsWith('mock-') ? null : evaluatorId;
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const updateResult = await tx.idea.updateMany({
+        where: {
+          id: ideaId,
+          currentStageId: idea.currentStageId,
+        },
+        data: {
+          currentStageId: nextStage.id,
+          status: 'UNDER_REVIEW',
+        },
+      });
+      if (updateResult.count === 0) return null;
+
+      await tx.stageTransition.create({
+        data: {
+          ideaId,
+          fromStageId: idea.currentStageId,
+          toStageId: nextStage.id,
+          comments: comments?.trim() || null,
+          evaluatorId: evaluatorIdForDb,
+        },
+      });
+
+      return { nextStage, totalStages: stages.length };
+    });
+
+    if (!result) return null;
+
+    return {
+      id: ideaId,
+      status: 'UNDER_REVIEW',
+      currentStage: {
+        id: result.nextStage.id,
+        name: result.nextStage.name,
+        position: result.nextStage.displayOrder + 1,
+        totalStages: result.totalStages,
+      },
+    };
+  } catch {
+    throw new Error('Failed to advance idea');
   }
 }
 

@@ -335,6 +335,9 @@ export async function POST(request: Request): Promise<Response> {
     const sanitizedTitle = sanitizeText(title);
     const sanitizedDescription = sanitizeText(description);
 
+    const { getFirstStage } = await import('@/lib/services/stage-service');
+    const firstStage = await getFirstStage();
+
     const idea = await prisma.idea.create({
       data: {
         title,
@@ -344,6 +347,7 @@ export async function POST(request: Request): Promise<Response> {
         categoryId,
         userId,
         status: 'SUBMITTED',
+        currentStageId: firstStage?.id ?? null,
         dynamicFieldValues:
           Object.keys(validatedDynamicFields).length > 0
             ? (validatedDynamicFields as object)

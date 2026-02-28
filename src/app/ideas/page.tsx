@@ -109,6 +109,7 @@ async function IdeasListContent({
             submittedAt={idea.submittedAt}
             hasAttachment={idea.hasAttachment}
             status={idea.status}
+            currentStage={idea.currentStage}
             dynamicFieldValues={idea.dynamicFieldValues}
             dynamicFieldLabels={dynamicFieldLabels}
           />

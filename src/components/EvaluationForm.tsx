@@ -4,21 +4,65 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { MAX_EVALUATION_COMMENTS_LENGTH } from '@/lib/constants/evaluation';
 
+type CurrentStageInfo = {
+  id: string;
+  name: string;
+  position: number;
+  totalStages: number;
+  isFinal: boolean;
+};
+
 type EvaluationFormProps = {
   ideaId: string;
+  /** When in multi-stage pipeline: null = no stages (default flow); otherwise show Advance or Accept/Reject per isFinal */
+  currentStage?: CurrentStageInfo | null;
   onSuccess?: () => void;
 };
 
 /**
  * Client component for admin/evaluator to accept or reject an idea with comments.
- * Submits to POST /api/ideas/[id]/evaluate; handles 400/409/200.
+ * When in multi-stage pipeline: shows "Advance to Next Stage" when not final; Accept/Reject when final.
+ * When no stages: shows standard Accept/Reject flow.
+ * Submits to POST /api/ideas/[id]/evaluate or POST /api/ideas/[id]/advance-stage.
  */
-export function EvaluationForm({ ideaId, onSuccess }: EvaluationFormProps) {
+export function EvaluationForm({
+  ideaId,
+  currentStage,
+  onSuccess,
+}: Readonly<EvaluationFormProps>) {
   const router = useRouter();
   const [decision, setDecision] = useState<'ACCEPTED' | 'REJECTED' | null>(null);
   const [comments, setComments] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const showAdvance = currentStage && !currentStage.isFinal;
+  const showEvaluate = !currentStage || currentStage.isFinal;
+
+  const handleAdvance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/ideas/${ideaId}/advance-stage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ comments: comments.trim() || undefined }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? 'Failed to advance idea');
+        return;
+      }
+      onSuccess?.();
+      router.refresh();
+    } catch {
+      setError('Failed to advance idea');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,7 +101,41 @@ export function EvaluationForm({ ideaId, onSuccess }: EvaluationFormProps) {
 
   return (
     <section className="mt-6 rounded border border-gray-200 p-4">
-      <h2 className="mb-3 text-lg font-semibold">Evaluate Idea</h2>
+      <h2 className="mb-3 text-lg font-semibold">
+        {showAdvance ? 'Advance to Next Stage' : 'Evaluate Idea'}
+      </h2>
+      {showAdvance && (
+        <form onSubmit={handleAdvance} className="space-y-4">
+          <div>
+            <label htmlFor="advance-comments" className="mb-1 block text-sm font-medium text-gray-700">
+              Comments (optional)
+            </label>
+            <textarea
+              id="advance-comments"
+              rows={2}
+              value={comments}
+              onChange={(e) => setComments(e.target.value)}
+              maxLength={2000}
+              disabled={loading}
+              placeholder="Optional feedback..."
+              className="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-red-600" role="alert">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {loading ? 'Advancing...' : 'Advance to Next Stage'}
+          </button>
+        </form>
+      )}
+      {showEvaluate && (
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex gap-4">
           <label className="flex items-center gap-2">
@@ -116,6 +194,7 @@ export function EvaluationForm({ ideaId, onSuccess }: EvaluationFormProps) {
           {loading ? 'Submitting...' : 'Submit Evaluation'}
         </button>
       </form>
+      )}
     </section>
   );
 }

@@ -225,14 +225,15 @@ model Idea {
 
 // Evaluation model - one per idea when evaluated
 model Evaluation {
-  id            String   @id @default(cuid())
-  ideaId        String   @unique
-  idea          Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
-  decision      String   @db.VarChar(20) // "ACCEPTED" | "REJECTED"
-  comments      String   @db.Text // 1-2000 chars
-  evaluatorId   String?
-  evaluator     User?    @relation(fields: [evaluatorId], references: [id], onDelete: SetNull)
-  evaluatedAt   DateTime @default(now())
+  id                       String    @id @default(cuid())
+  ideaId                   String    @unique
+  idea                     Idea      @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  decision                 String    @db.VarChar(20) // "ACCEPTED" | "REJECTED"
+  comments                 String    @db.Text // 1-2000 chars
+  evaluatorId              String?
+  evaluator                User?     @relation(fields: [evaluatorId], references: [id], onDelete: SetNull)
+  evaluatedAt              DateTime  @default(now())
+  evaluatedUnderBlindReview Boolean?
 
   @@index([evaluatorId])
 }

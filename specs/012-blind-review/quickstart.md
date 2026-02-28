@@ -38,7 +38,15 @@ BLIND_REVIEW_ADMIN_AUDIT_ENABLED=true
 
 ## Key Files
 
-- `src/lib/services/idea-service.ts` — `getIdeaForDetail`, evaluatorDisplayName logic
+- `src/lib/config/blind-review.ts` — `getBlindReviewConfig()`, env var resolution
+- `src/lib/utils/blind-review.ts` — `shouldMaskEvaluator()`, masking logic
+- `src/lib/services/idea-service.ts` — `getIdeaForDetail`, evaluatorDisplayName masking
 - `src/lib/services/evaluation-service.ts` — `evaluateIdea`, set evaluatedUnderBlindReview
-- `src/app/ideas/[id]/page.tsx` — Idea detail display
+- `src/app/ideas/[id]/page.tsx` — Idea detail display (uses masked evaluatorDisplayName)
 - `prisma/schema.prisma` — Evaluation.evaluatedUnderBlindReview
+
+## Implementation Notes
+
+- **Env vars**: `BLIND_REVIEW_ENABLED`, `BLIND_REVIEW_ADMIN_AUDIT_ENABLED` (values `true` or `1` for enabled)
+- **Migration**: `20260228113949_add_evaluated_under_blind_review` adds nullable `evaluatedUnderBlindReview` to Evaluation
+- **Verification (FR-009)**: For evaluations with `evaluatedUnderBlindReview=true`, identity is always masked regardless of current config

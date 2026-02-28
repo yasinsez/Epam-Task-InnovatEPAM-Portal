@@ -26,8 +26,8 @@
 
 **Purpose**: Project initialization and blind review configuration infrastructure
 
-- [ ] T001 [P] Create blind review config module `src/lib/config/blind-review.ts` with `getBlindReviewConfig()` resolving `BLIND_REVIEW_ENABLED` and `BLIND_REVIEW_ADMIN_AUDIT_ENABLED` from env (default false); export `BlindReviewConfig` type `{ enabled: boolean; adminAuditEnabled: boolean }`
-- [ ] T002 [P] Add JSDoc to `getBlindReviewConfig` in `src/lib/config/blind-review.ts` (@param, @returns)
+- [x] T001 [P] Create blind review config module `src/lib/config/blind-review.ts` with `getBlindReviewConfig()` resolving `BLIND_REVIEW_ENABLED` and `BLIND_REVIEW_ADMIN_AUDIT_ENABLED` from env (default false); export `BlindReviewConfig` type `{ enabled: boolean; adminAuditEnabled: boolean }`
+- [x] T002 [P] Add JSDoc to `getBlindReviewConfig` in `src/lib/config/blind-review.ts` (@param, @returns)
 
 ---
 
@@ -37,11 +37,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add `evaluatedUnderBlindReview Boolean? @default(null)` to Evaluation model in `prisma/schema.prisma`
-- [ ] T004 Run `npx prisma migrate dev` to create migration for evaluatedUnderBlindReview field
-- [ ] T005 Update `evaluateIdea` in `src/lib/services/evaluation-service.ts` to read current blind review config via `getBlindReviewConfig()` and set `evaluatedUnderBlindReview` when creating Evaluation (true if enabled, false otherwise)
-- [ ] T006 Extend IdeaDetail evaluation type in `src/lib/services/idea-service.ts` to include `evaluatedUnderBlindReview?: boolean | null` in the evaluation object
-- [ ] T007 Extend `getIdeaForDetail` Prisma query in `src/lib/services/idea-service.ts` to select `evaluatedUnderBlindReview` from evaluation relation
+- [x] T003 Add `evaluatedUnderBlindReview Boolean? @default(null)` to Evaluation model in `prisma/schema.prisma`
+- [x] T004 Run `npx prisma migrate dev` to create migration for evaluatedUnderBlindReview field
+- [x] T005 Update `evaluateIdea` in `src/lib/services/evaluation-service.ts` to read current blind review config via `getBlindReviewConfig()` and set `evaluatedUnderBlindReview` when creating Evaluation (true if enabled, false otherwise)
+- [x] T006 Extend IdeaDetail evaluation type in `src/lib/services/idea-service.ts` to include `evaluatedUnderBlindReview?: boolean | null` in the evaluation object
+- [x] T007 Extend `getIdeaForDetail` Prisma query in `src/lib/services/idea-service.ts` to select `evaluatedUnderBlindReview` from evaluation relation
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -55,10 +55,10 @@
 
 ### Implementation for User Story 1 & 2
 
-- [ ] T008 [US1] Create `shouldMaskEvaluator(evaluation, viewerRole, config)` utility in `src/lib/utils/blind-review.ts`: returns true if evaluatorDisplayName must be masked (evaluatedUnderBlindReview===true → always mask; else if config.enabled and (viewer not admin or !config.adminAuditEnabled) → mask; else false)
-- [ ] T009 [US1] Update `getIdeaForDetail` in `src/lib/services/idea-service.ts` to call `getBlindReviewConfig()`, pass evaluation (with evaluatedUnderBlindReview), viewer role, and config to `shouldMaskEvaluator`; when masking, set `evaluatorDisplayName` to "Reviewed" instead of real name/email
-- [ ] T010 [US1] Verify idea detail page `src/app/ideas/[id]/page.tsx` uses `idea.evaluation.evaluatorDisplayName` for "Evaluated by" display (already does; no change needed unless refactor)
-- [ ] T011 [P] [US1] Unit test: masking logic in `tests/unit/lib/services/idea-service-blind-review.test.ts` (shouldMaskEvaluator: evaluatedUnderBlindReview true→mask; config enabled + submitter→mask; config enabled + admin + audit→no mask; config off→no mask for legacy)
+- [x] T008 [US1] Create `shouldMaskEvaluator(evaluation, viewerRole, config)` utility in `src/lib/utils/blind-review.ts`: returns true if evaluatorDisplayName must be masked (evaluatedUnderBlindReview===true → always mask; else if config.enabled and (viewer not admin or !config.adminAuditEnabled) → mask; else false)
+- [x] T009 [US1] Update `getIdeaForDetail` in `src/lib/services/idea-service.ts` to call `getBlindReviewConfig()`, pass evaluation (with evaluatedUnderBlindReview), viewer role, and config to `shouldMaskEvaluator`; when masking, set `evaluatorDisplayName` to "Reviewed" instead of real name/email
+- [x] T010 [US1] Verify idea detail page `src/app/ideas/[id]/page.tsx` uses `idea.evaluation.evaluatorDisplayName` for "Evaluated by" display (already does; no change needed unless refactor)
+- [x] T011 [P] [US1] Unit test: masking logic in `tests/unit/lib/services/idea-service-blind-review.test.ts` (shouldMaskEvaluator: evaluatedUnderBlindReview true→mask; config enabled + submitter→mask; config enabled + admin + audit→no mask; config off→no mask for legacy)
 
 **Checkpoint**: US1 & US2 complete - submitters see anonymous evaluations with full comments
 
@@ -72,8 +72,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] Verify `shouldMaskEvaluator` in masking logic treats admin + `config.adminAuditEnabled` as "do not mask" (already covered by T008 if implemented correctly)
-- [ ] T013 [US3] Add unit test case in `tests/unit/lib/services/idea-service-blind-review.test.ts` for admin with adminAuditEnabled ON → evaluator name shown; admin with adminAuditEnabled OFF → "Reviewed"
+- [x] T012 [US3] Verify `shouldMaskEvaluator` in masking logic treats admin + `config.adminAuditEnabled` as "do not mask" (already covered by T008 if implemented correctly)
+- [x] T013 [US3] Add unit test case in `tests/unit/lib/services/idea-service-blind-review.test.ts` for admin with adminAuditEnabled ON → evaluator name shown; admin with adminAuditEnabled OFF → "Reviewed"
 
 **Checkpoint**: US3 complete - admins can optionally see evaluator for auditing
 
@@ -87,10 +87,10 @@
 
 ### Implementation for User Story 4
 
-- [ ] T014 [US4] Verify `evaluateIdea` sets `evaluatedUnderBlindReview` correctly (T005) and extend unit test in `tests/unit/lib/services/evaluation-service.test.ts` to assert evaluatedUnderBlindReview is set when blind review enabled
-- [ ] T015 [US4] Integration test: `tests/integration/api/ideas-blind-review.test.ts` — call GET idea detail as submitter with blind review ON → evaluatorDisplayName is "Reviewed"; as admin with audit ON → real name
-- [ ] T016 [US4] E2E test: `tests/e2e/ideas-blind-review.spec.ts` — evaluate idea, view as submitter, assert "Evaluated by Reviewed" and comments visible; no evaluator name in DOM
-- [ ] T017 [US4] Document in `src/lib/utils/blind-review.ts` or idea-service: when stage transition comments with evaluator are displayed in future UI, apply same masking (StageProgressDisplay currently shows stage names only; no code change needed for current scope)
+- [x] T014 [US4] Verify `evaluateIdea` sets `evaluatedUnderBlindReview` correctly (T005) and extend unit test in `tests/unit/lib/services/evaluation-service.test.ts` to assert evaluatedUnderBlindReview is set when blind review enabled
+- [x] T015 [US4] Integration test: `tests/integration/api/ideas-blind-review.test.ts` — call GET idea detail as submitter with blind review ON → evaluatorDisplayName is "Reviewed"; as admin with audit ON → real name
+- [x] T016 [US4] E2E test: `tests/e2e/ideas-blind-review.spec.ts` — evaluate idea, view as submitter, assert "Evaluated by Reviewed" and comments visible; no evaluator name in DOM
+- [x] T017 [US4] Document in `src/lib/utils/blind-review.ts` or idea-service: when stage transition comments with evaluator are displayed in future UI, apply same masking (StageProgressDisplay currently shows stage names only; no code change needed for current scope)
 
 **Checkpoint**: US4 complete - blind review fully integrated with evaluation workflow
 
@@ -100,9 +100,9 @@
 
 **Purpose**: Documentation, validation, cleanup
 
-- [ ] T018 [P] Add JSDoc to all new/changed functions in `src/lib/config/blind-review.ts`, `src/lib/services/idea-service.ts`, masking utility
-- [ ] T019 Run quickstart.md validation: verify blind review ON/OFF, admin-audit, FR-009 (no retroactive exposure)
-- [ ] T020 [P] Update `specs/012-blind-review/quickstart.md` with any implementation notes if config paths or env var names differ
+- [x] T018 [P] Add JSDoc to all new/changed functions in `src/lib/config/blind-review.ts`, `src/lib/services/idea-service.ts`, masking utility
+- [x] T019 Run quickstart.md validation: verify blind review ON/OFF, admin-audit, FR-009 (no retroactive exposure)
+- [x] T020 [P] Update `specs/012-blind-review/quickstart.md` with any implementation notes if config paths or env var names differ
 
 ---
 

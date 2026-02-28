@@ -21,6 +21,9 @@ jest.mock('@/server/db/prisma', () => ({
       create: jest.fn(),
       count: jest.fn(),
     },
+    reviewStage: {
+      findFirst: jest.fn().mockResolvedValue({ id: 'stage-1', name: 'Initial', displayOrder: 0 }),
+    },
   },
 }));
 

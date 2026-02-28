@@ -14,6 +14,9 @@ jest.mock('@/server/db/prisma', () => ({
     },
     attachment: { create: jest.fn() },
     user: { findUnique: jest.fn() },
+    reviewStage: {
+      findFirst: jest.fn().mockResolvedValue({ id: 'stage-1', name: 'Initial', displayOrder: 0 }),
+    },
   },
 }));
 

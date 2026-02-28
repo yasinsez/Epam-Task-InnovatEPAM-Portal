@@ -14,12 +14,12 @@ InnovatEPAM Portal is an employee innovation management platform built as the ca
 - [x] Evaluation Workflow - Complete (status tracking: submitted → under review → accepted/rejected; accept/reject with comments)
 
 ### Phases 2-7 Features (if completed)
-- [ ] Phase 2 – Smart Submission Forms (dynamic fields) - Not implemented
-- [ ] Phase 3 – Multi-Media Support (multiple file types) - Not implemented
-- [ ] Phase 4 – Draft Management (save drafts) - Not implemented
-- [ ] Phase 5 – Multi-Stage Review (configurable stages) - Not implemented
-- [ ] Phase 6 – Blind Review (anonymous evaluation) - Not implemented
-- [ ] Phase 7 – Scoring System (1-5 ratings) - Not implemented
+- [x] Phase 2 – Smart Submission Forms (dynamic fields) - Not implemented
+- [x] Phase 3 – Multi-Media Support (multiple file types) - Not implemented
+- [x] Phase 4 – Draft Management (save drafts) - Not implemented
+- [x] Phase 5 – Multi-Stage Review (configurable stages) - Not implemented
+- [x] Phase 6 – Blind Review (anonymous evaluation) - Not implemented
+- [x] Phase 7 – Scoring System (1-5 ratings) - Not implemented
 
 ## Technical Stack
 
@@ -33,24 +33,25 @@ Based on ADRs (see `docs/adr/`):
 
 ## Test Coverage
 
-- **Overall**: ~84% line coverage (84.96% lines, 84.41% statements)
-- **Branch coverage**: ~70% (70.54%)
-- **Tests passing**: 264 tests (53 suites)
+- **Overall**: ~76% line coverage (75.87% lines, 74.51% statements)
+- **Branch coverage**: ~57% (56.69%)
+- **Tests**: 394 passing, 16 skipped (74 suites total)
 - **Test types**: unit, integration, contract, and e2e (Jest + Playwright)
 
 ## Transformation Reflection
 
 ### Before (Module 01)
 
-[How did you work before this course? — e.g., "I coded first and tested later; specs were informal; decisions lived in my head."]
+I was vibe coding. Everything was inside my mind.
+I found out that I need to create markdown documents but I was not able to create documents as structured as speckit.
 
 ### After (Module 08)
 
-[How has your approach changed? — e.g., "Spec-first development; tests generated from acceptance criteria; ADRs document key decisions; AI prompts reference specs and constitution."]
+I learned test first approach and I think also learned SDLC better in this way. 
 
 ### Key Learning
 
-[Your most important takeaway — e.g., "Writing specs and tests before implementation reduces rework and creates a shared contract for AI-assisted development."]
+By specification you create exactly what you want.
 
 ---
 

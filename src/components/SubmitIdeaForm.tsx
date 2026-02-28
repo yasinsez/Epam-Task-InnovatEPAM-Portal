@@ -4,9 +4,12 @@ import { Component, ChangeEvent, FormEvent } from 'react';
 import Link from 'next/link';
 import { Category } from '@prisma/client';
 import { IdeaAttachmentInput } from '@/components/IdeaAttachmentInput';
+import { DynamicFieldRenderer } from '@/components/DynamicFieldRenderer';
+import type { FormConfigDto } from '@/lib/services/form-config-service';
 
 interface SubmitIdeaFormProps {
   categories: Category[];
+  formConfig?: FormConfigDto | null;
 }
 
 interface FormData {
@@ -20,10 +23,12 @@ interface FormErrors {
   description?: string[];
   categoryId?: string[];
   attachment?: string[];
+  [key: `dynamicFieldValues.${string}`]: string[] | undefined;
 }
 
 interface SubmitIdeaFormState {
   formData: FormData;
+  dynamicFieldValues: Record<string, string | number | boolean | string[]>;
   attachment: File | null;
   errors: FormErrors;
   isSubmitting: boolean;
@@ -59,6 +64,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         description: '',
         categoryId: '',
       },
+      dynamicFieldValues: {},
       attachment: null,
       errors: {},
       isSubmitting: false,
@@ -115,7 +121,15 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
    */
   private submitWithRetry = async (): Promise<void> => {
     try {
-      const { formData, attachment } = this.state;
+      const { formData, dynamicFieldValues, attachment } = this.state;
+
+      // Build payload - omit empty optional dynamic values
+      const cleanedDynamic: Record<string, string | number | boolean | string[]> = {};
+      Object.entries(dynamicFieldValues).forEach(([k, v]) => {
+        if (v === undefined || v === '') return;
+        if (Array.isArray(v) && v.length === 0) return;
+        cleanedDynamic[k] = v;
+      });
 
       let response: Response;
       if (attachment) {
@@ -123,13 +137,17 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
         fd.append('title', formData.title);
         fd.append('description', formData.description);
         fd.append('categoryId', formData.categoryId);
+        fd.append('dynamicFieldValues', JSON.stringify(cleanedDynamic));
         fd.append('attachment', attachment);
         response = await fetch('/api/ideas', { method: 'POST', body: fd });
       } else {
         response = await fetch('/api/ideas', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({
+            ...formData,
+            dynamicFieldValues: Object.keys(cleanedDynamic).length > 0 ? cleanedDynamic : undefined,
+          }),
         });
       }
 
@@ -166,9 +184,9 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             }
           });
         } else if (data.details) {
-          // Validation errors from API
+          // Validation errors from API (fixed + dynamic fields)
           this.setState({
-            errors: data.details,
+            errors: data.details as FormErrors,
             isSubmitting: false,
           });
         } else {
@@ -185,6 +203,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
       this.setState({
         submitSuccess: true,
         formData: { title: '', description: '', categoryId: '' },
+        dynamicFieldValues: {},
         attachment: null,
         errors: {},
         isSubmitting: false,
@@ -205,7 +224,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
   };
 
   render(): JSX.Element {
-    const { formData, attachment, errors, isSubmitting, submitError, submitSuccess, submittedIdeaId } =
+    const { formData, dynamicFieldValues, attachment, errors, isSubmitting, submitError, submitSuccess, submittedIdeaId } =
       this.state;
     const { categories } = this.props;
 
@@ -311,6 +330,21 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             </div>
           )}
         </div>
+
+        {this.props.formConfig?.fields?.map((field) => (
+          <DynamicFieldRenderer
+            key={field.id}
+            field={field}
+            value={dynamicFieldValues[field.id]}
+            onChange={(fieldId, value) =>
+              this.setState((prev) => ({
+                dynamicFieldValues: { ...prev.dynamicFieldValues, [fieldId]: value },
+              }))
+            }
+            disabled={isSubmitting}
+            error={errors[`dynamicFieldValues.${field.id}`]}
+          />
+        ))}
 
         <IdeaAttachmentInput
           value={attachment}

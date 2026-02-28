@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { prisma } from '@/server/db/prisma';
 import { getIdeasForUser } from '@/lib/services/idea-service';
+import { getActiveConfig } from '@/lib/services/form-config-service';
 import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { IdeaListItem } from '@/components/IdeaListItem';
 import { IdeaListSkeleton } from '@/components/IdeaListSkeleton';
@@ -35,18 +36,30 @@ async function IdeasListContent({
   const pageSize = params.pageSize ? parseInt(params.pageSize, 10) : 15;
   const categoryId = params.categoryId || undefined;
 
-  const [categories, { ideas, pagination }] = await Promise.all([
+  const [categories, formConfig, { ideas, pagination }] = await Promise.all([
     prisma.category.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
       select: { id: true, name: true },
     }),
+    getActiveConfig(),
     getIdeasForUser(resolvedUserId, role, {
       page,
       pageSize,
       categoryId,
     }),
   ]);
+
+  const dynamicFieldLabels: Record<string, string> = {};
+  if (formConfig) {
+    for (const f of formConfig.fields) dynamicFieldLabels[f.id] = f.label;
+  }
+  for (const idea of ideas) {
+    const dvs = idea.dynamicFieldValues ?? {};
+    for (const key of Object.keys(dvs)) {
+      if (!(key in dynamicFieldLabels)) dynamicFieldLabels[key] = 'Unknown field';
+    }
+  }
 
   const emptyMessage = categoryId
     ? 'No ideas in this category'
@@ -96,6 +109,8 @@ async function IdeasListContent({
             submittedAt={idea.submittedAt}
             hasAttachment={idea.hasAttachment}
             status={idea.status}
+            dynamicFieldValues={idea.dynamicFieldValues}
+            dynamicFieldLabels={dynamicFieldLabels}
           />
         ))}
       </div>

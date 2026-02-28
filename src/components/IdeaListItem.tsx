@@ -1,6 +1,16 @@
 import Link from 'next/link';
 import type { IdeaStatus } from '@prisma/client';
 
+const TRUNCATE_LENGTH = 50;
+
+function truncate(value: unknown): string {
+  if (value == null) return '—';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (Array.isArray(value)) return value.join(', ');
+  const s = String(value);
+  return s.length > TRUNCATE_LENGTH ? `${s.slice(0, TRUNCATE_LENGTH)}…` : s;
+}
+
 export type IdeaListItemProps = {
   id: string;
   title: string;
@@ -8,6 +18,8 @@ export type IdeaListItemProps = {
   submittedAt: Date;
   hasAttachment: boolean;
   status: IdeaStatus;
+  dynamicFieldValues?: Record<string, unknown> | null;
+  dynamicFieldLabels?: Record<string, string>;
 };
 
 const STATUS_LABELS: Record<IdeaStatus, string> = {
@@ -27,6 +39,8 @@ export function IdeaListItem({
   submittedAt,
   hasAttachment,
   status,
+  dynamicFieldValues,
+  dynamicFieldLabels,
 }: IdeaListItemProps): JSX.Element {
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -47,6 +61,16 @@ export function IdeaListItem({
           <span>{categoryName}</span>
           <span>•</span>
           <time dateTime={submittedAt.toISOString()}>{formattedDate}</time>
+          {dynamicFieldValues &&
+            Object.keys(dynamicFieldValues).length > 0 &&
+            Object.entries(dynamicFieldValues).map(([key, val]) => (
+              <span key={key} title={String(val)}>
+                <span className="font-medium">
+                  {(dynamicFieldLabels?.[key] ?? key)}:
+                </span>{' '}
+                {truncate(val)}
+              </span>
+            ))}
           <span>•</span>
           <span
             className="inline-flex rounded px-2 py-0.5 text-xs font-medium"

@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { notFound } from 'next/navigation';
 
 import { getIdeaForDetail } from '@/lib/services/idea-service';
+import { getActiveConfig } from '@/lib/services/form-config-service';
 import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { IdeaDetailSkeleton } from '@/components/IdeaDetailSkeleton';
 import { EvaluationForm } from '@/components/EvaluationForm';
@@ -46,7 +47,10 @@ async function IdeaDetailContent({ id }: { id: string }) {
 
   const role = await getUserRole(userId);
   const resolvedUserId = await resolveUserIdForDb(userId, userEmail);
-  const idea = await getIdeaForDetail(id, resolvedUserId, role);
+  const [idea, formConfig] = await Promise.all([
+    getIdeaForDetail(id, resolvedUserId, role),
+    getActiveConfig(),
+  ]);
 
   if (!idea) {
     notFound();
@@ -57,6 +61,22 @@ async function IdeaDetailContent({ id }: { id: string }) {
     month: 'short',
     day: 'numeric',
   }).format(idea.submittedAt);
+
+  const dynamicFieldLabels: Record<string, string> = {};
+  if (formConfig) {
+    for (const f of formConfig.fields) dynamicFieldLabels[f.id] = f.label;
+  }
+  const dvs = idea.dynamicFieldValues ?? {};
+  for (const key of Object.keys(dvs)) {
+    if (!(key in dynamicFieldLabels)) dynamicFieldLabels[key] = 'Unknown field';
+  }
+
+  const formatValue = (v: unknown): string => {
+    if (v == null) return '—';
+    if (typeof v === 'boolean') return v ? 'Yes' : 'No';
+    if (Array.isArray(v)) return v.join(', ');
+    return String(v);
+  };
 
   return (
     <div className="page-container">
@@ -104,6 +124,21 @@ async function IdeaDetailContent({ id }: { id: string }) {
           <h2>Description</h2>
           <p>{idea.description}</p>
         </section>
+        {Object.keys(dvs).length > 0 && (
+          <section className="idea-dynamic-fields mt-6">
+            <h2>Additional Details</h2>
+            <dl className="mt-2 space-y-2">
+              {Object.entries(dvs).map(([key, val]) => (
+                <div key={key} className="flex gap-2">
+                  <dt className="font-medium text-gray-700 min-w-[140px]">
+                    {dynamicFieldLabels[key]}
+                  </dt>
+                  <dd className="text-gray-600">{formatValue(val)}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
         {idea.attachment && (
           <section className="idea-attachment">
             <h2>Attachment</h2>

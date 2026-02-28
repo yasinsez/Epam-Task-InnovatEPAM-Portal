@@ -4,6 +4,8 @@ import { getServerSession } from 'next-auth';
 
 import { SubmitIdeaSchema, validateAttachmentFile } from '@/lib/validators';
 import { sanitizeText } from '@/lib/sanitizers';
+import { createSubmissionSchema } from '@/lib/utils/dynamic-schema';
+import { getActiveConfig } from '@/lib/services/form-config-service';
 import { getIdeasForUser } from '@/lib/services/idea-service';
 import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { prisma } from '@/server/db/prisma';
@@ -70,6 +72,7 @@ export async function GET(request: Request): Promise<Response> {
       category: i.category,
       submittedAt: i.submittedAt.toISOString(),
       hasAttachment: i.hasAttachment,
+      dynamicFieldValues: i.dynamicFieldValues ?? undefined,
     }));
 
     return NextResponse.json({
@@ -115,14 +118,36 @@ type ParsedPayload = {
   title: string;
   description: string;
   categoryId: string;
+  dynamicFieldValues: Record<string, unknown> | null;
   attachment: File | null;
 };
+
+/**
+ * Parses dynamicFieldValues from form data (JSON string or keyed params).
+ *
+ * @param formData - FormData from multipart request
+ * @returns Parsed dynamicFieldValues object or null
+ */
+function parseDynamicFieldsFromFormData(formData: FormData): Record<string, unknown> | null {
+  const raw = formData.get('dynamicFieldValues');
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 /**
  * Parses request body as JSON or multipart/form-data.
  *
  * @param request - Incoming request
- * @returns Parsed title, description, categoryId, attachment (File | null)
+ * @returns Parsed title, description, categoryId, dynamicFieldValues, attachment
  * @throws On parse failure
  */
 async function parseRequestBody(request: Request): Promise<ParsedPayload> {
@@ -135,11 +160,13 @@ async function parseRequestBody(request: Request): Promise<ParsedPayload> {
     const categoryId = (formData.get('categoryId') as string) || '';
     const raw = formData.get('attachment');
     const attachment = raw instanceof File ? raw : null;
+    const dynamicFieldValues = parseDynamicFieldsFromFormData(formData);
 
     return {
       title,
       description,
       categoryId,
+      dynamicFieldValues,
       attachment,
     };
   }
@@ -148,10 +175,16 @@ async function parseRequestBody(request: Request): Promise<ParsedPayload> {
   if (!body) {
     throw new Error('Invalid request body');
   }
+  const dynamicFieldValues =
+    body.dynamicFieldValues && typeof body.dynamicFieldValues === 'object' && !Array.isArray(body.dynamicFieldValues)
+      ? (body.dynamicFieldValues as Record<string, unknown>)
+      : null;
+
   return {
     title: body.title ?? '',
     description: body.description ?? '',
     categoryId: body.categoryId ?? '',
+    dynamicFieldValues,
     attachment: null,
   };
 }
@@ -206,7 +239,7 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const payload = await parseRequestBody(request);
-    const { title, description, categoryId, attachment } = payload;
+    const { title, description, categoryId, dynamicFieldValues: rawDynamic, attachment } = payload;
 
     const parsed = SubmitIdeaSchema.safeParse({ title, description, categoryId });
     if (!parsed.success) {
@@ -245,6 +278,33 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // Validate dynamic fields against current form config
+    const formConfig = await getActiveConfig();
+    const rawDynamicValues: Record<string, unknown> | null = rawDynamic ?? null;
+    let validatedDynamicFields: Record<string, unknown> = {};
+
+    if (formConfig && formConfig.fields.length > 0) {
+      const dynamicSchema = createSubmissionSchema(formConfig.fields);
+      const dynamicParsed = dynamicSchema.safeParse(rawDynamicValues ?? {});
+      if (!dynamicParsed.success) {
+        const details: Record<string, string[]> = {};
+        dynamicParsed.error.issues.forEach((issue) => {
+          const path = `dynamicFieldValues.${issue.path.join('.')}`;
+          if (!details[path]) details[path] = [];
+          details[path].push(issue.message);
+        });
+        return NextResponse.json({ success: false, details }, { status: 400 });
+      }
+      const validated = dynamicParsed.data as Record<string, unknown>;
+      const knownIds = new Set(formConfig.fields.map((f) => f.id));
+      for (const [k, v] of Object.entries(validated)) {
+        if (knownIds.has(k) && v !== undefined && v !== null && v !== '') {
+          if (Array.isArray(v) && v.length === 0) continue;
+          validatedDynamicFields[k] = v;
+        }
+      }
+    }
+
     const sanitizedTitle = sanitizeText(title);
     const sanitizedDescription = sanitizeText(description);
 
@@ -257,6 +317,10 @@ export async function POST(request: Request): Promise<Response> {
         categoryId,
         userId,
         status: 'SUBMITTED',
+        dynamicFieldValues:
+          Object.keys(validatedDynamicFields).length > 0
+            ? (validatedDynamicFields as object)
+            : undefined,
       },
       include: {
         category: true,
@@ -290,7 +354,7 @@ export async function POST(request: Request): Promise<Response> {
       include: { category: true, attachment: true },
     });
 
-    const responseIdea = ideaWithAttachment || idea;
+    const responseIdea = ideaWithAttachment ?? idea;
     type AttachmentShape = { id: string; originalFileName: string; fileSizeBytes: number; mimeType: string };
     const att = (responseIdea && 'attachment' in responseIdea ? responseIdea.attachment : null) as AttachmentShape | null;
     const attachmentMeta =
@@ -298,6 +362,10 @@ export async function POST(request: Request): Promise<Response> {
         ? { id: att.id, originalFileName: att.originalFileName, fileSizeBytes: att.fileSizeBytes, mimeType: att.mimeType }
         : null;
 
+    const responseCategory =
+      'category' in responseIdea && responseIdea.category
+        ? responseIdea.category
+        : idea.category;
     return NextResponse.json(
       {
         success: true,
@@ -309,13 +377,14 @@ export async function POST(request: Request): Promise<Response> {
           sanitizedTitle: responseIdea.sanitizedTitle,
           sanitizedDescription: responseIdea.sanitizedDescription,
           categoryId: responseIdea.categoryId,
-          category: responseIdea.category,
+          category: responseCategory,
           userId: responseIdea.userId,
           status: responseIdea.status,
           submittedAt: responseIdea.submittedAt,
           createdAt: responseIdea.createdAt,
           updatedAt: responseIdea.updatedAt,
           attachment: attachmentMeta,
+          dynamicFieldValues: validatedDynamicFields,
         },
       },
       { status: 201 },

@@ -12,6 +12,7 @@ export type IdeaListItem = {
   submittedAt: Date;
   hasAttachment: boolean;
   status: IdeaStatus;
+  dynamicFieldValues: Record<string, unknown> | null;
 };
 
 export type IdeaDetail = {
@@ -22,6 +23,7 @@ export type IdeaDetail = {
   submittedAt: Date;
   submitter?: string; // name || email; only for evaluator/admin
   status: IdeaStatus;
+  dynamicFieldValues: Record<string, unknown> | null;
   evaluation?: {
     decision: string;
     comments: string;
@@ -185,6 +187,7 @@ export async function getIdeasForUser(
       submittedAt: i.submittedAt,
       hasAttachment: !!i.attachment,
       status: i.status,
+      dynamicFieldValues: (i.dynamicFieldValues as Record<string, unknown>) ?? null,
     })),
     pagination: {
       page: normalizedPage,
@@ -250,6 +253,7 @@ export async function getIdeaForDetail(
     submittedAt: idea.submittedAt,
     submitter,
     status: idea.status,
+    dynamicFieldValues: (idea.dynamicFieldValues as Record<string, unknown>) ?? null,
     evaluation: idea.evaluation
       ? {
           decision: idea.evaluation.decision,

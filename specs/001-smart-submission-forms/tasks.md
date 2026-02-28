@@ -23,11 +23,11 @@
 
 **Purpose**: Project initialization and schema scaffolding
 
-- [ ] T001 Add FormConfiguration, FormFieldDefinition models and FormFieldType enum to prisma/schema.prisma
-- [ ] T002 Add dynamicFieldValues Json? column to Idea model in prisma/schema.prisma
-- [ ] T003 [P] Add Form Configuration tab link to src/app/admin/AdminTabs.tsx (href="/admin/form-config")
-- [ ] T004 Create src/lib/utils/dynamic-schema.ts with createSubmissionSchema(fieldDefinitions) factory per research.md
-- [ ] T005 Create src/lib/services/form-config-service.ts with getActiveConfig and saveConfig functions
+- [x] T001 Add FormConfiguration, FormFieldDefinition models and FormFieldType enum to prisma/schema.prisma
+- [x] T002 Add dynamicFieldValues Json? column to Idea model in prisma/schema.prisma
+- [x] T003 [P] Add Form Configuration tab link to src/app/admin/AdminTabs.tsx (href="/admin/form-config")
+- [x] T004 Create src/lib/utils/dynamic-schema.ts with createSubmissionSchema(fieldDefinitions) factory per research.md
+- [x] T005 Create src/lib/services/form-config-service.ts with getActiveConfig and saveConfig functions
 
 ---
 
@@ -37,11 +37,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Run Prisma migration: `npx prisma migrate dev --name add_smart_submission_forms`
-- [ ] T007 Add seed for one FormConfiguration with zero FormFieldDefinitions in prisma/seed.mjs (minimal default)
-- [ ] T008 Implement createSubmissionSchema in src/lib/utils/dynamic-schema.ts mapping fieldType → Zod primitives with required/optional and constraints
-- [ ] T009 Implement form-config-service: getActiveConfig (returns config with fields ordered by displayOrder), saveConfig (replace-all, last-write-wins)
-- [ ] T010 Add FormConfiguration.updatedById FK to User and FormConfigAudit or AuthLog entry on config save per data-model.md
+- [x] T006 Run Prisma migration: `npx prisma migrate dev --name add_smart_submission_forms`
+- [x] T007 Add seed for one FormConfiguration with zero FormFieldDefinitions in prisma/seed.mjs (minimal default)
+- [x] T008 Implement createSubmissionSchema in src/lib/utils/dynamic-schema.ts mapping fieldType → Zod primitives with required/optional and constraints
+- [x] T009 Implement form-config-service: getActiveConfig (returns config with fields ordered by displayOrder), saveConfig (replace-all, last-write-wins)
+- [x] T010 Add FormConfiguration.updatedById FK to User and FormConfigAudit or AuthLog entry on config save per data-model.md
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -55,13 +55,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Create GET /api/admin/form-config route in src/app/api/admin/form-config/route.ts (require admin role)
-- [ ] T012 [US1] Create PUT /api/admin/form-config route with Zod validation for fields array per contracts/api-form-config.md
-- [ ] T013 [US1] Add PUT body validation using field definition constraints (label 1–100, options for selects, min ≤ max for number)
-- [ ] T014 [US1] Create admin Form Configuration page at src/app/admin/form-config/page.tsx
-- [ ] T015 [US1] Implement FormConfigEditor client component: list fields, add/edit/remove/reorder via up-down buttons
-- [ ] T016 [US1] Wire FormConfigEditor to PUT /api/admin/form-config on save; show success/error feedback
-- [ ] T017 [US1] Log form config change to AuthLog (action: "FORM_CONFIG_UPDATED", metadata: formConfigId) on save
+- [x] T011 [US1] Create GET /api/admin/form-config route in src/app/api/admin/form-config/route.ts (require admin role)
+- [x] T012 [US1] Create PUT /api/admin/form-config route with Zod validation for fields array per contracts/api-form-config.md
+- [x] T013 [US1] Add PUT body validation using field definition constraints (label 1–100, options for selects, min ≤ max for number)
+- [x] T014 [US1] Create admin Form Configuration page at src/app/admin/form-config/page.tsx
+- [x] T015 [US1] Implement FormConfigEditor client component: list fields, add/edit/remove/reorder via up-down buttons
+- [x] T016 [US1] Wire FormConfigEditor to PUT /api/admin/form-config on save; show success/error feedback
+- [x] T017 [US1] Log form config change to AuthLog (action: "FORM_CONFIG_UPDATED", metadata: formConfigId) on save
 
 **Checkpoint**: User Story 1 complete — admins can configure form fields; submitters see minimal default until config added
 
@@ -75,13 +75,13 @@
 
 ### Implementation for User Story 2
 
-- [ ] T018 [P] [US2] Create DynamicFieldRenderer component in src/components/DynamicFieldRenderer.tsx (renders input by fieldType: text, longText, number, singleSelect, multiSelect, checkbox, date)
-- [ ] T019 [US2] Extend SubmitIdeaForm in src/components/SubmitIdeaForm.tsx to fetch form config and render dynamic fields via DynamicFieldRenderer
-- [ ] T020 [US2] Extend POST /api/ideas in src/app/api/ideas/route.ts to accept dynamicFieldValues in body
-- [ ] T021 [US2] Validate dynamicFieldValues on POST using createSubmissionSchema from current form config in src/app/api/ideas/route.ts
-- [ ] T022 [US2] Persist dynamicFieldValues to Idea.dynamicFieldValues in idea creation flow
-- [ ] T023 [US2] Handle multipart/form-data: parse dynamicFieldValues JSON or keyed params when attachment present
-- [ ] T024 [US2] Return 400 with field-level validation errors for dynamic fields per contracts/api-ideas-dynamic-fields.md
+- [x] T018 [P] [US2] Create DynamicFieldRenderer component in src/components/DynamicFieldRenderer.tsx (renders input by fieldType: text, longText, number, singleSelect, multiSelect, checkbox, date)
+- [x] T019 [US2] Extend SubmitIdeaForm in src/components/SubmitIdeaForm.tsx to fetch form config and render dynamic fields via DynamicFieldRenderer
+- [x] T020 [US2] Extend POST /api/ideas in src/app/api/ideas/route.ts to accept dynamicFieldValues in body
+- [x] T021 [US2] Validate dynamicFieldValues on POST using createSubmissionSchema from current form config in src/app/api/ideas/route.ts
+- [x] T022 [US2] Persist dynamicFieldValues to Idea.dynamicFieldValues in idea creation flow
+- [x] T023 [US2] Handle multipart/form-data: parse dynamicFieldValues JSON or keyed params when attachment present
+- [x] T024 [US2] Return 400 with field-level validation errors for dynamic fields per contracts/api-ideas-dynamic-fields.md
 
 **Checkpoint**: User Story 2 complete — submitters can submit ideas with dynamic fields; validation enforced
 
@@ -95,13 +95,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Extend idea-service getIdeasForUser and getIdeaForDetail in src/lib/services/idea-service.ts to include dynamicFieldValues
-- [ ] T026 [US3] Extend GET /api/ideas response to include dynamicFieldValues per idea in src/app/api/ideas/route.ts
-- [ ] T027 [US3] Extend GET /api/ideas/[id] response to include dynamicFieldValues and dynamicFieldLabels in src/app/api/ideas/[id]/route.ts
-- [ ] T028 [US3] Build dynamicFieldLabels map from current FormConfiguration for detail view; use "Unknown field" for historical keys
-- [ ] T029 [US3] Extend IdeaListItem in src/components/IdeaListItem.tsx to display dynamic field values (truncate long values, e.g. 50 chars)
-- [ ] T030 [US3] Extend idea detail page in src/app/ideas/[id]/page.tsx to show dynamic field values with labels (full values, no truncation)
-- [ ] T031 [US3] Ensure historical ideas with removed/renamed fields still display values by key when config changed
+- [x] T025 [US3] Extend idea-service getIdeasForUser and getIdeaForDetail in src/lib/services/idea-service.ts to include dynamicFieldValues
+- [x] T026 [US3] Extend GET /api/ideas response to include dynamicFieldValues per idea in src/app/api/ideas/route.ts
+- [x] T027 [US3] Extend GET /api/ideas/[id] response to include dynamicFieldValues and dynamicFieldLabels in src/app/api/ideas/[id]/route.ts
+- [x] T028 [US3] Build dynamicFieldLabels map from current FormConfiguration for detail view; use "Unknown field" for historical keys
+- [x] T029 [US3] Extend IdeaListItem in src/components/IdeaListItem.tsx to display dynamic field values (truncate long values, e.g. 50 chars)
+- [x] T030 [US3] Extend idea detail page in src/app/ideas/[id]/page.tsx to show dynamic field values with labels (full values, no truncation)
+- [x] T031 [US3] Ensure historical ideas with removed/renamed fields still display values by key when config changed
 
 **Checkpoint**: All user stories complete — full flow: admin configures → submitter submits → viewers see values
 
@@ -111,13 +111,13 @@
 
 **Purpose**: Tests, validation, and documentation
 
-- [ ] T032 [P] Add contract test for GET/PUT /api/admin/form-config in tests/contract/api-form-config.test.ts
-- [ ] T033 [P] Add integration tests for api/admin/form-config and api/ideas with dynamic payloads in tests/integration/
-- [ ] T034 [P] Add unit tests for form-config-service in tests/unit/lib/services/form-config-service.test.ts
-- [ ] T035 [P] Add unit tests for dynamic-schema in tests/unit/lib/utils/dynamic-schema.test.ts
-- [ ] T036 Add E2E test smart-submission-forms.spec.ts: admin configures, submitter submits, viewer sees in tests/e2e/
-- [ ] T037 Run quickstart.md validation and fix any issues
-- [ ] T038 [P] Update docs if needed; ensure JSDoc on new functions/components
+- [x] T032 [P] Add contract test for GET/PUT /api/admin/form-config in tests/contract/api-form-config.test.ts
+- [x] T033 [P] Add integration tests for api/admin/form-config and api/ideas with dynamic payloads in tests/integration/
+- [x] T034 [P] Add unit tests for form-config-service in tests/unit/lib/services/form-config-service.test.ts
+- [x] T035 [P] Add unit tests for dynamic-schema in tests/unit/lib/utils/dynamic-schema.test.ts
+- [x] T036 Add E2E test smart-submission-forms.spec.ts: admin configures, submitter submits, viewer sees in tests/e2e/
+- [x] T037 Run quickstart.md validation and fix any issues
+- [x] T038 [P] Update docs if needed; ensure JSDoc on new functions/components
 
 ---
 

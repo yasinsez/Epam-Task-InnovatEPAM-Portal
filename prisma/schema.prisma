@@ -47,6 +47,7 @@ model User {
   authLogs               AuthLog[]
   ideas                     Idea[]
   evaluations                Evaluation[]
+  ideasRated                 Idea[]          @relation("IdeaRatingEvaluator")
   formConfigurationsBy      FormConfiguration[]
   uploadConfigurationsBy     UploadConfiguration[]
   stageTransitions          StageTransition[]
@@ -214,6 +215,10 @@ model Idea {
   attachments          Attachment[]
   evaluation           Evaluation?
   stageTransitions     StageTransition[]
+  rating               Int?
+  ratingEvaluatorId    String?
+  ratingEvaluator      User?          @relation("IdeaRatingEvaluator", fields: [ratingEvaluatorId], references: [id], onDelete: SetNull)
+  ratingAssignedAt     DateTime?
 
   @@index([userId])
   @@index([userId, status])
@@ -221,6 +226,7 @@ model Idea {
   @@index([currentStageId])
   @@index([submittedAt])
   @@index([userId, submittedAt])
+  @@index([rating])
 }
 
 // Evaluation model - one per idea when evaluated

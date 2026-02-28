@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { IdeaStatus } from '@prisma/client';
+import { RatingDisplay } from '@/components/RatingDisplay';
 
 const TRUNCATE_LENGTH = 50;
 
@@ -29,6 +30,8 @@ export type IdeaListItemProps = {
   currentStage?: CurrentStageInfo | null;
   dynamicFieldValues?: Record<string, unknown> | null;
   dynamicFieldLabels?: Record<string, string>;
+  rating?: number | null;
+  ratingDisplay?: string;
 };
 
 const STATUS_LABELS: Record<IdeaStatus, string> = {
@@ -52,6 +55,8 @@ export function IdeaListItem({
   currentStage,
   dynamicFieldValues,
   dynamicFieldLabels,
+  rating = null,
+  ratingDisplay = 'Not yet rated',
 }: IdeaListItemProps): JSX.Element {
   const formattedDate = new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
@@ -90,6 +95,8 @@ export function IdeaListItem({
               </span>
             </>
           )}
+          <span>•</span>
+          <RatingDisplay rating={rating} ratingDisplay={ratingDisplay} />
           <span>•</span>
           <span
             className="inline-flex rounded px-2 py-0.5 text-xs font-medium"

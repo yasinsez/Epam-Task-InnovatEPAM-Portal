@@ -30,9 +30,9 @@ npm test && npm run lint
 TypeScript 5.x with Next.js 14+ (App Router): Follow standard conventions
 
 ## Recent Changes
+- 013-ideas-scoring: Added TypeScript 5.x (strict mode) + Next.js 14 App Router, NextAuth v4, Prisma ORM, React 18
 - 012-blind-review: Added TypeScript 5.x (strict mode) + Next.js 14 App Router, NextAuth v4, Prisma ORM, React 18
 - 011-multi-stage-review: Added TypeScript 5.x with `strict: true` + Next.js 14+ App Router, Prisma ORM, NextAuth v4
-- 010-draft-management: Added TypeScript 5.x with `strict: true` + Next.js 14+ App Router, Prisma ORM, NextAuth v4
 
 
 <!-- MANUAL ADDITIONS START -->

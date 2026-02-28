@@ -16,6 +16,8 @@ export type IdeaListItem = {
   status: IdeaStatus;
   currentStage?: CurrentStageInfo | null;
   dynamicFieldValues: Record<string, unknown> | null;
+  rating: number | null;
+  ratingDisplay: string;
 };
 
 export type CurrentStageInfo = {
@@ -38,6 +40,9 @@ export type IdeaDetail = {
   /** Completed stage names (from transitions) for StageProgressDisplay path */
   completedStageNames?: string[];
   dynamicFieldValues: Record<string, unknown> | null;
+  rating: number | null;
+  ratingDisplay: string;
+  ratingAssignedAt: Date | null;
   evaluation?: {
     decision: string;
     comments: string;
@@ -60,10 +65,16 @@ export type PaginationMeta = {
   totalPages: number;
 };
 
+export type IdeaSortBy = 'ratingDesc' | 'ratingAsc';
+
 export type GetIdeasOptions = {
   page?: number;
   pageSize?: number;
   categoryId?: string;
+  /** Evaluator/admin only: sort by rating (highest/lowest first). Unrated ideas at end. */
+  sortBy?: IdeaSortBy;
+  /** Evaluator/admin only: filter to ideas with rating >= value (1–5). Excludes unrated. */
+  minRating?: number;
 };
 
 export type SubmissionStats = {
@@ -167,18 +178,30 @@ export async function getIdeasForUser(
   role: UserRole,
   options: GetIdeasOptions = {},
 ): Promise<{ ideas: IdeaListItem[]; pagination: PaginationMeta }> {
-  const { page = 1, pageSize = 15, categoryId } = options;
+  const { page = 1, pageSize = 15, categoryId, sortBy, minRating } = options;
 
   const safePage = Math.max(1, Math.floor(Number(page)) || 1);
   const safePageSize = Math.min(100, Math.max(1, Math.floor(Number(pageSize)) || 15));
 
-  const where: { userId?: string; categoryId?: string; status?: { not: 'DRAFT' } } = {};
+  const where: {
+    userId?: string;
+    categoryId?: string;
+    status?: { not: 'DRAFT' };
+    rating?: number | { gte: number };
+  } = {};
   if (role === 'submitter') {
     where.userId = userId;
     where.status = { not: 'DRAFT' };
   } else {
-    // Evaluator/admin: exclude drafts from evaluation queue
     where.status = { not: 'DRAFT' };
+    if (
+      minRating != null &&
+      Number.isInteger(minRating) &&
+      minRating >= 1 &&
+      minRating <= 5
+    ) {
+      where.rating = { gte: minRating };
+    }
   }
   if (categoryId) {
     where.categoryId = categoryId;
@@ -188,9 +211,22 @@ export async function getIdeasForUser(
   const totalPages = Math.max(1, Math.ceil(totalCount / safePageSize));
   const normalizedPage = Math.max(1, Math.min(safePage, totalPages));
 
+  let orderBy: { rating?: 'asc' | 'desc'; submittedAt?: 'desc' }[] | { submittedAt: 'desc' };
+  if (
+    (role === 'evaluator' || role === 'admin') &&
+    (sortBy === 'ratingDesc' || sortBy === 'ratingAsc')
+  ) {
+    orderBy = [
+      { rating: sortBy === 'ratingDesc' ? 'desc' : 'asc' },
+      { submittedAt: 'desc' },
+    ];
+  } else {
+    orderBy = { submittedAt: 'desc' };
+  }
+
   const resultIdeas = await prisma.idea.findMany({
     where,
-    orderBy: { submittedAt: 'desc' },
+    orderBy,
     skip: (normalizedPage - 1) * safePageSize,
     take: safePageSize,
     include: {
@@ -217,6 +253,8 @@ export async function getIdeasForUser(
           isFinal,
         };
       }
+      const rating = i.rating ?? null;
+      const ratingDisplay = rating != null ? `${rating}/5` : 'Not yet rated';
       return {
         id: i.id,
         title: i.title,
@@ -226,6 +264,8 @@ export async function getIdeasForUser(
         status: i.status,
         currentStage,
         dynamicFieldValues: (i.dynamicFieldValues as Record<string, unknown>) ?? null,
+        rating,
+        ratingDisplay,
       };
     }),
     pagination: {
@@ -325,6 +365,9 @@ export async function getIdeaForDetail(
       .map((s) => s.name);
   }
 
+  const rating = idea.rating ?? null;
+  const ratingDisplay = rating != null ? `${rating}/5` : 'Not yet rated';
+
   return {
     id: idea.id,
     title: idea.title,
@@ -336,6 +379,9 @@ export async function getIdeaForDetail(
     currentStage,
     completedStageNames,
     dynamicFieldValues: (idea.dynamicFieldValues as Record<string, unknown>) ?? null,
+    rating,
+    ratingDisplay,
+    ratingAssignedAt: idea.ratingAssignedAt ?? null,
     evaluation: idea.evaluation
       ? {
           decision: idea.evaluation.decision,

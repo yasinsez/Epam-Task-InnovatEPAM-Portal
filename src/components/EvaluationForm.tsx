@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MAX_EVALUATION_COMMENTS_LENGTH } from '@/lib/constants/evaluation';
 
 type CurrentStageInfo = {
@@ -16,6 +16,8 @@ type EvaluationFormProps = {
   ideaId: string;
   /** When in multi-stage pipeline: null = no stages (default flow); otherwise show Advance or Accept/Reject per isFinal */
   currentStage?: CurrentStageInfo | null;
+  /** Current rating 1–5 if already set; used as initial value for rating input */
+  currentRating?: number | null;
   onSuccess?: () => void;
 };
 
@@ -28,11 +30,19 @@ type EvaluationFormProps = {
 export function EvaluationForm({
   ideaId,
   currentStage,
+  currentRating,
   onSuccess,
 }: Readonly<EvaluationFormProps>) {
   const router = useRouter();
   const [decision, setDecision] = useState<'ACCEPTED' | 'REJECTED' | null>(null);
   const [comments, setComments] = useState('');
+  const [rating, setRating] = useState<number | null>(currentRating ?? null);
+  const [ratingError, setRatingError] = useState<string | null>(null);
+  const [ratingLoading, setRatingLoading] = useState(false);
+
+  useEffect(() => {
+    setRating(currentRating ?? null);
+  }, [currentRating]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -99,6 +109,35 @@ export function EvaluationForm({
     }
   };
 
+  const handleSaveRating = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setRatingError(null);
+    if (rating == null || rating < 1 || rating > 5) {
+      setRatingError('Please select a rating between 1 and 5.');
+      return;
+    }
+    setRatingLoading(true);
+    try {
+      const res = await fetch(`/api/ideas/${ideaId}/assign-rating`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rating }),
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRatingError(data.error ?? 'Failed to save rating');
+        return;
+      }
+      onSuccess?.();
+      router.refresh();
+    } catch {
+      setRatingError('Failed to save rating');
+    } finally {
+      setRatingLoading(false);
+    }
+  };
+
   return (
     <section className="mt-6 rounded border border-gray-200 p-4">
       <h2 className="mb-3 text-lg font-semibold">
@@ -136,7 +175,41 @@ export function EvaluationForm({
         </form>
       )}
       {showEvaluate && (
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <>
+        <form onSubmit={handleSaveRating} className="mb-6 space-y-4">
+          <div>
+            <label htmlFor="rating" className="mb-1 block text-sm font-medium text-gray-700">
+              Rating (1–5)
+            </label>
+            <select
+              id="rating"
+              value={rating ?? ''}
+              onChange={(e) => setRating(e.target.value ? parseInt(e.target.value, 10) : null)}
+              disabled={ratingLoading}
+              className="rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+            >
+              <option value="">Select rating…</option>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <option key={n} value={n}>
+                  {n}/5
+                </option>
+              ))}
+            </select>
+            {ratingError && (
+              <p className="mt-1 text-sm text-red-600" role="alert">
+                {ratingError}
+              </p>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={ratingLoading || rating == null}
+            className="rounded bg-gray-600 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700 disabled:bg-gray-400"
+          >
+            {ratingLoading ? 'Saving...' : 'Save Rating'}
+          </button>
+        </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
         <div className="flex gap-4">
           <label className="flex items-center gap-2">
             <input
@@ -194,6 +267,7 @@ export function EvaluationForm({
           {loading ? 'Submitting...' : 'Submit Evaluation'}
         </button>
       </form>
+      </>
       )}
     </section>
   );

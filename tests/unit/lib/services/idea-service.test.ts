@@ -12,6 +12,9 @@ jest.mock('@/server/db/prisma', () => ({
       delete: jest.fn(),
       count: jest.fn(),
     },
+    reviewStage: {
+      findMany: jest.fn(),
+    },
   },
 }));
 
@@ -67,6 +70,7 @@ describe('getIdeasForUser', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    prisma.reviewStage.findMany.mockResolvedValue([]);
   });
 
   it('should filter by userId for submitter role', async () => {
@@ -252,17 +256,50 @@ describe('getIdeaForDetail', () => {
       submittedAt: new Date('2026-02-25'),
       userId: 'user-123',
       status: 'SUBMITTED',
-      attachment: null,
+      currentStageId: null,
+      currentStage: null,
+      dynamicFieldValues: null,
       evaluation: null,
+      attachments: [],
       user: { name: 'Me', email: 'me@example.com' },
     };
     prisma.idea.findUnique.mockResolvedValue(idea);
+    prisma.reviewStage = { findMany: jest.fn().mockResolvedValue([]) };
 
     const result = await getIdeaForDetail('idea-1', 'user-123', 'submitter');
 
     expect(result).not.toBeNull();
     expect(result?.title).toBe('My Idea');
     expect(result?.submitter).toBeUndefined(); // submitters don't see submitter
+  });
+
+  it('should include rating for submitter viewing own rated idea', async () => {
+    const idea = {
+      id: 'idea-1',
+      title: 'My Rated Idea',
+      description: 'Desc',
+      category: { id: 'c1', name: 'Tech' },
+      submittedAt: new Date(),
+      userId: 'user-123',
+      status: 'ACCEPTED',
+      currentStageId: null,
+      currentStage: null,
+      dynamicFieldValues: null,
+      evaluation: { decision: 'ACCEPTED', comments: 'Good', evaluatedAt: new Date(), evaluatorId: 'e1', evaluator: { name: 'Eval', email: 'e@x.com' }, evaluatedUnderBlindReview: false },
+      attachments: [],
+      rating: 4,
+      ratingAssignedAt: new Date('2026-02-28T15:00:00Z'),
+      user: { name: 'Me', email: 'me@example.com' },
+    };
+    prisma.idea.findUnique.mockResolvedValue(idea);
+    prisma.reviewStage = { findMany: jest.fn().mockResolvedValue([]) };
+
+    const result = await getIdeaForDetail('idea-1', 'user-123', 'submitter');
+
+    expect(result).not.toBeNull();
+    expect(result?.rating).toBe(4);
+    expect(result?.ratingDisplay).toBe('4/5');
+    expect(result?.ratingAssignedAt).toBeInstanceOf(Date);
   });
 
   it('should include submitter for evaluator', async () => {

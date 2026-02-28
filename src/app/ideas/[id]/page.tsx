@@ -10,6 +10,7 @@ import { getUserRole, resolveUserIdForDb } from '@/lib/auth/roles';
 import { IdeaDetailSkeleton } from '@/components/IdeaDetailSkeleton';
 import { IdeaAttachmentsList } from '@/components/IdeaAttachmentsList';
 import { EvaluationForm } from '@/components/EvaluationForm';
+import { RatingDisplay } from '@/components/RatingDisplay';
 import { StartReviewButton } from '@/components/StartReviewButton';
 import { StageProgressDisplay } from '@/components/StageProgressDisplay';
 
@@ -88,7 +89,10 @@ async function IdeaDetailContent({ id }: { id: string }) {
         </Link>
         <h1>{idea.title}</h1>
         <p className="idea-meta">
-          Category: {idea.category?.name ?? '—'} | {formattedDate} | Status:{' '}
+          Category: {idea.category?.name ?? '—'} | {formattedDate} | Rating:{' '}
+          <RatingDisplay rating={idea.rating} ratingDisplay={idea.ratingDisplay} />
+          {' | '}
+          Status:{' '}
           <span
             className="inline-flex rounded px-2 py-0.5 text-xs font-medium"
             style={{
@@ -162,7 +166,11 @@ async function IdeaDetailContent({ id }: { id: string }) {
                   <StartReviewButton ideaId={idea.id} />
                 </div>
               )}
-              <EvaluationForm ideaId={idea.id} currentStage={idea.currentStage} />
+              <EvaluationForm
+                ideaId={idea.id}
+                currentStage={idea.currentStage}
+                currentRating={idea.rating}
+              />
             </>
           )}
         {idea.evaluation && (

@@ -25,7 +25,7 @@
 
 **Purpose**: Verify project context and branch; no new project initialization (existing Next.js monolith)
 
-- [ ] T001 Verify on branch `013-ideas-scoring` and Node.js 18+ available
+- [x] T001 Verify on branch `013-ideas-scoring` and Node.js 18+ available
 
 ---
 
@@ -35,11 +35,11 @@
 
 **⚠️ CRITICAL**: All user stories depend on Idea model having rating fields and RatingService existing.
 
-- [ ] T002 Add `rating`, `ratingEvaluatorId`, `ratingAssignedAt` to Idea model and `ideasRated` relation to User in prisma/schema.prisma
-- [ ] T003 Add `@@index([rating])` to Idea model in prisma/schema.prisma
-- [ ] T004 Run `npx prisma migrate dev` to create migration for rating fields
-- [ ] T005 [P] Add `ratingSchema` (z.number().int().min(1).max(5)) to src/lib/validators.ts
-- [ ] T006 [P] Create RatingService with `assignRating(ideaId, evaluatorId, rating)` in src/lib/services/rating-service.ts (validate 1-5, block when ACCEPTED/REJECTED)
+- [x] T002 Add `rating`, `ratingEvaluatorId`, `ratingAssignedAt` to Idea model and `ideasRated` relation to User in prisma/schema.prisma
+- [x] T003 Add `@@index([rating])` to Idea model in prisma/schema.prisma
+- [x] T004 Run `npx prisma migrate dev` to create migration for rating fields
+- [x] T005 [P] Add `ratingSchema` (z.number().int().min(1).max(5)) to src/lib/validators.ts
+- [x] T006 [P] Create RatingService with `assignRating(ideaId, evaluatorId, rating)` in src/lib/services/rating-service.ts (validate 1-5, block when ACCEPTED/REJECTED)
 
 **Checkpoint**: Migration applied; validators and RatingService ready. User story implementation can begin.
 
@@ -55,14 +55,14 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T007 [P] [US1] Unit test for assignRating and validation in tests/unit/lib/services/rating-service.test.ts
-- [ ] T008 [P] [US1] Integration test for POST /api/ideas/[id]/assign-rating in tests/integration/api/ideas-assign-rating.test.ts
+- [x] T007 [P] [US1] Unit test for assignRating and validation in tests/unit/lib/services/rating-service.test.ts
+- [x] T008 [P] [US1] Integration test for POST /api/ideas/[id]/assign-rating in tests/integration/api/ideas-assign-rating.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Create POST handler for assign-rating in src/app/api/ideas/[id]/assign-rating/route.ts (auth, role check, status check, call RatingService)
-- [ ] T010 [US1] Add rating input (1-5 stars or select) and "Save Rating" to EvaluationForm in src/components/EvaluationForm.tsx
-- [ ] T011 [US1] Wire EvaluationForm rating input to POST /api/ideas/[id]/assign-rating and handle success/error responses
+- [x] T009 [US1] Create POST handler for assign-rating in src/app/api/ideas/[id]/assign-rating/route.ts (auth, role check, status check, call RatingService)
+- [x] T010 [US1] Add rating input (1-5 stars or select) and "Save Rating" to EvaluationForm in src/components/EvaluationForm.tsx
+- [x] T011 [US1] Wire EvaluationForm rating input to POST /api/ideas/[id]/assign-rating and handle success/error responses
 
 **Checkpoint**: Evaluators can assign/update ratings; validation and immutability enforced.
 
@@ -76,11 +76,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T012 [US2] Extend getIdeasForUser in src/lib/services/idea-service.ts to include rating, ratingDisplay in each idea
-- [ ] T013 [US2] Extend getIdeaForDetail in src/lib/services/idea-service.ts to include rating, ratingDisplay, ratingAssignedAt
-- [ ] T014 [P] [US2] Create RatingDisplay component ("4/5" or "Not yet rated") in src/components/RatingDisplay.tsx
-- [ ] T015 [US2] Add RatingDisplay to idea list items in src/app/ideas/page.tsx
-- [ ] T016 [US2] Add RatingDisplay to idea detail view in src/app/ideas/[id]/page.tsx
+- [x] T012 [US2] Extend getIdeasForUser in src/lib/services/idea-service.ts to include rating, ratingDisplay in each idea
+- [x] T013 [US2] Extend getIdeaForDetail in src/lib/services/idea-service.ts to include rating, ratingDisplay, ratingAssignedAt
+- [x] T014 [P] [US2] Create RatingDisplay component ("4/5" or "Not yet rated") in src/components/RatingDisplay.tsx
+- [x] T015 [US2] Add RatingDisplay to idea list items in src/app/ideas/page.tsx
+- [x] T016 [US2] Add RatingDisplay to idea detail view in src/app/ideas/[id]/page.tsx
 
 **Checkpoint**: Ratings visible in list and detail for users with access.
 
@@ -94,8 +94,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Verify getIdeasForUser and getIdeaForDetail return rating for submitters viewing their own ideas (no filtering of rating by role)
-- [ ] T018 [US3] Add E2E test for submitter viewing own idea with rating in tests/e2e/ideas-scoring.spec.ts
+- [x] T017 [US3] Verify getIdeasForUser and getIdeaForDetail return rating for submitters viewing their own ideas (no filtering of rating by role)
+- [x] T018 [US3] Add E2E test for submitter viewing own idea with rating in tests/e2e/ideas-scoring.spec.ts
 
 **Checkpoint**: Submitters can view ratings on their evaluated ideas.
 
@@ -109,9 +109,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T019 [US4] Add optional sortBy (ratingDesc, ratingAsc) and minRating to getIdeasForUser in src/lib/services/idea-service.ts
-- [ ] T020 [US4] Pass sortBy and minRating from ideas list API route to getIdeasForUser in src/app/api/ideas/route.ts
-- [ ] T021 [US4] Add sort and filter UI controls to ideas list page for evaluators/admins in src/app/ideas/page.tsx
+- [x] T019 [US4] Add optional sortBy (ratingDesc, ratingAsc) and minRating to getIdeasForUser in src/lib/services/idea-service.ts
+- [x] T020 [US4] Pass sortBy and minRating from ideas list API route to getIdeasForUser in src/app/api/ideas/route.ts
+- [x] T021 [US4] Add sort and filter UI controls to ideas list page for evaluators/admins in src/app/ideas/page.tsx
 
 **Checkpoint**: Evaluators/admins can sort and filter ideas by rating.
 
@@ -121,8 +121,8 @@
 
 **Purpose**: E2E coverage and quickstart validation
 
-- [ ] T022 Add E2E test for evaluator assign rating and display flow in tests/e2e/ideas-scoring.spec.ts (if not already complete from T018)
-- [ ] T023 Run quickstart.md verification checklist
+- [x] T022 Add E2E test for evaluator assign rating and display flow in tests/e2e/ideas-scoring.spec.ts (if not already complete from T018)
+- [x] T023 Run quickstart.md verification checklist
 
 ---
 

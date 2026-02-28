@@ -10,16 +10,29 @@ import { IdeaListItem } from '@/components/IdeaListItem';
 import { IdeaListSkeleton } from '@/components/IdeaListSkeleton';
 import { PaginationControls } from '@/components/PaginationControls';
 import { CategoryFilter } from '@/components/CategoryFilter';
+import { RatingSortFilter } from '@/components/RatingSortFilter';
 import { authOptions } from '@/server/auth/route';
 
 type IdeasPageProps = {
-  searchParams: Promise<{ page?: string; pageSize?: string; categoryId?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    pageSize?: string;
+    categoryId?: string;
+    sortBy?: string;
+    minRating?: string;
+  }>;
 };
 
 async function IdeasListContent({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string; pageSize?: string; categoryId?: string }>;
+  searchParams: Promise<{
+    page?: string;
+    pageSize?: string;
+    categoryId?: string;
+    sortBy?: string;
+    minRating?: string;
+  }>;
 }) {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
@@ -35,6 +48,17 @@ async function IdeasListContent({
   const page = params.page ? parseInt(params.page, 10) : 1;
   const pageSize = params.pageSize ? parseInt(params.pageSize, 10) : 15;
   const categoryId = params.categoryId || undefined;
+  const sortBy =
+    params.sortBy === 'ratingDesc' || params.sortBy === 'ratingAsc'
+      ? params.sortBy
+      : undefined;
+  const minRatingParam = params.minRating
+    ? parseInt(params.minRating, 10)
+    : NaN;
+  const minRating =
+    !isNaN(minRatingParam) && minRatingParam >= 1 && minRatingParam <= 5
+      ? minRatingParam
+      : undefined;
 
   const [categories, formConfig, { ideas, pagination }] = await Promise.all([
     prisma.category.findMany({
@@ -47,6 +71,8 @@ async function IdeasListContent({
       page,
       pageSize,
       categoryId,
+      sortBy,
+      minRating,
     }),
   ]);
 
@@ -61,13 +87,22 @@ async function IdeasListContent({
     }
   }
 
+  const showRatingControls = role === 'evaluator' || role === 'admin';
+
   const emptyMessage = categoryId
     ? 'No ideas in this category'
     : role === 'submitter'
       ? 'No ideas yet. Submit your first idea!'
       : 'No ideas pending review';
 
-  const baseUrl = categoryId ? `/ideas?categoryId=${categoryId}` : '/ideas';
+  const buildBaseUrl = () => {
+    const p = new URLSearchParams();
+    if (categoryId) p.set('categoryId', categoryId);
+    if (sortBy) p.set('sortBy', sortBy);
+    if (minRating != null) p.set('minRating', String(minRating));
+    const q = p.toString();
+    return `/ideas${q ? `?${q}` : ''}`;
+  };
 
   if (ideas.length === 0) {
     return (
@@ -75,12 +110,22 @@ async function IdeasListContent({
         <h1 className="text-2xl font-bold mb-4">
           {role === 'submitter' ? 'My Ideas' : 'Ideas'}
         </h1>
-        <Suspense fallback={null}>
-          <CategoryFilter
-            categories={categories}
-            currentCategoryId={categoryId || null}
-          />
-        </Suspense>
+        <div className="flex flex-wrap items-center gap-4 mb-4">
+          <Suspense fallback={null}>
+            <CategoryFilter
+              categories={categories}
+              currentCategoryId={categoryId || null}
+            />
+          </Suspense>
+          {showRatingControls && (
+            <Suspense fallback={null}>
+              <RatingSortFilter
+                currentSortBy={sortBy || null}
+                currentMinRating={minRating ?? null}
+              />
+            </Suspense>
+          )}
+        </div>
         <p className="text-gray-600 mt-4">{emptyMessage}</p>
       </div>
     );
@@ -92,12 +137,22 @@ async function IdeasListContent({
         <h1 className="text-2xl font-bold">
           {role === 'submitter' ? 'My Ideas' : 'Ideas'}
         </h1>
-        <Suspense fallback={null}>
-          <CategoryFilter
-            categories={categories}
-            currentCategoryId={categoryId || null}
-          />
-        </Suspense>
+        <div className="flex flex-wrap items-center gap-4">
+          <Suspense fallback={null}>
+            <CategoryFilter
+              categories={categories}
+              currentCategoryId={categoryId || null}
+            />
+          </Suspense>
+          {showRatingControls && (
+            <Suspense fallback={null}>
+              <RatingSortFilter
+                currentSortBy={sortBy || null}
+                currentMinRating={minRating ?? null}
+              />
+            </Suspense>
+          )}
+        </div>
       </div>
       <div className="space-y-4">
         {ideas.map((idea) => (
@@ -112,6 +167,8 @@ async function IdeasListContent({
             currentStage={idea.currentStage}
             dynamicFieldValues={idea.dynamicFieldValues}
             dynamicFieldLabels={dynamicFieldLabels}
+            rating={idea.rating}
+            ratingDisplay={idea.ratingDisplay}
           />
         ))}
       </div>
@@ -121,7 +178,7 @@ async function IdeasListContent({
           totalPages={pagination.totalPages}
           totalCount={pagination.totalCount}
           pageSize={pagination.pageSize}
-          baseUrl={baseUrl}
+          baseUrl={buildBaseUrl()}
         />
       )}
     </div>

@@ -244,3 +244,24 @@ export const advanceStageSchema = z.object({
 });
 
 export type AdvanceStageInput = z.infer<typeof advanceStageSchema>;
+
+/**
+ * Schema for assign-rating API payload.
+ * Validates rating as integer 1–5.
+ *
+ * @example
+ *   const data = { rating: 4 };
+ *   const validated = assignRatingSchema.parse(data);
+ */
+export const assignRatingSchema = z.object({
+  rating: z
+    .number()
+    .int('Rating must be an integer')
+    .min(1, 'Rating must be between 1 and 5')
+    .max(5, 'Rating must be between 1 and 5'),
+});
+
+export type AssignRatingInput = z.infer<typeof assignRatingSchema>;
+
+/** Zod schema for rating validation (1–5 integer). */
+export const ratingSchema = z.number().int().min(1).max(5);

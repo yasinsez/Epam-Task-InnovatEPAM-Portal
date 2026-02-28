@@ -13,11 +13,17 @@ jest.mock('@/server/db/prisma', () => ({
   },
 }));
 
+jest.mock('@/lib/config/blind-review', () => ({
+  getBlindReviewConfig: jest.fn(),
+}));
+
 describe('evaluation-service', () => {
   const prisma = jest.requireMock('@/server/db/prisma').prisma;
+  const getBlindReviewConfig = jest.requireMock('@/lib/config/blind-review').getBlindReviewConfig;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    getBlindReviewConfig.mockReturnValue({ enabled: false, adminAuditEnabled: false });
   });
 
   it('should return null when idea not found', async () => {
@@ -218,6 +224,99 @@ describe('evaluation-service', () => {
     );
 
     expect(result?.evaluation.evaluatorDisplayName).toBe('eval@epam.com');
+  });
+
+  it('should set evaluatedUnderBlindReview when blind review enabled', async () => {
+    const { getBlindReviewConfig } = jest.requireMock('@/lib/config/blind-review');
+    getBlindReviewConfig.mockReturnValue({ enabled: true, adminAuditEnabled: false });
+
+    const updatedIdea = {
+      id: 'idea-1',
+      status: 'ACCEPTED' as const,
+      evaluation: {
+        decision: 'ACCEPTED',
+        comments: 'Approved',
+        evaluatedAt: new Date('2026-02-25T12:00:00Z'),
+        evaluator: { name: 'Admin', email: 'admin@example.com' },
+      },
+    };
+
+    prisma.idea.findUnique
+      .mockResolvedValueOnce({
+        id: 'idea-1',
+        status: 'SUBMITTED',
+        evaluation: null,
+      })
+      .mockResolvedValue(updatedIdea);
+
+    const createSpy = jest.fn().mockResolvedValue({});
+    prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+      const tx = {
+        evaluation: { create: createSpy },
+        idea: {
+          update: jest.fn().mockResolvedValue({}),
+          findUnique: jest.fn().mockResolvedValue(updatedIdea),
+        },
+      };
+      return fn(tx);
+    });
+
+    const result = await evaluateIdea('idea-1', 'eval-123', 'ACCEPTED', 'Great!');
+
+    expect(result).not.toBeNull();
+    expect(createSpy).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        ideaId: 'idea-1',
+        decision: 'ACCEPTED',
+        comments: 'Great!',
+        evaluatorId: 'eval-123',
+        evaluatedUnderBlindReview: true,
+      }),
+    });
+  });
+
+  it('should set evaluatedUnderBlindReview false when blind review disabled', async () => {
+    const { getBlindReviewConfig } = jest.requireMock('@/lib/config/blind-review');
+    getBlindReviewConfig.mockReturnValue({ enabled: false, adminAuditEnabled: false });
+
+    const updatedIdea = {
+      id: 'idea-1',
+      status: 'REJECTED' as const,
+      evaluation: {
+        decision: 'REJECTED',
+        comments: 'No',
+        evaluatedAt: new Date('2026-02-25T12:00:00Z'),
+        evaluator: { name: 'Eval', email: 'eval@example.com' },
+      },
+    };
+
+    prisma.idea.findUnique
+      .mockResolvedValueOnce({
+        id: 'idea-1',
+        status: 'SUBMITTED',
+        evaluation: null,
+      })
+      .mockResolvedValue(updatedIdea);
+
+    const createSpy = jest.fn().mockResolvedValue({});
+    prisma.$transaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
+      const tx = {
+        evaluation: { create: createSpy },
+        idea: {
+          update: jest.fn().mockResolvedValue({}),
+          findUnique: jest.fn().mockResolvedValue(updatedIdea),
+        },
+      };
+      return fn(tx);
+    });
+
+    await evaluateIdea('idea-1', 'eval-123', 'REJECTED', 'No.');
+
+    expect(createSpy).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        evaluatedUnderBlindReview: false,
+      }),
+    });
   });
 });
 

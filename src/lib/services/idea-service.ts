@@ -2,6 +2,8 @@ import { prisma } from '@/server/db/prisma';
 import { deleteAttachmentFile } from '@/lib/services/attachment-service';
 import type { UserRole } from '@/lib/auth/roles';
 import type { IdeaStatus } from '@prisma/client';
+import { getBlindReviewConfig } from '@/lib/config/blind-review';
+import { shouldMaskEvaluator } from '@/lib/utils/blind-review';
 
 // --- Types for idea listing and detail ---
 
@@ -41,6 +43,7 @@ export type IdeaDetail = {
     comments: string;
     evaluatedAt: Date;
     evaluatorDisplayName: string;
+    evaluatedUnderBlindReview?: boolean | null;
   } | null;
   attachments: {
     id: string;
@@ -244,6 +247,12 @@ export async function getIdeasForUser(
  * @returns Idea detail or null if not found/access denied
  * @throws May throw on Prisma/database errors
  *
+ * @remarks
+ * When blind review is enabled, evaluatorDisplayName is masked for submitters
+ * and non-admin users (shows "Reviewed"). Admins may see real name when
+ * BLIND_REVIEW_ADMIN_AUDIT_ENABLED is true. Evaluations with
+ * evaluatedUnderBlindReview=true always show "Reviewed" (FR-009).
+ *
  * @example
  *   const idea = await getIdeaForDetail(ideaId, userId, role);
  */
@@ -276,11 +285,25 @@ export async function getIdeaForDetail(
   const submitter =
     role === 'evaluator' || role === 'admin' ? (idea.user?.name || idea.user?.email) : undefined;
 
-  const evaluatorDisplayName = idea.evaluation?.evaluator
-    ? (idea.evaluation.evaluator.name || idea.evaluation.evaluator.email)
-    : idea.evaluation
-      ? 'Administrator'
-      : undefined;
+  const blindReviewConfig = getBlindReviewConfig();
+  let rawEvaluatorDisplayName: string | undefined;
+  if (idea.evaluation?.evaluator) {
+    rawEvaluatorDisplayName =
+      idea.evaluation.evaluator.name || idea.evaluation.evaluator.email;
+  } else if (idea.evaluation) {
+    rawEvaluatorDisplayName = 'Administrator';
+  } else {
+    rawEvaluatorDisplayName = undefined;
+  }
+
+  const mustMask = idea.evaluation && rawEvaluatorDisplayName
+    ? shouldMaskEvaluator(
+        { evaluatedUnderBlindReview: idea.evaluation.evaluatedUnderBlindReview },
+        role,
+        blindReviewConfig,
+      )
+    : false;
+  const evaluatorDisplayName = mustMask ? 'Reviewed' : (rawEvaluatorDisplayName ?? undefined);
 
   let currentStage: CurrentStageInfo | null = null;
   let completedStageNames: string[] = [];
@@ -319,6 +342,7 @@ export async function getIdeaForDetail(
           comments: idea.evaluation.comments,
           evaluatedAt: idea.evaluation.evaluatedAt,
           evaluatorDisplayName: evaluatorDisplayName ?? 'Administrator',
+          evaluatedUnderBlindReview: idea.evaluation.evaluatedUnderBlindReview ?? undefined,
         }
       : null,
     attachments: (idea.attachments ?? []).map((a) => ({

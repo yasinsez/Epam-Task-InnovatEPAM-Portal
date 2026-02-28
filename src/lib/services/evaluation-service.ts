@@ -4,6 +4,7 @@ import {
   getNextStage,
   isFinalStage,
 } from '@/lib/services/stage-service';
+import { getBlindReviewConfig } from '@/lib/config/blind-review';
 
 export type AdvanceResult = {
   id: string;
@@ -36,6 +37,11 @@ export type IdeaWithEvaluation = {
  * @param decision - "ACCEPTED" or "REJECTED"
  * @param comments - Required explanation (1-2000 chars)
  * @returns Updated idea with evaluation, or null if already evaluated (409 case)
+ *
+ * @remarks
+ * Sets evaluatedUnderBlindReview from getBlindReviewConfig().enabled at creation time.
+ * This flag ensures FR-009: evaluations done under blind review stay anonymous
+ * even if blind review is later disabled.
  */
 export async function evaluateIdea(
   ideaId: string,
@@ -53,6 +59,8 @@ export async function evaluateIdea(
 
   const evaluatorIdForDb = evaluatorId.startsWith('mock-') ? null : evaluatorId;
 
+  const blindReviewConfig = getBlindReviewConfig();
+
   try {
     const updated = await prisma.$transaction(async (tx) => {
       await tx.evaluation.create({
@@ -61,6 +69,7 @@ export async function evaluateIdea(
           decision,
           comments,
           evaluatorId: evaluatorIdForDb,
+          evaluatedUnderBlindReview: blindReviewConfig.enabled,
         },
       });
       await tx.idea.update({

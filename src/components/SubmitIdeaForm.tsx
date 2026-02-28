@@ -12,6 +12,7 @@ interface SubmitIdeaFormProps {
   categories: Category[];
   formConfig?: FormConfigDto | null;
   uploadConfig?: UploadConfigDisplay | null;
+  draftId?: string | null;
 }
 
 interface FormData {
@@ -34,10 +35,13 @@ interface SubmitIdeaFormState {
   files: File[];
   errors: FormErrors;
   isSubmitting: boolean;
+  isSavingDraft: boolean;
   submitError?: string;
   submitSuccess: boolean;
   submittedIdeaId?: string;
   retryCount: number;
+  draftLoaded: boolean;
+  draftId?: string;
 }
 
 /**
@@ -70,10 +74,62 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
       files: [],
       errors: {},
       isSubmitting: false,
+      isSavingDraft: false,
       submitSuccess: false,
       retryCount: 0,
+      draftLoaded: !props.draftId,
+      draftId: props.draftId ?? undefined,
     };
   }
+
+  componentDidMount(): void {
+    const { draftId } = this.props;
+    if (draftId) {
+      this.loadDraft(draftId);
+    }
+  }
+
+  componentDidUpdate(prevProps: SubmitIdeaFormProps): void {
+    if (this.props.draftId !== prevProps.draftId && this.props.draftId) {
+      this.loadDraft(this.props.draftId);
+    }
+  }
+
+  private loadDraft = async (draftId: string): Promise<void> => {
+    try {
+      const res = await fetch(`/api/drafts/${draftId}`);
+      const data = await res.json();
+      if (!res.ok || !data.draft) {
+        this.setState({ draftLoaded: true, submitError: data.error || 'Failed to load draft' });
+        return;
+      }
+      const draft = data.draft;
+      const dyn: Record<string, string | number | boolean | string[]> = {};
+      if (draft.dynamicFieldValues && typeof draft.dynamicFieldValues === 'object') {
+        for (const [k, v] of Object.entries(draft.dynamicFieldValues)) {
+          if (Array.isArray(v)) {
+            dyn[k] = v as string[];
+          } else if (typeof v === 'boolean' || typeof v === 'number') {
+            dyn[k] = v;
+          } else {
+            dyn[k] = String(v ?? '');
+          }
+        }
+      }
+      this.setState({
+        formData: {
+          title: draft.title || '',
+          description: draft.description || '',
+          categoryId: draft.categoryId || '',
+        },
+        dynamicFieldValues: dyn,
+        draftLoaded: true,
+        draftId,
+      });
+    } catch {
+      this.setState({ draftLoaded: true, submitError: 'Failed to load draft' });
+    }
+  };
 
   /**
    * Handles change events for form fields.
@@ -105,15 +161,163 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
   };
 
   /**
-   * Handles form submission with retry logic.
-   * Sends idea data to /api/ideas and handles success/error responses.
-   * Automatically retries up to 3 times on server errors (500).
+   * Handles form submission. When draftId present, submits draft via /api/drafts/[id]/submit.
+   * Otherwise submits new idea via /api/ideas.
    */
   handleSubmit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     this.setState({ isSubmitting: true, submitError: undefined, retryCount: 0 });
 
-    this.submitWithRetry();
+    const { draftId } = this.state;
+    if (draftId) {
+      this.submitDraftWithRetry();
+    } else {
+      this.submitWithRetry();
+    }
+  };
+
+  /**
+   * Handles Save draft. POST for new, PATCH for existing draft.
+   */
+  handleSaveDraft = async (event: React.MouseEvent): Promise<void> => {
+    event.preventDefault();
+    this.setState({ isSavingDraft: true, submitError: undefined });
+
+    const { formData, dynamicFieldValues, files, draftId } = this.state;
+    const cleanedDynamic: Record<string, string | number | boolean | string[]> = {};
+    Object.entries(dynamicFieldValues).forEach(([k, v]) => {
+      if (v === undefined || v === '') return;
+      if (Array.isArray(v) && v.length === 0) return;
+      cleanedDynamic[k] = v;
+    });
+
+    try {
+      let response: Response;
+      const payload = {
+        title: formData.title || undefined,
+        description: formData.description || undefined,
+        categoryId: formData.categoryId || null,
+        dynamicFieldValues: Object.keys(cleanedDynamic).length > 0 ? cleanedDynamic : undefined,
+      };
+
+      if (draftId) {
+        if (files.length > 0) {
+          const fd = new FormData();
+          fd.append('title', formData.title);
+          fd.append('description', formData.description);
+          fd.append('categoryId', formData.categoryId);
+          fd.append('dynamicFieldValues', JSON.stringify(cleanedDynamic));
+          for (const file of files) {
+            fd.append('attachments', file);
+          }
+          response = await fetch(`/api/drafts/${draftId}`, { method: 'PATCH', body: fd });
+        } else {
+          response = await fetch(`/api/drafts/${draftId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        }
+      } else {
+        if (files.length > 0) {
+          const fd = new FormData();
+          fd.append('title', formData.title);
+          fd.append('description', formData.description);
+          fd.append('categoryId', formData.categoryId);
+          fd.append('dynamicFieldValues', JSON.stringify(cleanedDynamic));
+          for (const file of files) {
+            fd.append('attachments', file);
+          }
+          response = await fetch('/api/drafts', { method: 'POST', body: fd });
+        } else {
+          response = await fetch('/api/drafts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+        }
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const err = data.error || 'Failed to save draft';
+        this.setState({
+          isSavingDraft: false,
+          submitError: err,
+          errors: (data.details as FormErrors) ?? {},
+        });
+        return;
+      }
+
+      const savedDraftId = data.draft?.id ?? draftId;
+      this.setState({
+        isSavingDraft: false,
+        draftId: savedDraftId,
+        submitSuccess: true,
+        submitError: undefined,
+      });
+      setTimeout(() => this.setState({ submitSuccess: false }), 3000);
+      if (!draftId && savedDraftId) {
+        window.history.replaceState(null, '', `/ideas/submit?draftId=${savedDraftId}`);
+      }
+    } catch (error) {
+      this.setState({
+        isSavingDraft: false,
+        submitError: error instanceof Error ? error.message : 'Failed to save draft',
+      });
+    }
+  };
+
+  private submitDraftWithRetry = async (): Promise<void> => {
+    const { formData, dynamicFieldValues, files, draftId } = this.state;
+    if (!draftId) return;
+
+    const cleanedDynamic: Record<string, string | number | boolean | string[]> = {};
+    Object.entries(dynamicFieldValues).forEach(([k, v]) => {
+      if (v === undefined || v === '') return;
+      if (Array.isArray(v) && v.length === 0) return;
+      cleanedDynamic[k] = v;
+    });
+
+    const payload = {
+      title: formData.title,
+      description: formData.description,
+      categoryId: formData.categoryId || null,
+      dynamicFieldValues: Object.keys(cleanedDynamic).length > 0 ? cleanedDynamic : undefined,
+    };
+
+    const response = await fetch(`/api/drafts/${draftId}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (data.details) {
+        this.setState({ errors: data.details as FormErrors, isSubmitting: false });
+      } else {
+        this.setState({
+          submitError: data.error || 'Failed to submit',
+          isSubmitting: false,
+        });
+      }
+      return;
+    }
+
+    this.setState({
+      submitSuccess: true,
+      formData: { title: '', description: '', categoryId: '' },
+      dynamicFieldValues: {},
+      files: [],
+      errors: {},
+      isSubmitting: false,
+      submittedIdeaId: data.idea?.id,
+      draftId: undefined,
+    });
+    setTimeout(() => this.setState({ submitSuccess: false, submittedIdeaId: undefined }), 3000);
   };
 
   /**
@@ -231,9 +435,21 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
   };
 
   render(): JSX.Element {
-    const { formData, dynamicFieldValues, files, errors, isSubmitting, submitError, submitSuccess, submittedIdeaId } =
-      this.state;
+    const {
+      formData,
+      dynamicFieldValues,
+      files,
+      errors,
+      isSubmitting,
+      isSavingDraft,
+      submitError,
+      submitSuccess,
+      submittedIdeaId,
+      draftLoaded,
+      draftId,
+    } = this.state;
     const { categories, uploadConfig: uploadConfigProp } = this.props;
+    const busy = isSubmitting || isSavingDraft;
 
     const uploadConfig: UploadConfigDisplay =
       uploadConfigProp ?? {
@@ -246,6 +462,14 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
           .join(', '),
       };
 
+    if (!draftLoaded && draftId) {
+      return (
+        <div className="submit-idea-form" aria-busy="true">
+          <p>Loading draft...</p>
+        </div>
+      );
+    }
+
     return (
       <form onSubmit={this.handleSubmit} className="submit-idea-form">
         {submitError && (
@@ -256,13 +480,15 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
 
         {submitSuccess && (
           <div className="success-message alert" role="alert" aria-live="polite">
-            Your idea has been submitted successfully!
-            {submittedIdeaId && (
-              <span>
-                {' '}
-                <Link href={`/ideas/${submittedIdeaId}`}>View your idea</Link>
-              </span>
-            )}
+            {submittedIdeaId
+              ? (
+                  <>
+                    Your idea has been submitted successfully!
+                    {' '}
+                    <Link href={`/ideas/${submittedIdeaId}`}>View your idea</Link>
+                  </>
+                )
+              : 'Draft saved.'}
           </div>
         )}
 
@@ -279,10 +505,10 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             name="title"
             value={formData.title}
             onChange={this.handleChange}
-            disabled={isSubmitting}
+            disabled={busy}
             aria-required="true"
             aria-describedby={errors.title ? 'title-error' : undefined}
-            aria-busy={isSubmitting}
+            aria-busy={busy}
             placeholder="Enter your idea title (5-100 characters)"
           />
           {errors.title && (
@@ -304,10 +530,10 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             name="description"
             value={formData.description}
             onChange={this.handleChange}
-            disabled={isSubmitting}
+            disabled={busy}
             aria-required="true"
             aria-describedby={errors.description ? 'description-error' : undefined}
-            aria-busy={isSubmitting}
+            aria-busy={busy}
             placeholder="Describe your idea in detail (20-2000 characters)"
             rows={6}
           />
@@ -330,10 +556,10 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
             name="categoryId"
             value={formData.categoryId}
             onChange={this.handleChange}
-            disabled={isSubmitting}
+            disabled={busy}
             aria-required="true"
             aria-describedby={errors.categoryId ? 'categoryId-error' : undefined}
-            aria-busy={isSubmitting}
+            aria-busy={busy}
           >
             <option value="">Select a category</option>
             {categories.map((category) => (
@@ -359,7 +585,7 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
                 dynamicFieldValues: { ...prev.dynamicFieldValues, [fieldId]: value },
               }))
             }
-            disabled={isSubmitting}
+            disabled={busy}
             error={errors[`dynamicFieldValues.${field.id}`]}
           />
         ))}
@@ -369,17 +595,28 @@ export class SubmitIdeaForm extends Component<SubmitIdeaFormProps, SubmitIdeaFor
           onChange={(newFiles) => this.setState({ files: newFiles })}
           config={uploadConfig}
           error={errors.attachment?.join(', ')}
-          disabled={isSubmitting}
+          disabled={busy}
         />
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          aria-busy={isSubmitting}
-          className={isSubmitting ? 'loading' : ''}
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Idea'}
-        </button>
+        <div className="form-actions">
+          <button
+            type="button"
+            onClick={this.handleSaveDraft}
+            disabled={busy}
+            aria-busy={isSavingDraft}
+            className={isSavingDraft ? 'loading' : 'btn btn--secondary'}
+          >
+            {isSavingDraft ? 'Saving...' : 'Save draft'}
+          </button>
+          <button
+            type="submit"
+            disabled={busy}
+            aria-busy={isSubmitting}
+            className={isSubmitting ? 'loading' : 'btn btn--primary'}
+          >
+            {isSubmitting ? 'Submitting...' : draftId ? 'Submit' : 'Submit Idea'}
+          </button>
+        </div>
       </form>
     );
   }

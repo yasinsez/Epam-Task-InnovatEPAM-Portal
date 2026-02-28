@@ -87,7 +87,7 @@ async function IdeaDetailContent({ id }: { id: string }) {
         </Link>
         <h1>{idea.title}</h1>
         <p className="idea-meta">
-          Category: {idea.category.name} | {formattedDate} | Status:{' '}
+          Category: {idea.category?.name ?? '—'} | {formattedDate} | Status:{' '}
           <span
             className="inline-flex rounded px-2 py-0.5 text-xs font-medium"
             style={{

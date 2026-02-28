@@ -18,10 +18,15 @@ export const metadata: Metadata = {
   keywords: ['innovation', 'ideas', 'submit', 'epam'],
 };
 
+type IdeaSubmitPageProps = {
+  searchParams: Promise<{ draftId?: string }>;
+};
+
 /**
  * Ideas Submission Page
  *
  * Allows authenticated users to submit innovation ideas.
+ * Supports ?draftId=xxx to load and edit an existing draft.
  * Prerequisites:
  * - User must be authenticated
  * - Categories must be seeded in the database
@@ -29,9 +34,11 @@ export const metadata: Metadata = {
  * Flow:
  * 1. Check user authentication
  * 2. Fetch active categories from database
- * 3. Render SubmitIdeaForm with categories
+ * 3. Render SubmitIdeaForm with categories and optional draftId
  */
-export default async function IdeaSubmitPage(): Promise<JSX.Element> {
+export default async function IdeaSubmitPage({ searchParams }: IdeaSubmitPageProps): Promise<JSX.Element> {
+  const params = await searchParams;
+  const draftId = params.draftId || null;
   // Check authentication
   const session = await getServerSession(authOptions);
 
@@ -76,6 +83,7 @@ export default async function IdeaSubmitPage(): Promise<JSX.Element> {
             categories={categories}
             formConfig={formConfig}
             uploadConfig={uploadConfigDisplay}
+            draftId={draftId}
           />
         )}
       </div>

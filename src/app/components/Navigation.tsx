@@ -141,6 +141,9 @@ export function Navigation() {
           {(role === 'submitter' || role === 'admin') && (
             <NavLink href="/ideas/submit" icon={icons.tasks}>Submit Idea</NavLink>
           )}
+          {role === 'submitter' && (
+            <NavLink href="/ideas/drafts" icon={icons.tasks}>My Drafts</NavLink>
+          )}
           <NavLink href="/ideas" icon={icons.tasks}>{ideasLabel}</NavLink>
           {(role === 'evaluator' || role === 'admin') && (
             <NavLink href="/dashboard/evaluator" icon={icons.analytics}>Assigned Ideas</NavLink>

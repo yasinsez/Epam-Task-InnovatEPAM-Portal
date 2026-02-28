@@ -14,6 +14,7 @@ enum UserRole {
 }
 
 enum IdeaStatus {
+  DRAFT
   SUBMITTED
   UNDER_REVIEW
   ACCEPTED
@@ -163,8 +164,8 @@ model Idea {
   description          String      @db.Text
   sanitizedTitle       String      @db.VarChar(100)
   sanitizedDescription String      @db.Text
-  categoryId           String
-  category             Category    @relation(fields: [categoryId], references: [id])
+  categoryId           String?
+  category             Category?   @relation(fields: [categoryId], references: [id])
   userId               String
   user                 User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   submittedAt          DateTime    @default(now())
@@ -176,6 +177,7 @@ model Idea {
   evaluation           Evaluation?
 
   @@index([userId])
+  @@index([userId, status])
   @@index([categoryId])
   @@index([submittedAt])
   @@index([userId, submittedAt])

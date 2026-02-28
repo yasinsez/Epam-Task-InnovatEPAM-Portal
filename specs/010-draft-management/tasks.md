@@ -24,8 +24,8 @@
 
 **Purpose**: Project initialization and draft-specific structure
 
-- [ ] T001 Create `src/app/api/drafts/` directory structure with `route.ts`, `[id]/route.ts`, and `[id]/submit/route.ts` placeholder files
-- [ ] T002 [P] Add `DraftSaveSchema` and `DraftCreateInput` type exports to `src/lib/validators.ts` (relaxed: title/description optional, categoryId optional; default title "Untitled draft", description "")
+- [x] T001 Create `src/app/api/drafts/` directory structure with `route.ts`, `[id]/route.ts`, and `[id]/submit/route.ts` placeholder files
+- [x] T002 [P] Add `DraftSaveSchema` and `DraftCreateInput` type exports to `src/lib/validators.ts` (relaxed: title/description optional, categoryId optional; default title "Untitled draft", description "")
 
 ---
 
@@ -35,12 +35,12 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Add DRAFT to IdeaStatus enum and make categoryId optional on Idea model in `prisma/schema.prisma`; add `@@index([userId, status])`; run `npx prisma migrate dev --name draft_management`
-- [ ] T004 Update Idea model consumers to handle null category (e.g. `idea.category?.name ?? '—'`) in `src/lib/services/idea-service.ts` and any display components that read idea.category
-- [ ] T005 Implement draft-service with getDraftsForUser, createDraft, getDraftById, updateDraft, discardDraft, submitDraft in `src/lib/services/draft-service.ts`; enforce 10-draft limit on create; use existing attachment-service for files
-- [ ] T006 Update idea-service: exclude status DRAFT from evaluator/admin idea lists in `src/lib/services/idea-service.ts`; add draft count to getSubmissionStats
-- [ ] T007 [P] Add unit tests for DraftSaveSchema in `tests/unit/lib/validators.test.ts`
-- [ ] T008 [P] Add unit tests for draft-service (create, list, update, discard, submit, limit enforcement) in `tests/unit/lib/services/draft-service.test.ts`
+- [x] T003 Add DRAFT to IdeaStatus enum and make categoryId optional on Idea model in `prisma/schema.prisma`; add `@@index([userId, status])`; run `npx prisma migrate dev --name draft_management`
+- [x] T004 Update Idea model consumers to handle null category (e.g. `idea.category?.name ?? '—'`) in `src/lib/services/idea-service.ts` and any display components that read idea.category
+- [x] T005 Implement draft-service with getDraftsForUser, createDraft, getDraftById, updateDraft, discardDraft, submitDraft in `src/lib/services/draft-service.ts`; enforce 10-draft limit on create; use existing attachment-service for files
+- [x] T006 Update idea-service: exclude status DRAFT from evaluator/admin idea lists in `src/lib/services/idea-service.ts`; add draft count to getSubmissionStats
+- [x] T007 [P] Add unit tests for DraftSaveSchema in `tests/unit/lib/validators.test.ts`
+- [x] T008 [P] Add unit tests for draft-service (create, list, update, discard, submit, limit enforcement) in `tests/unit/lib/services/draft-service.test.ts`
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
 
@@ -54,11 +54,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Implement GET (list) and POST (create) handlers in `src/app/api/drafts/route.ts` per contracts/api-drafts.md; validate role=submitter; enforce 10-draft limit on POST
-- [ ] T010 [US1] Implement GET, PATCH, DELETE handlers in `src/app/api/drafts/[id]/route.ts`; owner-only access; PATCH uses DraftSaveSchema
-- [ ] T011 [US1] Add Save draft button and draftId prop to `components/SubmitIdeaForm.tsx`; on Save draft (new): POST /api/drafts; on Save draft (existing): PATCH /api/drafts/[id]
-- [ ] T012 [US1] Update `src/app/ideas/submit/page.tsx` to support `?draftId=xxx`; when draftId present, fetch GET /api/drafts/[id] and populate form state; show Save draft and Submit buttons
-- [ ] T013 [US1] Add integration tests for GET list and POST create in `tests/integration/api/drafts/route.test.ts` (submitter success, 403 non-submitter, 400 when limit reached)
+- [x] T009 [US1] Implement GET (list) and POST (create) handlers in `src/app/api/drafts/route.ts` per contracts/api-drafts.md; validate role=submitter; enforce 10-draft limit on POST
+- [x] T010 [US1] Implement GET, PATCH, DELETE handlers in `src/app/api/drafts/[id]/route.ts`; owner-only access; PATCH uses DraftSaveSchema
+- [x] T011 [US1] Add Save draft button and draftId prop to `components/SubmitIdeaForm.tsx`; on Save draft (new): POST /api/drafts; on Save draft (existing): PATCH /api/drafts/[id]
+- [x] T012 [US1] Update `src/app/ideas/submit/page.tsx` to support `?draftId=xxx`; when draftId present, fetch GET /api/drafts/[id] and populate form state; show Save draft and Submit buttons
+- [x] T013 [US1] Add integration tests for GET list and POST create in `tests/integration/api/drafts/route.test.ts` (submitter success, 403 non-submitter, 400 when limit reached)
 
 **Checkpoint**: User Story 1 should be fully functional - submitters can save drafts and resume editing
 
@@ -72,9 +72,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Implement POST handler in `src/app/api/drafts/[id]/submit/route.ts`; full validation (SubmitIdeaSchema + createSubmissionSchema); on success: update idea status→SUBMITTED, submittedAt→now
-- [ ] T015 [US2] Update SubmitIdeaForm submit path: when draftId present and user clicks Submit, call POST /api/drafts/[id]/submit with merged form data; handle validation errors
-- [ ] T016 [US2] Add integration test for submit endpoint in `tests/integration/api/drafts/submit-route.test.ts` (success, validation failure, 404 not owner)
+- [x] T014 [US2] Implement POST handler in `src/app/api/drafts/[id]/submit/route.ts`; full validation (SubmitIdeaSchema + createSubmissionSchema); on success: update idea status→SUBMITTED, submittedAt→now
+- [x] T015 [US2] Update SubmitIdeaForm submit path: when draftId present and user clicks Submit, call POST /api/drafts/[id]/submit with merged form data; handle validation errors
+- [x] T016 [US2] Add integration test for submit endpoint in `tests/integration/api/drafts/submit-route.test.ts` (success, validation failure, 404 not owner)
 
 **Checkpoint**: User Stories 1 and 2 should both work - save draft, resume, submit
 
@@ -88,11 +88,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] Create drafts list page at `src/app/ideas/drafts/page.tsx`; fetch GET /api/drafts; render list with title (or "Untitled draft"), updatedAt, Open and Discard actions
-- [ ] T018 [US3] Implement Discard flow in drafts list: confirm dialog, then DELETE /api/drafts/[id]; refresh list on success
-- [ ] T019 [US3] Add DraftListItem component (optional) in `components/DraftListItem.tsx` for consistent list item UI with title, date, Open/Discard buttons
-- [ ] T020 [US3] Add integration test for GET by id and DELETE in `tests/integration/api/drafts/[id]/route.test.ts`
-- [ ] T021 [US3] Add E2E test for draft flows in `tests/e2e/draft-management.spec.ts`: save draft → navigate away → return → restore; complete → submit; discard; draft limit (11th save fails)
+- [x] T017 [US3] Create drafts list page at `src/app/ideas/drafts/page.tsx`; fetch GET /api/drafts; render list with title (or "Untitled draft"), updatedAt, Open and Discard actions
+- [x] T018 [US3] Implement Discard flow in drafts list: confirm dialog, then DELETE /api/drafts/[id]; refresh list on success
+- [x] T019 [US3] Add DraftListItem component (optional) in `components/DraftListItem.tsx` for consistent list item UI with title, date, Open/Discard buttons
+- [x] T020 [US3] Add integration test for GET by id and DELETE in `tests/integration/api/drafts/[id]/route.test.ts`
+- [x] T021 [US3] Add E2E test for draft flows in `tests/e2e/draft-management.spec.ts`: save draft → navigate away → return → restore; complete → submit; discard; draft limit (11th save fails)
 
 **Checkpoint**: All user stories functional - save, list, open, submit, discard
 
@@ -102,11 +102,11 @@
 
 **Purpose**: Navigation, draft count display, and validation
 
-- [ ] T022 Add "My Drafts" nav link for submitters in `src/app/components/Navigation.tsx` (or equivalent) pointing to /ideas/drafts
-- [ ] T023 [P] Update submitter dashboard to show draft count and link to drafts in `src/app/dashboard/submitter/page.tsx`
-- [ ] T024 Add JSDoc documentation to draft-service functions in `src/lib/services/draft-service.ts`
+- [x] T022 Add "My Drafts" nav link for submitters in `src/app/components/Navigation.tsx` (or equivalent) pointing to /ideas/drafts
+- [x] T023 [P] Update submitter dashboard to show draft count and link to drafts in `src/app/dashboard/submitter/page.tsx`
+- [x] T024 Add JSDoc documentation to draft-service functions in `src/lib/services/draft-service.ts`
 - [ ] T025 Run quickstart.md validation: manual verification of save draft, load draft, submit draft, discard, draft limit
-- [ ] T026 [P] Add contract test for drafts API in `tests/contract/api-drafts.test.ts` per contracts/api-drafts.md
+- [x] T026 [P] Add contract test for drafts API in `tests/contract/api-drafts.test.ts` per contracts/api-drafts.md
 
 ---
 

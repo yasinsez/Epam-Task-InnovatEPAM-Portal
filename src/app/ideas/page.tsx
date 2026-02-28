@@ -105,7 +105,7 @@ async function IdeasListContent({
             key={idea.id}
             id={idea.id}
             title={idea.title}
-            categoryName={idea.category.name}
+            categoryName={idea.category?.name ?? '—'}
             submittedAt={idea.submittedAt}
             hasAttachment={idea.hasAttachment}
             status={idea.status}

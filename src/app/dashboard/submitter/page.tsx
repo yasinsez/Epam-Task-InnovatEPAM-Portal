@@ -53,9 +53,11 @@ export default async function SubmitterDashboardPage() {
             </div>
           </li>
           <li className="dashboard-stats__card">
-            <div className="dashboard-stats__value">{stats.drafts}</div>
-            <div className="dashboard-stats__label">Drafts</div>
-            <div className="dashboard-stats__trend">Saved ideas</div>
+            <Link href="/ideas/drafts" className="dashboard-stats__link">
+              <div className="dashboard-stats__value">{stats.drafts}</div>
+              <div className="dashboard-stats__label">Drafts</div>
+              <div className="dashboard-stats__trend">Saved ideas</div>
+            </Link>
           </li>
           <li className="dashboard-stats__card">
             <div className="dashboard-stats__value">{stats.approved}</div>
